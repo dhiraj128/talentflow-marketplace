@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -37,7 +37,7 @@ api.interceptors.response.use(
         // Attempt token refresh
         const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null;
         if (refreshToken) {
-          const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1'}/auth/refresh`, {
+          const res = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api/v1'}/auth/refresh`, {
             refresh_token: refreshToken,
           });
           if (res.status === 200 && res.data.access_token) {

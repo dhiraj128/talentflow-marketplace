@@ -1,3 +1,6 @@
+// TODO: Backend Integration Required
+// This service currently relies on mock data for the freelancer dashboard.
+// Replace with real API calls once the freelancer endpoints are implemented.
 export interface FreelancerDashboardData {
   totalEarnings: number;
   activeProjects: number;

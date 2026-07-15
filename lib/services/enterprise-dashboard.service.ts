@@ -1,3 +1,6 @@
+// TODO: Backend Integration Required
+// This service currently relies on mock data for the enterprise dashboard.
+// Replace with real API calls (e.g., api.get('/analytics/dashboard')) once the backend analytics endpoints are implemented.
 import { DashboardResponse, DashboardMetric, LearningProgress, CategoryAnalytics, ActivityItem, TeamMember } from '../types/enterprise';
 
 // Simulated delay to mimic network request

@@ -1,3 +1,6 @@
+// TODO: Backend Integration Required
+// This service currently relies on mock-db for search functionality.
+// Replace with real API calls (e.g., api.get('/search')) once the backend search endpoints are implemented.
 import { unifiedJobs, unifiedTalent, unifiedFreelancers, unifiedCourses } from "../data/mock-db";
 
 export type SearchType = 'talent' | 'jobs' | 'freelancers' | 'courses';
