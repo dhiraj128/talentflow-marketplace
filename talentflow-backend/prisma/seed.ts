@@ -6,25 +6,15 @@ const prisma = new PrismaClient();
 async function main() {
   const passwordHash = await bcrypt.hash('password123', 10);
 
-  // Clean DB
-  await prisma.auditLog.deleteMany();
-  await prisma.notification.deleteMany();
-  await prisma.application.deleteMany();
-  await prisma.enrollment.deleteMany();
-  await prisma.certificate.deleteMany();
-  await prisma.candidateSkill.deleteMany();
-  await prisma.jobSkill.deleteMany();
-  await prisma.skill.deleteMany();
-  await prisma.course.deleteMany();
-  await prisma.job.deleteMany();
-  await prisma.billing.deleteMany();
-  await prisma.candidateProfile.deleteMany();
-  await prisma.employerProfile.deleteMany();
-  await prisma.user.deleteMany();
-
-  // Create Users
-  const admin = await prisma.user.create({
-    data: {
+  // 1. Admin
+  await prisma.user.upsert({
+    where: { email: 'demo@admin.com' },
+    update: {
+      passwordHash,
+      role: Role.ADMIN,
+      isEmailVerified: true,
+    },
+    create: {
       email: 'demo@admin.com',
       passwordHash,
       role: Role.ADMIN,
@@ -32,8 +22,15 @@ async function main() {
     },
   });
 
-  const employer = await prisma.user.create({
-    data: {
+  // 2. Employer
+  await prisma.user.upsert({
+    where: { email: 'demo@employer.com' },
+    update: {
+      passwordHash,
+      role: Role.EMPLOYER,
+      isEmailVerified: true,
+    },
+    create: {
       email: 'demo@employer.com',
       passwordHash,
       role: Role.EMPLOYER,
@@ -48,8 +45,15 @@ async function main() {
     },
   });
 
-  const candidate = await prisma.user.create({
-    data: {
+  // 3. Candidate
+  await prisma.user.upsert({
+    where: { email: 'demo@candidate.com' },
+    update: {
+      passwordHash,
+      role: Role.CANDIDATE,
+      isEmailVerified: true,
+    },
+    create: {
       email: 'demo@candidate.com',
       passwordHash,
       role: Role.CANDIDATE,
@@ -64,8 +68,15 @@ async function main() {
     },
   });
 
-  const freelancer = await prisma.user.create({
-    data: {
+  // 4. Freelancer
+  await prisma.user.upsert({
+    where: { email: 'demo@freelancer.com' },
+    update: {
+      passwordHash,
+      role: Role.FREELANCER,
+      isEmailVerified: true,
+    },
+    create: {
       email: 'demo@freelancer.com',
       passwordHash,
       role: Role.FREELANCER,
@@ -80,8 +91,15 @@ async function main() {
     },
   });
 
-  const trainer = await prisma.user.create({
-    data: {
+  // 5. Trainer
+  await prisma.user.upsert({
+    where: { email: 'demo@trainer.com' },
+    update: {
+      passwordHash,
+      role: Role.TRAINER,
+      isEmailVerified: true,
+    },
+    create: {
       email: 'demo@trainer.com',
       passwordHash,
       role: Role.TRAINER,
@@ -96,11 +114,20 @@ async function main() {
     },
   });
 
-  // Create Skills
-  const reactSkill = await prisma.skill.create({ data: { name: 'React', category: 'Frontend' } });
-  const nodeSkill = await prisma.skill.create({ data: { name: 'Node.js', category: 'Backend' } });
+  // Upsert Skills
+  await prisma.skill.upsert({
+    where: { name: 'React' },
+    update: { category: 'Frontend' },
+    create: { name: 'React', category: 'Frontend' },
+  });
 
-  console.log('Seeding complete!');
+  await prisma.skill.upsert({
+    where: { name: 'Node.js' },
+    update: { category: 'Backend' },
+    create: { name: 'Node.js', category: 'Backend' },
+  });
+
+  console.log('Seeding complete! Upserted all demo users and skills.');
 }
 
 main()
