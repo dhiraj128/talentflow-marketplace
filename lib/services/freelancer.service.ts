@@ -1,6 +1,5 @@
-// TODO: Backend Integration Required
-// This service currently relies on mock data for the freelancer dashboard.
-// Replace with real API calls once the freelancer endpoints are implemented.
+import api from '../api';
+
 export interface FreelancerDashboardData {
   totalEarnings: number;
   activeProjects: number;
@@ -14,20 +13,8 @@ export interface FreelancerDashboardData {
 
 class FreelancerService {
   async getFreelancerDashboard(): Promise<FreelancerDashboardData> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          totalEarnings: 12500,
-          activeProjects: 3,
-          pendingProposals: 5,
-          completedProjects: 14,
-          profileCompletion: 100,
-          portfolioCompletion: 85,
-          rating: 4.9,
-          messages: 2,
-        });
-      }, 500);
-    });
+    const response = await api.get('/freelancer/dashboard');
+    return response.data;
   }
 }
 

@@ -64,6 +64,38 @@ async function main() {
     },
   });
 
+  const freelancer = await prisma.user.create({
+    data: {
+      email: 'demo@freelancer.com',
+      passwordHash,
+      role: Role.FREELANCER,
+      isEmailVerified: true,
+      candidateProfile: {
+        create: {
+          fullName: 'Frank Freelance',
+          title: 'UI/UX Designer',
+          location: 'Remote',
+        },
+      },
+    },
+  });
+
+  const trainer = await prisma.user.create({
+    data: {
+      email: 'demo@trainer.com',
+      passwordHash,
+      role: Role.TRAINER,
+      isEmailVerified: true,
+      candidateProfile: {
+        create: {
+          fullName: 'Tina Trainer',
+          title: 'Tech Lead & Mentor',
+          location: 'New York, NY',
+        },
+      },
+    },
+  });
+
   // Create Skills
   const reactSkill = await prisma.skill.create({ data: { name: 'React', category: 'Frontend' } });
   const nodeSkill = await prisma.skill.create({ data: { name: 'Node.js', category: 'Backend' } });
