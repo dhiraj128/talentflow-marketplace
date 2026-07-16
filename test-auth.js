@@ -39,41 +39,48 @@ function makeRequest(path, method, body, token) {
   });
 }
 
-async function testAuth() {
-  const email = `testuser_${Date.now()}@example.com`;
-  const password = "Password123!";
-  
-  console.log('--- Registering User ---');
-  const regRes = await makeRequest('/auth/register', 'POST', {
-    email,
-    password,
-    role: 'CANDIDATE',
-    fullName: 'Test Candidate'
-  });
-  console.log('Register Response:', regRes.status, regRes.data);
-  
-  if (regRes.status !== 201 && regRes.status !== 200) {
-    console.error("Registration failed!");
-    return;
+async function runTests() {
+  const roles = ['CANDIDATE', 'EMPLOYER', 'FREELANCER', 'TRAINER'];
+  for (const role of roles) {
+    console.log(`\n=== Testing Role: ${role} ===`);
+    const email = `test_${role.toLowerCase()}_${Date.now()}@example.com`;
+    const password = "Password123!";
+    
+    console.log('--- Registering User ---');
+    const regRes = await makeRequest('/auth/register', 'POST', {
+      email,
+      password,
+      role: role,
+      fullName: `Test ${role}`
+    });
+    console.log('Register Response:', regRes.status, regRes.data);
+    
+    if (regRes.status !== 201 && regRes.status !== 200) {
+      console.error(`Registration failed for ${role}!`);
+      return;
+    }
+    
+    console.log('--- Logging In ---');
+    const loginRes = await makeRequest('/auth/login', 'POST', {
+      email,
+      password
+    });
+    
+    if (!loginRes.data.access_token) {
+      console.error(`Login failed for ${role}!`);
+      return;
+    }
+    
+    console.log('--- Getting Profile (/auth/me) ---');
+    const meRes = await makeRequest('/auth/me', 'GET', null, loginRes.data.access_token);
+    console.log('Me Response Profile:', meRes.data.profile);
+    
+    if (!meRes.data.profile) {
+      console.error(`Profile not created for ${role}!`);
+      return;
+    }
   }
-  
-  console.log('\n--- Logging In ---');
-  const loginRes = await makeRequest('/auth/login', 'POST', {
-    email,
-    password
-  });
-  console.log('Login Response:', loginRes.status, loginRes.data);
-  
-  if (!loginRes.data.access_token) {
-    console.error("Login failed!");
-    return;
-  }
-  
-  console.log('\n--- Getting Profile (/auth/me) ---');
-  const meRes = await makeRequest('/auth/me', 'GET', null, loginRes.data.access_token);
-  console.log('Me Response:', meRes.status, meRes.data);
-  
   console.log('\nAll auth tests passed!');
 }
 
-testAuth();
+runTests();

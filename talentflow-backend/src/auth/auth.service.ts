@@ -31,10 +31,14 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found');
     
     let profile = null;
-    if (user.role === Role.CANDIDATE || user.role === Role.FREELANCER) {
+    if (user.role === Role.CANDIDATE) {
       profile = await this.prisma.candidateProfile.findUnique({ where: { userId } });
     } else if (user.role === Role.EMPLOYER) {
       profile = await this.prisma.employerProfile.findUnique({ where: { userId } });
+    } else if (user.role === Role.FREELANCER) {
+      profile = await this.prisma.freelancerProfile.findUnique({ where: { userId } });
+    } else if (user.role === Role.TRAINER) {
+      profile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
     }
     
     return { ...user, profile };
@@ -85,7 +89,7 @@ export class AuthService {
       },
     });
 
-    if (registerDto.role === Role.CANDIDATE || registerDto.role === Role.FREELANCER) {
+    if (registerDto.role === Role.CANDIDATE) {
       await this.prisma.candidateProfile.create({
         data: {
           userId: user.id,
@@ -97,6 +101,20 @@ export class AuthService {
         data: {
           userId: user.id,
           companyName: registerDto.fullName || '',
+        }
+      });
+    } else if (registerDto.role === Role.FREELANCER) {
+      await this.prisma.freelancerProfile.create({
+        data: {
+          userId: user.id,
+          fullName: registerDto.fullName || '',
+        }
+      });
+    } else if (registerDto.role === Role.TRAINER) {
+      await this.prisma.trainerProfile.create({
+        data: {
+          userId: user.id,
+          fullName: registerDto.fullName || '',
         }
       });
     }
