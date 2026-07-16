@@ -11,12 +11,33 @@ export class JobsService {
     return this.prisma.job.create({ data: createJobDto });
   }
 
-  findAll(skip?: number, take?: number) {
-    return this.prisma.job.findMany({ skip, take });
+  findAll(filters: any) {
+    const where: any = { deletedAt: null, status: 'PUBLISHED' };
+    if (filters.employerId) {
+      where.employerId = filters.employerId;
+      delete where.status; // allow employer to see draft jobs too
+    }
+    if (filters.q) {
+      where.title = { contains: filters.q, mode: 'insensitive' };
+    }
+    if (filters.location) {
+      where.location = { contains: filters.location, mode: 'insensitive' };
+    }
+    if (filters.type) {
+      where.type = { contains: filters.type, mode: 'insensitive' };
+    }
+    return this.prisma.job.findMany({ 
+      where, 
+      include: { employer: true, applications: true },
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   findOne(id: string) {
-    return this.prisma.job.findUnique({ where: { id } });
+    return this.prisma.job.findUnique({ 
+      where: { id },
+      include: { employer: true, applications: true }
+    });
   }
 
   update(id: string, updateJobDto: UpdateJobDto) {

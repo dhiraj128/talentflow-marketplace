@@ -1,38 +1,36 @@
+"use client";
 import { PageHeader } from "@/components/shared/PageHeader"
 import { CourseCard } from "@/components/shared/CourseCard"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import { useEffect, useState } from "react"
+import { courseService } from "@/lib/services/course.service"
+import { useAuth } from "@/lib/auth-context"
 
 export default function CoursesPage() {
-  const courses = [
-    {
-      title: "Advanced React Patterns & Architecture",
-      instructor: "Jane Doe",
-      rating: 4.8,
-      enrolled: 450,
-      duration: "12h 30m",
-      price: "$99",
-      image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-      title: "Next.js Fullstack Development Masterclass",
-      instructor: "Jane Doe",
-      rating: 4.9,
-      enrolled: 320,
-      duration: "15h 15m",
-      price: "$129",
-      image: "https://images.unsplash.com/photo-1618477388954-7852f32655ec?q=80&w=600&auto=format&fit=crop"
-    },
-    {
-      title: "Modern UI/UX Design for Developers",
-      instructor: "Jane Doe",
-      rating: 4.7,
-      enrolled: 180,
-      duration: "8h 45m",
-      price: "$79",
-      image: "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?q=80&w=600&auto=format&fit=crop"
-    }
-  ]
+  const { user } = useAuth();
+  const [courses, setCourses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const trainerId = (user as any)?.profile?.id;
+      if (!trainerId) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const data = await courseService.getCourses({ trainerId });
+        setCourses(data);
+      } catch (error) {
+        console.error("Failed to fetch courses", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (user) fetchCourses();
+  }, [user]);
+
 
   return (
     <>
@@ -43,8 +41,21 @@ export default function CoursesPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8">
-        {courses.map((course, idx) => (
-          <CourseCard key={idx} {...course} />
+        {isLoading ? (
+          <div className="col-span-full text-center text-muted-foreground py-12">Loading courses...</div>
+        ) : courses.length === 0 ? (
+          <div className="col-span-full text-center text-muted-foreground py-12">No courses found.</div>
+        ) : courses.map((course, idx) => (
+          <CourseCard 
+            key={course.id || idx} 
+            title={course.title}
+            instructor={course.trainer?.fullName || "Trainer"}
+            rating={course.rating || 0}
+            enrolled={course.studentCount || 0}
+            duration={"TBA"}
+            price={"Free"}
+            image={course.thumbnailUrl || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=600&auto=format&fit=crop"}
+          />
         ))}
       </div>
     </>

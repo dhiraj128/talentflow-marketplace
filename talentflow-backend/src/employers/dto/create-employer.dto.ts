@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsUrl } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { SubscriptionTier } from '@prisma/client';
 
@@ -17,9 +17,29 @@ export class CreateEmployerDto {
   industry?: string;
 
   @ApiPropertyOptional()
-  @IsString()
+  @IsUrl()
   @IsOptional()
   logoUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  bio?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @ApiPropertyOptional()
+  @IsUrl()
+  @IsOptional()
+  websiteUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  location?: string;
 
   @ApiPropertyOptional({ enum: SubscriptionTier })
   @IsEnum(SubscriptionTier)
@@ -39,9 +59,29 @@ export class UpdateEmployerDto {
   industry?: string;
 
   @ApiPropertyOptional()
-  @IsString()
+  @IsUrl()
   @IsOptional()
   logoUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  bio?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @ApiPropertyOptional()
+  @IsUrl()
+  @IsOptional()
+  websiteUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  location?: string;
 
   @ApiPropertyOptional({ enum: SubscriptionTier })
   @IsEnum(SubscriptionTier)

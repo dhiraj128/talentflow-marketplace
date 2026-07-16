@@ -15,4 +15,8 @@ export class RegisterDto {
   @ApiProperty({ enum: Role, example: Role.CANDIDATE })
   @IsEnum(Role)
   role: Role;
+
+  @ApiProperty({ example: 'John Doe', required: false })
+  @IsString()
+  fullName?: string;
 }

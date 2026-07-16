@@ -1,78 +1,119 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ProfileCompletionCard } from "@/components/shared/ProfileCompletionCard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Filter, Download } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/lib/auth-context";
+import { employerService } from "@/lib/services/employer.service";
+import { toast } from "sonner";
 
-export default function profilePage() {
+export default function ProfilePage() {
+  const { user } = useAuth();
+  const profile = (user as any)?.profile;
+  const [formData, setFormData] = useState({
+    companyName: "",
+    industry: "",
+    bio: "",
+    location: "",
+    websiteUrl: "",
+    phone: ""
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        companyName: profile.companyName || "",
+        industry: profile.industry || "",
+        bio: profile.bio || "",
+        location: profile.location || "",
+        websiteUrl: profile.websiteUrl || "",
+        phone: profile.phone || ""
+      });
+    }
+  }, [profile]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile?.id) return;
+    setIsSaving(true);
+    try {
+      await employerService.updateEmployer(profile.id, formData);
+      toast("Profile updated", { description: "Your company information has been saved." });
+    } catch (error) {
+      toast.error("Error", { description: "Failed to update profile." });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">profile</h1>
-          <p className="text-muted-foreground mt-1">Manage your profile and view insights.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline"><Filter className="w-4 h-4 mr-2" /> Filter</Button>
-          <Button><Plus className="w-4 h-4 mr-2" /> Create New</Button>
-        </div>
-      </div>
+    <div className="max-w-7xl mx-auto p-8 space-y-8">
+      <PageHeader 
+        title="Company Profile" 
+        description="Manage your employer branding and company details"
+      />
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Card key={i}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Metric {i}</CardTitle>
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Company Details</CardTitle>
+              <CardDescription>Update your company public information.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+12,34{i}</div>
-              <p className="text-xs text-muted-foreground">+19% from last month</p>
+              <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSaveProfile}>
+                <div className="col-span-1 md:col-span-2 space-y-2">
+                  <Label>Company Name</Label>
+                  <Input name="companyName" value={formData.companyName} onChange={handleChange} placeholder="TechCorp Inc." />
+                </div>
+                <div className="space-y-2">
+                  <Label>Industry</Label>
+                  <Input name="industry" value={formData.industry} onChange={handleChange} placeholder="Technology" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Location</Label>
+                  <Input name="location" value={formData.location} onChange={handleChange} placeholder="San Francisco, CA" />
+                </div>
+                <div className="col-span-1 md:col-span-2 space-y-2">
+                  <Label>About Company</Label>
+                  <Textarea name="bio" value={formData.bio} onChange={handleChange} placeholder="Tell candidates about your company..." className="h-32" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Website URL</Label>
+                  <Input name="websiteUrl" value={formData.websiteUrl} onChange={handleChange} placeholder="https://techcorp.com" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input name="phone" value={formData.phone} onChange={handleChange} placeholder="+1 (555) 000-0000" />
+                </div>
+                <div className="col-span-1 md:col-span-2">
+                  <Button type="submit" disabled={isSaving}>{isSaving ? "Saving..." : "Save Profile"}</Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search..." className="pl-8" />
-            </div>
-            <Button variant="secondary"><Download className="w-4 h-4 mr-2" /> Export</Button>
-          </div>
-          <div className="rounded-md border overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-muted-foreground">
-                <tr className="border-b">
-                  <th className="h-10 px-4 text-left font-medium">ID</th>
-                  <th className="h-10 px-4 text-left font-medium">Name</th>
-                  <th className="h-10 px-4 text-left font-medium">Status</th>
-                  <th className="h-10 px-4 text-left font-medium">Date</th>
-                  <th className="h-10 px-4 text-right font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <tr key={i} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                    <td className="p-4 font-medium">#100{i}</td>
-                    <td className="p-4">Item Record {i}</td>
-                    <td className="p-4"><Badge variant="outline" className="text-green-600 bg-green-500/10">Active</Badge></td>
-                    <td className="p-4">2026-07-14</td>
-                    <td className="p-4 text-right"><Button variant="ghost" size="sm">View</Button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="space-y-6">
+          <ProfileCompletionCard
+            score={80}
+            missingItems={[
+              { label: "Upload Company Logo", href: "#logo" },
+            ]}
+          />
+        </div>
+      </div>
     </div>
   );
 }

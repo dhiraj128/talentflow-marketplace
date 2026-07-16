@@ -11,8 +11,15 @@ export class NotificationsService {
     return this.prisma.notification.create({ data: createNotificationDto });
   }
 
-  findAll(skip?: number, take?: number) {
-    return this.prisma.notification.findMany({ skip, take });
+  findAll(filters: { userId?: string; skip?: number; take?: number }) {
+    const where: any = {};
+    if (filters.userId) where.userId = filters.userId;
+    return this.prisma.notification.findMany({ 
+      where, 
+      skip: filters.skip, 
+      take: filters.take,
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   findOne(id: string) {

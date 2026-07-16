@@ -11,12 +11,24 @@ export class ApplicationsService {
     return this.prisma.application.create({ data: createApplicationDto });
   }
 
-  findAll(skip?: number, take?: number) {
-    return this.prisma.application.findMany({ skip, take });
+  findAll(filters: any) {
+    const where: any = {};
+    if (filters.candidateId) where.candidateId = filters.candidateId;
+    if (filters.jobId) where.jobId = filters.jobId;
+    if (filters.employerId) where.job = { employerId: filters.employerId };
+    
+    return this.prisma.application.findMany({ 
+      where, 
+      include: { candidate: true, job: { include: { employer: true } } },
+      orderBy: { appliedAt: 'desc' }
+    });
   }
 
   findOne(id: string) {
-    return this.prisma.application.findUnique({ where: { id } });
+    return this.prisma.application.findUnique({ 
+      where: { id },
+      include: { candidate: true, job: { include: { employer: true } } }
+    });
   }
 
   update(id: string, updateApplicationDto: UpdateApplicationDto) {

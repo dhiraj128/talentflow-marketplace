@@ -37,7 +37,7 @@ export class AuthController {
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   getProfile(@CurrentUser() user: any) {
-    return user;
+    return this.authService.getProfile(user.sub || user.userId);
   }
 
   @Post('refresh')

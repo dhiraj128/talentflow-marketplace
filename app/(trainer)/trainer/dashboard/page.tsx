@@ -112,33 +112,20 @@ export default function TrainerDashboard() {
           </Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <CourseCard 
-            title="Advanced React Patterns & Architecture"
-            instructor="You"
-            level="Advanced"
-            rating={4.9}
-            students={845}
-            duration="12.5 hrs"
-            tags={["React", "TypeScript", "Performance"]}
-          />
-          <CourseCard 
-            title="Next.js Full Stack Masterclass"
-            instructor="You"
-            level="Intermediate"
-            rating={4.8}
-            students={530}
-            duration="8.2 hrs"
-            tags={["Next.js", "Tailwind", "Prisma"]}
-          />
-          <CourseCard 
-            title="UI/UX Design Systems in Figma"
-            instructor="You"
-            level="Beginner"
-            rating={4.7}
-            students={120}
-            duration="6.0 hrs"
-            tags={["Figma", "UI Design", "Systems"]}
-          />
+          {stats?.recentCourses?.length > 0 ? stats.recentCourses.map((course: any) => (
+            <CourseCard 
+              key={course.id}
+              title={course.title}
+              instructor="You"
+              level={course.category || "General"}
+              rating={course.rating || 0}
+              students={course.studentCount || 0}
+              duration="Online"
+              tags={[]}
+            />
+          )) : (
+            <p className="text-sm text-muted-foreground">No courses published yet.</p>
+          )}
         </div>
       </div>
     </div>

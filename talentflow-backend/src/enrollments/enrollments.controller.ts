@@ -18,8 +18,11 @@ export class EnrollmentsController {
   }
 
   @Get()
-  findAll(@Query('skip') skip?: string, @Query('take') take?: string) {
-    return this.enrollmentsService.findAll(skip ? +skip : undefined, take ? +take : undefined);
+  findAll(
+    @Query('candidateId') candidateId?: string,
+    @Query('courseId') courseId?: string
+  ) {
+    return this.enrollmentsService.findAll({ candidateId, courseId });
   }
 
   @Get(':id')

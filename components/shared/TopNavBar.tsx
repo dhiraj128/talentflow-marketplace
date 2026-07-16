@@ -5,6 +5,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { useEffect, useState } from "react";
+import { notificationService } from "@/lib/services/notification.service";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -25,6 +27,32 @@ interface TopNavBarProps {
 
 export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarProps) {
   const { user, logout } = useAuth();
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (user?.id) {
+        try {
+          const data = await notificationService.getNotifications({ userId: user.id });
+          setNotifications(data);
+        } catch (error) {
+          console.error("Failed to load notifications", error);
+        }
+      }
+    };
+    fetchNotifications();
+  }, [user]);
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const markAsRead = async (id: string) => {
+    try {
+      await notificationService.markAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const getRoleBasePath = (role?: string | null) => {
     switch (role?.toUpperCase()) {
@@ -72,12 +100,42 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
               <Link href="/sign-in" className="hidden sm:inline-block">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-              <Link href="/sign-in">
+              <Link href="/sign-up">
                 <Button>Get Started</Button>
               </Link>
             </>
           ) : (
-            <DropdownMenu>
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-600" />
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80">
+                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup className="max-h-[300px] overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">No notifications</div>
+                    ) : (
+                      notifications.map(n => (
+                        <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-1 p-3 cursor-pointer" onClick={() => !n.isRead && markAsRead(n.id)}>
+                          <div className="flex w-full justify-between items-center">
+                            <span className={cn("font-medium text-sm", !n.isRead ? "text-foreground" : "text-muted-foreground")}>{n.title}</span>
+                            {!n.isRead && <span className="h-2 w-2 rounded-full bg-blue-500" />}
+                          </div>
+                          <span className="text-xs text-muted-foreground">{n.message}</span>
+                        </DropdownMenuItem>
+                      ))
+                    )}
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
               <DropdownMenuTrigger className={cn("relative h-8 w-8 rounded-full focus:outline-none flex items-center justify-center")}>
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.avatar} alt={user.name || user.email} />
@@ -109,6 +167,7 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           )}
 
           {/* Mobile Menu */}

@@ -6,20 +6,25 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('jobs')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('jobs')
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createJobDto: CreateJobDto) {
     return this.jobsService.create(createJobDto);
   }
 
   @Get()
-  findAll(@Query('skip') skip?: string, @Query('take') take?: string) {
-    return this.jobsService.findAll(skip ? +skip : undefined, take ? +take : undefined);
+  findAll(
+    @Query('q') q?: string,
+    @Query('location') location?: string,
+    @Query('type') type?: string,
+    @Query('employerId') employerId?: string
+  ) {
+    return this.jobsService.findAll({ q, location, type, employerId });
   }
 
   @Get(':id')
@@ -27,11 +32,15 @@ export class JobsController {
     return this.jobsService.findOne(id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto) {
     return this.jobsService.update(id, updateJobDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.jobsService.remove(id);

@@ -1,9 +1,32 @@
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, FileText, CheckCircle, BarChart, PenTool } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { resumeService } from "@/lib/services/resume.service";
 
 export default function ResumeCenterPage() {
+  const { user } = useAuth();
+  const [resumeCount, setResumeCount] = useState(0);
+
+  useEffect(() => {
+    const fetchResumes = async () => {
+      const candidateId = (user as any)?.profile?.id;
+      if (candidateId) {
+        try {
+          const resumes = await resumeService.getResumes(candidateId);
+          setResumeCount(resumes.length);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+    if (user) fetchResumes();
+  }, [user]);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -39,7 +62,7 @@ export default function ResumeCenterPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Active Versions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            <div className="text-2xl font-bold">{resumeCount}</div>
             <p className="text-xs text-muted-foreground mt-1">Tailored resumes</p>
           </CardContent>
         </Card>

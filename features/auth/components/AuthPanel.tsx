@@ -24,13 +24,6 @@ const signInSchema = z.object({
 });
 type SignInValues = z.infer<typeof signInSchema>;
 
-const DEMO_EMAILS: Record<string, string> = {
-  'job-seeker': "demo@jobseeker.com",
-  employer: "demo@employer.com",
-  freelancer: "demo@freelancer.com",
-  trainer: "demo@trainer.com",
-  admin: "demo@admin.com",
-};
 
 const ROLES = [
   { id: 'job-seeker', label: 'Job Seeker', icon: Briefcase },
@@ -43,18 +36,12 @@ const ROLES = [
 export function AuthPanel() {
   const router = useRouter();
   const { login } = useAuth();
-  const [activeTab, setActiveTab] = useState<keyof typeof DEMO_EMAILS>('job-seeker');
+  const [activeTab, setActiveTab] = useState<string>('job-seeker');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { email: DEMO_EMAILS['job-seeker'], password: "password123" },
   });
-
-  useEffect(() => {
-    setValue("email", DEMO_EMAILS[activeTab]);
-    setValue("password", "password123");
-  }, [activeTab, setValue]);
 
   const loginMutation = useMutation({
     mutationFn: (data: SignInValues) => authService.login(data),
@@ -62,13 +49,11 @@ export function AuthPanel() {
       setErrorMsg(null);
       login(res.access_token, res.refresh_token, res.user);
       const role = res.user.role.toUpperCase();
-      setTimeout(() => {
-        if (role === 'ADMIN') router.push('/admin/dashboard');
-        else if (role === 'EMPLOYER') router.push('/employer/dashboard');
-        else if (role === 'FREELANCER') router.push('/freelancer/dashboard');
-        else if (role === 'TRAINER') router.push('/trainer/dashboard');
-        else router.push('/job-seeker/dashboard');
-      }, 100);
+      if (role === 'ADMIN') router.push('/admin/dashboard');
+      else if (role === 'EMPLOYER') router.push('/employer/dashboard');
+      else if (role === 'FREELANCER') router.push('/freelancer/dashboard');
+      else if (role === 'TRAINER') router.push('/trainer/dashboard');
+      else router.push('/job-seeker/dashboard');
     },
     onError: (error: any) => {
       setErrorMsg(error?.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -164,6 +149,10 @@ export function AuthPanel() {
               <Button variant="outline" type="button" className="h-[44px] xl:h-[48px] bg-[#0F1E33] border-[#22344F] text-slate-300 hover:bg-[#142640] hover:text-white rounded-xl lg:rounded-[20px] transition-colors shadow-sm">
                 <Globe className="mr-2 h-4 w-4" /> GitHub
               </Button>
+            </div>
+            <div className="mt-4 text-center">
+              <span className="text-slate-400 text-sm">Don't have an account? </span>
+              <Link href="/sign-up" className="text-[#2563EB] hover:text-blue-400 hover:underline font-medium transition-colors">Sign up</Link>
             </div>
           </div>
 

@@ -56,8 +56,11 @@ model User {
 
   employerProfile  EmployerProfile?
   candidateProfile CandidateProfile?
+  trainerProfile   TrainerProfile?
+  freelancerProfile FreelancerProfile?
   auditLogs        AuditLog[]        @relation("ActionBy")
   notifications    Notification[]
+  sentMessages     Message[]
 }
 
 // ==========================================
@@ -70,6 +73,10 @@ model EmployerProfile {
   companyName  String
   industry     String?
   logoUrl      String?
+  bio          String?
+  phone        String?
+  websiteUrl   String?
+  location     String?
   subscription SubscriptionTier @default(FREE)
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
@@ -84,17 +91,57 @@ model CandidateProfile {
   userId    String   @unique
   fullName  String
   title     String?
-  location  String?
-  avatarUrl String?
-  resumeUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  location     String?
+  avatarUrl    String?
+  resumeUrl    String?
+  bio          String?
+  phone        String?
+  portfolioUrl String?
+  githubUrl    String?
+  linkedinUrl  String?
+  experience   Json?
+  education    Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   skills       CandidateSkill[]
   applications Application[]
   enrollments  Enrollment[]
   certificates Certificate[]
+  resumes      Resume[]
+  coverLetters CoverLetter[]
+}
+
+model TrainerProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  fullName  String
+  bio       String?
+  expertise String?
+  avatarUrl String?
+  rating    Float?   @default(0.0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses Course[]
+}
+
+model FreelancerProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  fullName     String
+  title        String?
+  bio          String?
+  hourlyRate   Float?
+  portfolioUrl String?
+  githubUrl    String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // ==========================================
@@ -182,9 +229,11 @@ model Course {
   thumbnailUrl String?
   rating       Float?   @default(0.0)
   studentCount Int      @default(0)
+  trainerId    String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  trainer      TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Cascade)
   enrollments  Enrollment[]
   certificates Certificate[]
 }
@@ -231,6 +280,30 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Conversation {
+  id        String   @id @default(uuid())
+  participant1Id String
+  participant2Id String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages Message[]
+
+  @@unique([participant1Id, participant2Id])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
 model AuditLog {
   id        String   @id @default(uuid())
   actionBy  String // User ID
@@ -262,9 +335,16 @@ model Billing {
 // ==========================================
 
 model Resume {
-  id        String   @id @default(uuid())
-  title     String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  candidateId String
+  title       String?
+  content     Json?
+  fileUrl     String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  candidate CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 }
 
 model ResumeTemplate {
@@ -304,9 +384,14 @@ model ResumeWriter {
 }
 
 model CoverLetter {
-  id        String   @id @default(uuid())
-  content   String
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  candidateId String
+  title       String?
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  candidate CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 }
 
 model ResumeVerification {

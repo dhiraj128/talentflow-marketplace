@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ProfileCompletionCard } from "@/components/shared/ProfileCompletionCard";
 import { VerificationModule } from "@/components/shared/VerificationModule";
@@ -8,8 +9,78 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/lib/auth-context";
+import { candidateService } from "@/lib/services/candidate.service";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
+  const { user } = useAuth();
+  const profile = (user as any)?.profile;
+  const [formData, setFormData] = useState({
+    fullName: "",
+    title: "",
+    bio: "",
+    linkedinUrl: "",
+    githubUrl: "",
+    portfolioUrl: ""
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSavingLinks, setIsSavingLinks] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        fullName: profile.fullName || "",
+        title: profile.title || "",
+        bio: profile.bio || "",
+        linkedinUrl: profile.linkedinUrl || "",
+        githubUrl: profile.githubUrl || "",
+        portfolioUrl: profile.portfolioUrl || ""
+      });
+    }
+  }, [profile]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile?.id) return;
+    setIsSaving(true);
+    try {
+      await candidateService.updateCandidate(profile.id, {
+        fullName: formData.fullName,
+        title: formData.title,
+        bio: formData.bio
+      });
+      toast("Profile updated", { description: "Your basic information has been saved." });
+    } catch (error) {
+      toast.error("Error", { description: "Failed to update profile." });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveLinks = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile?.id) return;
+    setIsSavingLinks(true);
+    try {
+      await candidateService.updateCandidate(profile.id, {
+        linkedinUrl: formData.linkedinUrl,
+        githubUrl: formData.githubUrl,
+        portfolioUrl: formData.portfolioUrl
+      });
+      toast("Links updated", { description: "Your social links have been saved." });
+    } catch (error) {
+      toast.error("Error", { description: "Failed to update links." });
+    } finally {
+      setIsSavingLinks(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-8 space-y-8">
       <PageHeader 
@@ -25,25 +96,21 @@ export default function ProfilePage() {
               <CardDescription>Update your photo and personal details.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label>First Name</Label>
-                  <Input placeholder="John" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Last Name</Label>
-                  <Input placeholder="Doe" />
+              <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSaveProfile}>
+                <div className="col-span-1 md:col-span-2 space-y-2">
+                  <Label>Full Name</Label>
+                  <Input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="John Doe" />
                 </div>
                 <div className="col-span-1 md:col-span-2 space-y-2">
                   <Label>Headline</Label>
-                  <Input placeholder="Senior Frontend Developer | React | TypeScript" />
+                  <Input name="title" value={formData.title} onChange={handleChange} placeholder="Senior Frontend Developer | React | TypeScript" />
                 </div>
                 <div className="col-span-1 md:col-span-2 space-y-2">
                   <Label>About</Label>
-                  <Textarea placeholder="Tell employers about yourself..." className="h-32" />
+                  <Textarea name="bio" value={formData.bio} onChange={handleChange} placeholder="Tell employers about yourself..." className="h-32" />
                 </div>
                 <div className="col-span-1 md:col-span-2">
-                  <Button>Save Profile</Button>
+                  <Button type="submit" disabled={isSaving}>{isSaving ? "Saving..." : "Save Profile"}</Button>
                 </div>
               </form>
             </CardContent>
@@ -71,20 +138,22 @@ export default function ProfilePage() {
               <CardDescription>Connect your professional networks.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSaveLinks}>
                 <div className="space-y-2">
                   <Label>LinkedIn</Label>
-                  <Input placeholder="https://linkedin.com/in/johndoe" />
+                  <Input name="linkedinUrl" value={formData.linkedinUrl} onChange={handleChange} placeholder="https://linkedin.com/in/johndoe" />
                 </div>
                 <div className="space-y-2">
                   <Label>GitHub</Label>
-                  <Input placeholder="https://github.com/johndoe" />
+                  <Input name="githubUrl" value={formData.githubUrl} onChange={handleChange} placeholder="https://github.com/johndoe" />
                 </div>
                 <div className="space-y-2">
                   <Label>Portfolio</Label>
-                  <Input placeholder="https://johndoe.com" />
+                  <Input name="portfolioUrl" value={formData.portfolioUrl} onChange={handleChange} placeholder="https://johndoe.com" />
                 </div>
-                <Button variant="outline" className="w-full">Update Links</Button>
+                <Button variant="outline" className="w-full" type="submit" disabled={isSavingLinks}>
+                  {isSavingLinks ? "Updating..." : "Update Links"}
+                </Button>
               </form>
             </CardContent>
           </Card>

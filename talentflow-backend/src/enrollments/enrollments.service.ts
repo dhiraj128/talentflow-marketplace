@@ -11,8 +11,15 @@ export class EnrollmentsService {
     return this.prisma.enrollment.create({ data: createEnrollmentDto });
   }
 
-  findAll(skip?: number, take?: number) {
-    return this.prisma.enrollment.findMany({ skip, take });
+  findAll(filters: any) {
+    const where: any = {};
+    if (filters.candidateId) where.candidateId = filters.candidateId;
+    if (filters.courseId) where.courseId = filters.courseId;
+    return this.prisma.enrollment.findMany({ 
+      where,
+      include: { course: true },
+      orderBy: { enrolledAt: 'desc' }
+    });
   }
 
   findOne(id: string) {

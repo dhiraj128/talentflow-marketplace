@@ -28,14 +28,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem('access_token');
     const storedUser = localStorage.getItem('user');
 
     if (token && storedUser) {
       try {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUser(JSON.parse(storedUser));
+        
+        // Fetch fresh profile
+        fetch(process.env.NEXT_PUBLIC_API_BASE_URL + '/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => {
+          if (res.ok) return res.json();
+          throw new Error('Failed to fetch profile');
+        })
+        .then(freshUser => {
+          // Normalize role for frontend if needed, or just merge
+          const updated = { ...JSON.parse(storedUser), ...freshUser, role: freshUser.role.toLowerCase().replace('_', '-') };
+          setUser(updated);
+          localStorage.setItem('user', JSON.stringify(updated));
+        })
+        .catch(err => {
+          console.error("Failed to fetch fresh user data", err);
+        });
+
       } catch (e) {
         console.error("Failed to parse user data", e);
       }

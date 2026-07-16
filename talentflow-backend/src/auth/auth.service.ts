@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,24 @@ export class AuthService {
       return result;
     }
     return null;
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, role: true, isEmailVerified: true, createdAt: true }
+    });
+    
+    if (!user) throw new UnauthorizedException('User not found');
+    
+    let profile = null;
+    if (user.role === Role.CANDIDATE || user.role === Role.FREELANCER) {
+      profile = await this.prisma.candidateProfile.findUnique({ where: { userId } });
+    } else if (user.role === Role.EMPLOYER) {
+      profile = await this.prisma.employerProfile.findUnique({ where: { userId } });
+    }
+    
+    return { ...user, profile };
   }
 
   async login(loginDto: LoginDto) {
@@ -65,6 +84,22 @@ export class AuthService {
         isEmailVerified: false,
       },
     });
+
+    if (registerDto.role === Role.CANDIDATE || registerDto.role === Role.FREELANCER) {
+      await this.prisma.candidateProfile.create({
+        data: {
+          userId: user.id,
+          fullName: registerDto.fullName || '',
+        }
+      });
+    } else if (registerDto.role === Role.EMPLOYER) {
+      await this.prisma.employerProfile.create({
+        data: {
+          userId: user.id,
+          companyName: registerDto.fullName || '',
+        }
+      });
+    }
 
     return this.login({ email: registerDto.email, password: registerDto.password });
   }

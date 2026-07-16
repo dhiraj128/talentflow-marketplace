@@ -1,8 +1,9 @@
 import api from '../api';
 
 export const courseService = {
-  getCourses: async () => {
-    const response = await api.get('/courses');
+  getCourses: async (params?: any) => {
+    const query = params ? new URLSearchParams(params).toString() : '';
+    const response = await api.get(`/courses${query ? `?${query}` : ''}`);
     return response.data;
   },
   getCourse: async (id: string) => {

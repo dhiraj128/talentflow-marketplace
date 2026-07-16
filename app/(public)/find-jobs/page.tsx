@@ -252,14 +252,14 @@ function FindJobsContent() {
                         )}
                       </div>
                       <CardDescription className="flex items-center gap-4 text-base flex-wrap">
-                        <Link href={`/company/${job.id}`} className="font-medium text-foreground hover:underline">
-                          {job.company}
+                        <Link href={`/company/${job.employerId}`} className="font-medium text-foreground hover:underline">
+                          {job.employer?.companyName || "Unknown Company"}
                         </Link>
                         <span className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" /> {job.location}
+                          <MapPin className="h-4 w-4" /> {job.location || "Remote"}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Briefcase className="h-4 w-4" /> {job.type}
+                          <Briefcase className="h-4 w-4" /> {job.type || "Full-time"}
                         </span>
                       </CardDescription>
                     </div>
@@ -269,14 +269,14 @@ function FindJobsContent() {
                   </CardHeader>
                   <CardContent>
                      <div className="flex gap-2 flex-wrap mb-4">
-                        {job.skills.map((skill: string) => (
-                          <Badge key={skill} variant="outline" className="font-normal text-muted-foreground">
-                            {skill}
+                        {(job.requiredSkills || []).map((skill: any) => (
+                          <Badge key={skill.skillId || skill} variant="outline" className="font-normal text-muted-foreground">
+                            {skill.skill?.name || skill}
                           </Badge>
                         ))}
                      </div>
                      <p className="text-sm text-muted-foreground">
-                       Salary: <span className="font-medium text-foreground">{job.salary}</span> • Posted {job.posted}
+                       Salary: <span className="font-medium text-foreground">{job.salaryRange || "Not specified"}</span> • Posted {new Date(job.createdAt).toLocaleDateString()}
                      </p>
                   </CardContent>
                   <CardFooter className="pt-0">

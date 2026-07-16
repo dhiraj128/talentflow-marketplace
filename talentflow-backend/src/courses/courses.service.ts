@@ -8,11 +8,25 @@ export class CoursesService {
   constructor(private prisma: PrismaService) {}
 
   create(createCourseDto: CreateCourseDto) {
-    return this.prisma.course.create({ data: createCourseDto });
+    return this.prisma.course.create({ data: createCourseDto as any });
   }
 
-  findAll(skip?: number, take?: number) {
-    return this.prisma.course.findMany({ skip, take });
+  findAll(filters: any) {
+    const where: any = {};
+    if (filters.q) {
+      where.title = { contains: filters.q, mode: 'insensitive' };
+    }
+    if (filters.category) {
+      where.category = { contains: filters.category, mode: 'insensitive' };
+    }
+    if (filters.trainerId) {
+      where.trainerId = filters.trainerId;
+    }
+    return this.prisma.course.findMany({ 
+      where,
+      include: { trainer: true },
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   findOne(id: string) {

@@ -1,11 +1,35 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ResumeCenterService {
+  constructor(private prisma: PrismaService) {}
+
+  create(data: any) {
+    return this.prisma.resume.create({ data });
+  }
+
+  findAll(candidateId?: string) {
+    const where: any = {};
+    if (candidateId) where.candidateId = candidateId;
+    return this.prisma.resume.findMany({ where, orderBy: { createdAt: 'desc' } });
+  }
+
+  findOne(id: string) {
+    return this.prisma.resume.findUnique({ where: { id } });
+  }
+
+  update(id: string, data: any) {
+    return this.prisma.resume.update({ where: { id }, data });
+  }
+
+  remove(id: string) {
+    return this.prisma.resume.delete({ where: { id } });
+  }
+
   async uploadDocument(): Promise<string> {
     return 'Document uploaded successfully';
   }
-
   async replaceDocument(documentId: string): Promise<string> {
     return `Document ${documentId} replaced successfully`;
   }

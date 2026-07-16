@@ -18,8 +18,8 @@ export class NotificationsController {
   }
 
   @Get()
-  findAll(@Query('skip') skip?: string, @Query('take') take?: string) {
-    return this.notificationsService.findAll(skip ? +skip : undefined, take ? +take : undefined);
+  findAll(@Query('userId') userId?: string, @Query('skip') skip?: string, @Query('take') take?: string) {
+    return this.notificationsService.findAll({ userId, skip: skip ? +skip : undefined, take: take ? +take : undefined });
   }
 
   @Get(':id')

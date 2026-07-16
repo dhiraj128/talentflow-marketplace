@@ -6,31 +6,53 @@ import { Timeline } from "@/components/shared/Timeline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-const APPLICATIONS = [
-  { id: 1, role: "Senior Frontend Developer", company: "TechCorp", date: "2024-03-10", status: "Interviewing", type: "Full-time" },
-  { id: 2, role: "React Engineer", company: "StartupX", date: "2024-03-08", status: "Offer", type: "Contract" },
-  { id: 3, role: "UI Developer", company: "DesignHub", date: "2024-03-05", status: "Applied", type: "Full-time" },
-  { id: 4, role: "Frontend Lead", company: "BigTech", date: "2024-03-01", status: "Rejected", type: "Full-time" },
-];
+import { applicationService } from "@/lib/services/application.service";
+import { useAuth } from "@/lib/auth-context";
 
 export default function ApplicationsPage() {
-  const [selectedApp, setSelectedApp] = useState(APPLICATIONS[0]);
+  const { user } = useAuth();
+  const [selectedApp, setSelectedApp] = useState<any>(null);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      const candidateId = (user as any)?.profile?.id;
+      if (!candidateId) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const data = await applicationService.getApplications({ candidateId });
+        setApplications(data);
+      } catch (error) {
+        console.error("Failed to load applications", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (user) fetchApplications();
+  }, [user]);
 
   const columns = [
-    { header: "Role", accessorKey: "role" },
-    { header: "Company", accessorKey: "company" },
-    { header: "Applied Date", accessorKey: "date" },
+    { header: "Role", accessorKey: "job.title" },
+    { header: "Company", accessorKey: "job.employer.companyName" },
+    { 
+      header: "Applied Date", 
+      accessorKey: "appliedAt",
+      cell: (row: any) => new Date(row.appliedAt).toLocaleDateString()
+    },
     { 
       header: "Status", 
       accessorKey: "status",
       cell: (row: any) => (
         <Badge variant={
-          row.status === "Offer" ? "default" :
-          row.status === "Interviewing" ? "secondary" :
-          row.status === "Rejected" ? "destructive" : "outline"
+          row.status === "OFFERED" ? "default" :
+          row.status === "INTERVIEWING" ? "secondary" :
+          row.status === "REJECTED" ? "destructive" : "outline"
         }>
           {row.status}
         </Badge>
@@ -50,10 +72,10 @@ export default function ApplicationsPage() {
             </DialogHeader>
             <div className="py-4">
               <Timeline items={[
-                { title: "Application Submitted", description: "Your application was sent", date: row.date, status: "completed" },
-                { title: "Resume Review", description: "Recruiter is reviewing your profile", date: "2 days later", status: row.status !== "Applied" ? "completed" : "current" },
-                { title: "Interview Status", description: "Technical and Cultural rounds", date: "TBD", status: row.status === "Interviewing" ? "current" : (row.status === "Offer" || row.status === "Rejected" ? "completed" : "upcoming") },
-                { title: "Offer", description: "Final decision", date: "TBD", status: row.status === "Offer" ? "completed" : (row.status === "Rejected" ? "error" : "upcoming") }
+                { title: "Application Submitted", description: "Your application was sent", date: new Date(row.appliedAt).toLocaleDateString(), status: "completed" },
+                { title: "Resume Review", description: "Recruiter is reviewing your profile", date: "Pending", status: row.status === "PENDING" ? "current" : "completed" },
+                { title: "Interview Status", description: "Technical and Cultural rounds", date: "TBD", status: row.status === "INTERVIEWING" ? "current" : (row.status === "OFFERED" || row.status === "REJECTED" ? "completed" : "upcoming") },
+                { title: "Offer", description: "Final decision", date: "TBD", status: row.status === "OFFERED" ? "completed" : (row.status === "REJECTED" ? "error" : "upcoming") }
               ]} />
             </div>
           </DialogContent>
@@ -70,11 +92,15 @@ export default function ApplicationsPage() {
       />
 
       <div className="bg-card rounded-xl border">
-        <DataTable 
-          data={APPLICATIONS}
-          columns={columns}
-          searchKey="role"
-        />
+        {isLoading ? (
+          <div className="p-8 text-center text-muted-foreground">Loading applications...</div>
+        ) : (
+          <DataTable 
+            data={applications}
+            columns={columns}
+            searchKey="job.title"
+          />
+        )}
       </div>
     </div>
   );

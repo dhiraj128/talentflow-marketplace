@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatsGrid } from "@/components/shared/StatsGrid";
 import { MetricCard } from "@/components/shared/MetricCard";
@@ -14,43 +14,34 @@ import { ActivityFeed } from "@/components/shared/ActivityFeed";
 import { ProfileCompletionCard } from "@/components/shared/ProfileCompletionCard";
 import { 
   FileText, Eye, Search, Bookmark, Mail,
-  Target, FileCheck, Clock, UserCheck, Bell
+  Target, FileCheck, Clock, UserCheck, Bell, Briefcase
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-
-const MOCK_JOBS = [
-  { id: "1", title: "Senior React Developer", company: "TechCorp Inc.", location: "San Francisco, CA (Hybrid)", salary: "$120k - $160k", type: "Full-time", postedAt: "2 hours ago", matchScore: 95 },
-  { id: "2", title: "Frontend Engineer", company: "InnovateTech", location: "Remote", salary: "$110k - $140k", type: "Full-time", postedAt: "1 day ago", matchScore: 92 },
-];
-
-const MOCK_COURSES = [
-  { title: "Advanced React Patterns", instructor: "Sarah Drasner", rating: 4.9, enrolled: 12500, duration: "4h 30m", price: "$49.99" },
-  { title: "Fullstack Next.js 14", instructor: "Lee Robinson", rating: 4.8, enrolled: 8300, duration: "6h 15m", price: "$79.99" },
-];
-
-const MOCK_INTERVIEWS = [
-  { id: "1", title: "Technical Screen - TechCorp", description: "Video call with Engineering Manager", date: "Tomorrow, 10:00 AM", status: "upcoming" },
-  { id: "2", title: "HR Screen - StartupHub", description: "Phone call", date: "Jul 18, 2:00 PM", status: "upcoming" },
-  { id: "3", title: "Code Assessment", description: "Completed React Challenge", date: "Jul 12", status: "completed" },
-];
-
-const MOCK_ACTIVITY = [
-  { id: "1", user: { name: "System" }, action: "Recommended new job", target: "Frontend Lead", time: "2h ago", icon: <Bell className="h-4 w-4" /> },
-  { id: "2", user: { name: "Recruiter" }, action: "Viewed your", target: "Resume", time: "5h ago", icon: <Eye className="h-4 w-4" /> },
-  { id: "3", user: { name: "TechCorp" }, action: "Invited you to", target: "Interview", time: "1d ago", icon: <Mail className="h-4 w-4" /> },
-];
+import { analyticsService } from "@/lib/services/analytics.service";
 
 export default function CandidateDashboard() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [data, setData] = useState<any>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/sign-in");
+    if (!loading && !user) {
+      router.push("/sign-in");
+    } else if (user) {
+      analyticsService.getCandidateDashboard().then(res => {
+        setData(res);
+        setIsLoadingData(false);
+      }).catch(err => {
+        console.error("Failed to fetch dashboard data:", err);
+        setIsLoadingData(false);
+      });
+    }
   }, [user, loading, router]);
 
-  if (loading || !user) return null;
+  if (loading || !user || isLoadingData) return null;
 
   return (
     <div className="max-w-7xl mx-auto p-8 space-y-8">
@@ -66,18 +57,18 @@ export default function CandidateDashboard() {
 
       <StatsGrid
         stats={[
-          { label: "Active Applications", value: "12", icon: <FileText className="h-4 w-4 text-blue-500" /> },
-          { label: "Saved Jobs", value: "8", icon: <Bookmark className="h-4 w-4 text-purple-500" /> },
-          { label: "Resume Views", value: "47", icon: <Eye className="h-4 w-4 text-green-500" /> },
-          { label: "Recruiter Invites", value: "3", icon: <Mail className="h-4 w-4 text-amber-500" /> },
+          { label: "Active Applications", value: data?.stats?.activeApplications || "0", icon: <FileText className="h-4 w-4 text-blue-500" /> },
+          { label: "Saved Jobs", value: data?.stats?.savedJobs || "0", icon: <Bookmark className="h-4 w-4 text-purple-500" /> },
+          { label: "Resume Views", value: data?.stats?.resumeViews || "0", icon: <Eye className="h-4 w-4 text-green-500" /> },
+          { label: "Recruiter Invites", value: data?.stats?.recruiterInvites || "0", icon: <Mail className="h-4 w-4 text-amber-500" /> },
         ]}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard title="Job Match Score" value="92%" description="Top 5% of candidates" icon={<Target className="h-4 w-4" />} trend="up" trendValue="+3%" />
+        <MetricCard title="Job Match Score" value={`${data?.metrics?.jobMatchScore || 0}%`} description="Top 5% of candidates" icon={<Target className="h-4 w-4" />} trend="up" trendValue="+3%" />
         <MetricCard title="Resume Strength" value="Strong" description="Ready to apply" icon={<FileCheck className="h-4 w-4" />} />
-        <MetricCard title="Recently Viewed" value="24" description="In the last 7 days" icon={<Clock className="h-4 w-4" />} />
-        <MetricCard title="Profile Completion" value="90%" description="Almost there!" icon={<UserCheck className="h-4 w-4" />} />
+        <MetricCard title="Recently Viewed" value={data?.metrics?.recentlyViewed?.toString() || "0"} description="In the last 7 days" icon={<Clock className="h-4 w-4" />} />
+        <MetricCard title="Profile Completion" value={`${data?.metrics?.profileCompletion || 0}%`} description="Almost there!" icon={<UserCheck className="h-4 w-4" />} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -91,9 +82,12 @@ export default function CandidateDashboard() {
               </Button>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              {MOCK_JOBS.map((job) => (
-                <JobCard key={job.id} {...job} />
+              {data?.recommendedJobs?.map((job: any) => (
+                <JobCard key={job.id} {...job} company={job.employer?.companyName} />
               ))}
+              {(!data?.recommendedJobs || data.recommendedJobs.length === 0) && (
+                <p className="text-muted-foreground text-sm">No recommended jobs yet.</p>
+              )}
             </div>
           </div>
 
@@ -105,9 +99,12 @@ export default function CandidateDashboard() {
               </Button>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              {MOCK_COURSES.map((course) => (
-                <CourseCard key={course.title} {...course} />
+              {data?.recommendedCourses?.map((course: any) => (
+                <CourseCard key={course.id} {...course} price={`$${course.price || '49.99'}`} />
               ))}
+              {(!data?.recommendedCourses || data.recommendedCourses.length === 0) && (
+                <p className="text-muted-foreground text-sm">No recommended courses yet.</p>
+              )}
             </div>
           </div>
 
@@ -115,7 +112,7 @@ export default function CandidateDashboard() {
 
         <div className="space-y-6">
           <ProfileCompletionCard
-            score={90}
+            score={data?.metrics?.profileCompletion || 0}
             missingItems={[
               { label: "Add Portfolio Link", href: "/job-seeker/profile" },
             ]}
@@ -126,7 +123,11 @@ export default function CandidateDashboard() {
               <CardTitle className="text-lg">Upcoming Interviews</CardTitle>
             </CardHeader>
             <CardContent>
-              <Timeline items={MOCK_INTERVIEWS} />
+              {data?.upcomingInterviews?.length > 0 ? (
+                 <Timeline items={data.upcomingInterviews} />
+              ) : (
+                 <p className="text-sm text-muted-foreground">No upcoming interviews scheduled.</p>
+              )}
             </CardContent>
           </Card>
 
@@ -164,7 +165,11 @@ export default function CandidateDashboard() {
               <CardTitle className="text-lg">Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
-              <ActivityFeed items={MOCK_ACTIVITY} />
+              {data?.recentActivity?.length > 0 ? (
+                 <ActivityFeed items={data.recentActivity} />
+              ) : (
+                 <p className="text-sm text-muted-foreground">No recent activity.</p>
+              )}
             </CardContent>
           </Card>
         </div>
