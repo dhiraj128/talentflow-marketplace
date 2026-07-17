@@ -10,12 +10,16 @@ export const applicationService = {
     const response = await api.get(`/applications/${id}`);
     return response.data;
   },
+  getEmployerApplications: async () => {
+    const response = await api.get(`/applications/employer/me`);
+    return response.data;
+  },
   createApplication: async (data: any) => {
     const response = await api.post('/applications', data);
     return response.data;
   },
   updateApplicationStatus: async (id: string, status: string) => {
-    const response = await api.patch(`/applications/${id}`, { status });
+    const response = await api.patch(`/applications/${id}/status`, { status });
     return response.data;
   },
   deleteApplication: async (id: string) => {

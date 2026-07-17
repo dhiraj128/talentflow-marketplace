@@ -70,14 +70,23 @@ export class AnalyticsService {
     const jobIds = jobs.map(j => j.id);
 
     const activeJobsCount = jobs.filter(j => j.status === 'PUBLISHED').length;
+    const draftJobsCount = jobs.filter(j => j.status === 'DRAFT').length;
+    const closedJobsCount = jobs.filter(j => j.status === 'CLOSED').length;
     const totalApplications = await this.prisma.application.count({ where: { jobId: { in: jobIds } } });
+    const shortlistedCount = await this.prisma.application.count({ where: { jobId: { in: jobIds }, status: 'REVIEWING' } });
+    const interviewedCount = await this.prisma.application.count({ where: { jobId: { in: jobIds }, status: 'INTERVIEWING' } });
+    const hiredCount = await this.prisma.application.count({ where: { jobId: { in: jobIds }, status: 'OFFERED' } });
 
     return {
       stats: {
+        totalJobs: jobs.length,
         activeJobs: activeJobsCount,
+        draftJobs: draftJobsCount,
+        closedJobs: closedJobsCount,
         totalApplications,
-        interviewsScheduled: 0,
-        hiredCandidates: 0
+        shortlisted: shortlistedCount,
+        interviewsScheduled: interviewedCount,
+        hiredCandidates: hiredCount
       },
       recentJobs: await this.prisma.job.findMany({ where: { employerId: employer.id }, orderBy: { createdAt: 'desc' }, take: 5 }),
       recentApplications: await this.prisma.application.findMany({ where: { jobId: { in: jobIds } }, include: { candidate: true, job: true }, orderBy: { appliedAt: 'desc' }, take: 5 })
@@ -85,7 +94,7 @@ export class AnalyticsService {
   }
 
   private emptyEmployerDashboard() {
-    return { stats: { activeJobs: 0, totalApplications: 0, interviewsScheduled: 0, hiredCandidates: 0 }, recentJobs: [], recentApplications: [] };
+    return { stats: { totalJobs: 0, activeJobs: 0, draftJobs: 0, closedJobs: 0, totalApplications: 0, shortlisted: 0, interviewsScheduled: 0, hiredCandidates: 0 }, recentJobs: [], recentApplications: [] };
   }
 
   async getFreelancerDashboard(userId: string) {

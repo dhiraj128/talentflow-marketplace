@@ -26,7 +26,7 @@ export default function ApplicationsPage() {
       return;
     }
     try {
-      const data = await applicationService.getApplications({ employerId });
+      const data = await applicationService.getEmployerApplications();
       setApplications(data);
     } catch (error) {
       console.error("Failed to load applications", error);
@@ -108,16 +108,30 @@ export default function ApplicationsPage() {
                 
                 <div className="flex flex-col items-end justify-between gap-4">
                   <p className="text-sm text-muted-foreground">Applied {new Date(app.appliedAt).toLocaleDateString()}</p>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                  <div className="flex flex-wrap gap-2 justify-end">
+                    <Button variant="outline" size="sm" className="min-h-[44px]">
                       <Eye className="w-4 h-4 mr-2" /> View Resume
                     </Button>
-                    <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => updateStatus(app.id, "OFFERED")}>
-                      <Check className="w-4 h-4 mr-1" /> Accept
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => updateStatus(app.id, "REJECTED")}>
-                      <X className="w-4 h-4" />
-                    </Button>
+                    {app.status === "PENDING" && (
+                      <Button variant="outline" size="sm" className="min-h-[44px] bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200" onClick={() => updateStatus(app.id, "REVIEWING")}>
+                        <Check className="w-4 h-4 mr-1" /> Shortlist
+                      </Button>
+                    )}
+                    {app.status === "REVIEWING" && (
+                      <Button variant="outline" size="sm" className="min-h-[44px] bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200" onClick={() => updateStatus(app.id, "INTERVIEWING")}>
+                        <Check className="w-4 h-4 mr-1" /> Interview
+                      </Button>
+                    )}
+                    {app.status === "INTERVIEWING" && (
+                      <Button variant="default" size="sm" className="min-h-[44px] bg-green-600 hover:bg-green-700" onClick={() => updateStatus(app.id, "OFFERED")}>
+                        <Check className="w-4 h-4 mr-1" /> Offer Job
+                      </Button>
+                    )}
+                    {["PENDING", "REVIEWING", "INTERVIEWING"].includes(app.status) && (
+                      <Button variant="outline" size="sm" className="min-h-[44px] text-red-600 border-red-200 hover:bg-red-50" onClick={() => updateStatus(app.id, "REJECTED")}>
+                        <X className="w-4 h-4" /> Reject
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

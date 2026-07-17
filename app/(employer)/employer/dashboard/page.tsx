@@ -51,10 +51,13 @@ export default function EmployerDashboard() {
     <div className="max-w-7xl mx-auto p-8 space-y-8">
       <PageHeader title="Dashboard" description="Overview of your recruitment activity" actionLabel="Post Job" />
       <StatsGrid>
-        <MetricCard title="Active Jobs" value={data?.stats?.activeJobs?.toString() || "0"} icon={<Briefcase />} trend="up" trendValue="+0" />
-        <MetricCard title="Total Applications" value={data?.stats?.totalApplications?.toString() || "0"} icon={<Users />} trend="up" trendValue="+0" />
-        <MetricCard title="Shortlisted" value={data?.stats?.interviewsScheduled?.toString() || "0"} icon={<CheckCircle />} trend="up" trendValue="+0" />
-        <MetricCard title="Hired" value={data?.stats?.hiredCandidates?.toString() || "0"} icon={<Clock />} trend="down" trendValue="-0" />
+        <MetricCard title="Total Jobs" value={data?.stats?.totalJobs?.toString() || "0"} icon={<Briefcase />} />
+        <MetricCard title="Active (Published)" value={data?.stats?.activeJobs?.toString() || "0"} icon={<CheckCircle className="text-green-500" />} />
+        <MetricCard title="Pending (Draft)" value={data?.stats?.draftJobs?.toString() || "0"} icon={<Clock className="text-amber-500" />} />
+        <MetricCard title="Total Applications" value={data?.stats?.totalApplications?.toString() || "0"} icon={<Users />} />
+        <MetricCard title="Shortlisted" value={data?.stats?.shortlisted?.toString() || "0"} icon={<CheckCircle />} />
+        <MetricCard title="Interviews" value={data?.stats?.interviewsScheduled?.toString() || "0"} icon={<Users />} />
+        <MetricCard title="Offers Made" value={data?.stats?.hiredCandidates?.toString() || "0"} icon={<Briefcase className="text-blue-500" />} />
       </StatsGrid>
       <Card>
         <CardHeader>

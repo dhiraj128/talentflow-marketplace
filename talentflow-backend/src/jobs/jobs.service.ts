@@ -7,8 +7,35 @@ import { UpdateJobDto } from './dto/update-job.dto';
 export class JobsService {
   constructor(private prisma: PrismaService) {}
 
-  create(createJobDto: CreateJobDto) {
-    return this.prisma.job.create({ data: createJobDto });
+  async create(createJobDto: CreateJobDto, userId: string) {
+    const employer = await this.prisma.employerProfile.findUnique({ where: { userId } });
+    if (!employer) {
+      throw new Error('Employer profile not found');
+    }
+    
+    // Force employerId to the authenticated employer and status to DRAFT
+    const data = {
+      ...createJobDto,
+      employerId: employer.id,
+      status: 'DRAFT' as const
+    };
+    
+    return this.prisma.job.create({ data });
+  }
+
+  async findEmployerJobs(userId: string) {
+    const employer = await this.prisma.employerProfile.findUnique({ where: { userId } });
+    if (!employer) {
+      throw new Error('Employer profile not found');
+    }
+
+    const data = await this.prisma.job.findMany({
+      where: { employerId: employer.id, deletedAt: null },
+      include: { applications: true, requiredSkills: { include: { skill: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return { data, total: data.length };
   }
 
   async findAll(filters: any) {
@@ -58,12 +85,40 @@ export class JobsService {
     });
   }
 
-  update(id: string, updateJobDto: UpdateJobDto) {
+  async update(id: string, updateJobDto: UpdateJobDto, user: any) {
+    if (user.role === 'EMPLOYER') {
+      const employer = await this.prisma.employerProfile.findUnique({ where: { userId: user.sub || user.userId } });
+      if (!employer) throw new Error('Employer profile not found');
+      
+      const job = await this.prisma.job.findUnique({ where: { id } });
+      if (!job || job.employerId !== employer.id) {
+        throw new Error('Forbidden');
+      }
+    }
     return this.prisma.job.update({ where: { id }, data: updateJobDto });
   }
 
-  remove(id: string) {
+  async remove(id: string, user: any) {
+    if (user.role === 'EMPLOYER') {
+      const employer = await this.prisma.employerProfile.findUnique({ where: { userId: user.sub || user.userId } });
+      if (!employer) throw new Error('Employer profile not found');
+      
+      const job = await this.prisma.job.findUnique({ where: { id } });
+      if (!job || job.employerId !== employer.id) {
+        throw new Error('Forbidden');
+      }
+    }
     return this.prisma.job.delete({ where: { id } });
+  }
+
+  async approveJob(id: string, user: any) {
+    if (user.role !== 'ADMIN') {
+      throw new Error('Forbidden: Only Admins can approve jobs');
+    }
+    return this.prisma.job.update({
+      where: { id },
+      data: { status: 'PUBLISHED' }
+    });
   }
 
   async applyToJob(jobId: string, userId: string) {

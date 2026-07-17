@@ -4,6 +4,7 @@ import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('applications')
 @Controller('applications')
@@ -26,6 +27,13 @@ export class ApplicationsController {
     return this.applicationsService.findAll({ candidateId, employerId, jobId });
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('employer/me')
+  getEmployerApplications(@CurrentUser() user: any) {
+    return this.applicationsService.findEmployerApplications(user.sub || user.userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.applicationsService.findOne(id);
@@ -43,5 +51,16 @@ export class ApplicationsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.applicationsService.remove(id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id') id: string, 
+    @Body('status') status: string, 
+    @CurrentUser() user: any
+  ) {
+    return this.applicationsService.updateStatus(id, status, user);
   }
 }

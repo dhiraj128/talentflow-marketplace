@@ -73,9 +73,9 @@ export default function ApplicationsPage() {
             <div className="py-4">
               <Timeline items={[
                 { title: "Application Submitted", description: "Your application was sent", date: new Date(row.appliedAt).toLocaleDateString(), status: "completed" },
-                { title: "Resume Review", description: "Recruiter is reviewing your profile", date: "Pending", status: row.status === "PENDING" ? "current" : "completed" },
-                { title: "Interview Status", description: "Technical and Cultural rounds", date: "TBD", status: row.status === "INTERVIEWING" ? "current" : (row.status === "OFFERED" || row.status === "REJECTED" ? "completed" : "upcoming") },
-                { title: "Offer", description: "Final decision", date: "TBD", status: row.status === "OFFERED" ? "completed" : (row.status === "REJECTED" ? "error" : "upcoming") }
+                { title: "Resume Review", description: "Recruiter is reviewing your profile", date: "Pending", status: ["REVIEWING", "INTERVIEWING", "OFFERED"].includes(row.status) ? "completed" : row.status === "PENDING" ? "current" : "error" },
+                { title: "Interview Status", description: "Technical and Cultural rounds", date: "TBD", status: ["INTERVIEWING"].includes(row.status) ? "current" : ["OFFERED"].includes(row.status) ? "completed" : row.status === "REJECTED" ? "error" : "upcoming" },
+                { title: "Offer", description: "Final decision", date: "TBD", status: row.status === "OFFERED" ? "completed" : row.status === "REJECTED" ? "error" : "upcoming" }
               ]} />
             </div>
           </DialogContent>

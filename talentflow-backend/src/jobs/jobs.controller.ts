@@ -15,8 +15,8 @@ export class JobsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createJobDto: CreateJobDto) {
-    return this.jobsService.create(createJobDto);
+  create(@Body() createJobDto: CreateJobDto, @CurrentUser() user: any) {
+    return this.jobsService.create(createJobDto, user.sub || user.userId);
   }
 
   @Get()
@@ -38,16 +38,30 @@ export class JobsController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Get('employer/me')
+  getEmployerJobs(@CurrentUser() user: any) {
+    return this.jobsService.findEmployerJobs(user.sub || user.userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto) {
-    return this.jobsService.update(id, updateJobDto);
+  update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto, @CurrentUser() user: any) {
+    return this.jobsService.update(id, updateJobDto, user);
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.jobsService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.jobsService.remove(id, user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/approve')
+  approveJob(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.jobsService.approveJob(id, user);
   }
 
   @ApiBearerAuth()

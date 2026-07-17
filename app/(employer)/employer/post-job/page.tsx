@@ -35,15 +35,10 @@ export default function PostJobPage() {
       toast.error("Error", { description: "You must complete your employer profile first." });
       return;
     }
-    
     setIsSubmitting(true);
     try {
-      await jobService.createJob({
-        employerId,
-        ...formData,
-        status: "PUBLISHED"
-      });
-      toast.success("Success", { description: "Job published successfully!" });
+      await jobService.createJob(formData);
+      toast.success("Success", { description: "Job created and pending Admin approval" });
       router.push("/employer/dashboard");
     } catch (err) {
       toast.error("Error", { description: "Failed to publish job." });
