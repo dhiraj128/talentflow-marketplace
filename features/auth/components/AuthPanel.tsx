@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useMutation } from "@tanstack/react-query";
 import { authService } from "@/lib/services/auth.service";
@@ -38,6 +38,17 @@ export function AuthPanel() {
   const { login } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('job-seeker');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      if (errorParam === 'ProfileFetchFailed') setErrorMsg('Failed to fetch user profile after OAuth login.');
+      else if (errorParam === 'MissingTokens') setErrorMsg('OAuth login returned without tokens.');
+      else if (errorParam === 'GoogleAuthFailed') setErrorMsg('Google login was cancelled or failed.');
+      else setErrorMsg(errorParam);
+    }
+  }, [searchParams]);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),

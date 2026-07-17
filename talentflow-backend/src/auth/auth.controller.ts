@@ -7,6 +7,8 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthGuard } from '@nestjs/passport';
+import { GoogleOAuthGuard } from './guards/google-oauth.guard';
+import { GithubOAuthGuard } from './guards/github-oauth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -50,12 +52,12 @@ export class AuthController {
 
   // --- GOOGLE OAUTH ---
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleOAuthGuard)
   @ApiOperation({ summary: 'Login with Google' })
   async googleAuth(@Req() req: Request) {}
 
   @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleOAuthGuard)
   @ApiOperation({ summary: 'Google OAuth callback' })
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginOAuth(req.user);
@@ -66,12 +68,12 @@ export class AuthController {
 
   // --- GITHUB OAUTH ---
   @Get('github')
-  @UseGuards(AuthGuard('github'))
+  @UseGuards(GithubOAuthGuard)
   @ApiOperation({ summary: 'Login with GitHub' })
   async githubAuth(@Req() req: Request) {}
 
   @Get('github/callback')
-  @UseGuards(AuthGuard('github'))
+  @UseGuards(GithubOAuthGuard)
   @ApiOperation({ summary: 'GitHub OAuth callback' })
   async githubAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginOAuth(req.user);
