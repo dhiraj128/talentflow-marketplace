@@ -68,7 +68,7 @@ export default function ApplicationsPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Application Timeline - {row.company}</DialogTitle>
+              <DialogTitle>Application Timeline - {row.job?.employer?.companyName || "Company"}</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <Timeline items={[

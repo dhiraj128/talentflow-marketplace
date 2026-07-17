@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, MapPin, Briefcase, Bookmark, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
-import { searchService } from "@/lib/services/search.service";
+import { jobService } from "@/lib/services/job.service";
 import { Suspense, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -27,7 +27,7 @@ function FindJobsContent() {
   const selectedLevels = searchParams.get("level")?.split(',') || [];
   const selectedSalary = searchParams.get("salary") || "any";
   const selectedModes = searchParams.get("mode")?.split(',') || [];
-  const totalPages = 42;
+  const location = searchParams.get("location") || "";
 
   const handleFilterChange = (key: string, value: string, checked: boolean) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()));
@@ -73,24 +73,29 @@ function FindJobsContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const getVisiblePages = () => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    if (page <= 3) return [1, 2, 3, 4, "...", totalPages];
-    if (page >= totalPages - 2) return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    return [1, "...", page - 1, page, page + 1, "...", totalPages];
+  const getVisiblePages = (total: number) => {
+    if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+    if (page <= 3) return [1, 2, 3, 4, "...", total];
+    if (page >= total - 2) return [1, "...", total - 3, total - 2, total - 1, total];
+    return [1, "...", page - 1, page, page + 1, "...", total];
   };
 
-  const { data: jobsData, isLoading } = useQuery({
-    queryKey: ['find-jobs', query, page],
+  const { data: jobsResponse, isLoading } = useQuery({
+    queryKey: ['find-jobs', query, location, page, selectedTypes, selectedLevels],
     queryFn: async () => {
-      const results = await searchService.searchJobs(query, "");
-      const limit = 6;
-      const offset = (page - 1) * limit;
-      return results.slice(offset, offset + limit);
+      return await jobService.getJobs({
+        q: query,
+        location,
+        type: selectedTypes.join(','),
+        page,
+        limit: 10
+      });
     }
   });
 
-  const jobListings = jobsData || [];
+  const jobListings = jobsResponse?.data || [];
+  const totalJobs = jobsResponse?.total || 0;
+  const totalPages = jobsResponse?.totalPages || 1;
 
   return (
     <PageContainer>
@@ -215,7 +220,7 @@ function FindJobsContent() {
           <main className="flex-1 flex flex-col gap-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <p className="text-muted-foreground">
-                Showing <span className="font-medium text-foreground">1,245</span> jobs matching your criteria
+                Showing <span className="font-medium text-foreground">{isLoading ? "..." : totalJobs}</span> jobs matching your criteria
               </p>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Sort by:</span>
@@ -237,7 +242,7 @@ function FindJobsContent() {
                 Array(4).fill(0).map((_, i) => (
                   <Skeleton key={`sk-${i}`} className="h-48 w-full rounded-xl" />
                 ))
-              ) : jobListings.map((job) => (
+              ) : jobListings.map((job: any) => (
                 <Card key={job.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="flex flex-row items-start justify-between gap-4">
                     <div className="flex flex-col gap-2">
@@ -306,7 +311,7 @@ function FindJobsContent() {
                 </Button>
                 
                 <div className="flex items-center gap-2 hidden sm:flex">
-                  {getVisiblePages().map((p, idx) => (
+                  {getVisiblePages(totalPages).map((p, idx) => (
                     p === "..." ? (
                       <span key={`dots-${idx}`} className="px-2 text-muted-foreground">...</span>
                     ) : (

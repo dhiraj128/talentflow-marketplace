@@ -45,7 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         .then(freshUser => {
           // Normalize role for frontend if needed, or just merge
-          const updated = { ...JSON.parse(storedUser), ...freshUser, role: freshUser.role.toLowerCase().replace('_', '-') };
+          const normalizedRole = freshUser.role.toLowerCase() === 'candidate' ? 'job-seeker' : freshUser.role.toLowerCase().replace('_', '-');
+          const updated = { ...JSON.parse(storedUser), ...freshUser, role: normalizedRole };
           setUser(updated);
           localStorage.setItem('user', JSON.stringify(updated));
         })

@@ -1,8 +1,14 @@
 import api from '../api';
 
 export const jobService = {
-  getJobs: async () => {
-    const response = await api.get('/jobs');
+  getJobs: async (params?: any) => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value) searchParams.append(key, String(value));
+      });
+    }
+    const response = await api.get(`/jobs?${searchParams.toString()}`);
     return response.data;
   },
   getJob: async (id: string) => {
@@ -24,5 +30,17 @@ export const jobService = {
   getApplicationsForJob: async (jobId: string) => {
     const response = await api.get(`/applications?jobId=${jobId}`);
     return response.data;
+  },
+  applyToJob: async (jobId: string) => {
+    const response = await api.post(`/jobs/${jobId}/apply`);
+    return response.data;
+  },
+  checkApplicationStatus: async (jobId: string) => {
+    try {
+      const response = await api.get(`/jobs/${jobId}/application-status`);
+      return response.data;
+    } catch {
+      return { hasApplied: false };
+    }
   }
 };

@@ -4,6 +4,8 @@ import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 @ApiTags('jobs')
 @Controller('jobs')
@@ -22,9 +24,11 @@ export class JobsController {
     @Query('q') q?: string,
     @Query('location') location?: string,
     @Query('type') type?: string,
-    @Query('employerId') employerId?: string
+    @Query('employerId') employerId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string
   ) {
-    return this.jobsService.findAll({ q, location, type, employerId });
+    return this.jobsService.findAll({ q, location, type, employerId, page, limit });
   }
 
   @Get(':id')
@@ -44,5 +48,35 @@ export class JobsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.jobsService.remove(id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/apply')
+  async applyToJob(@Param('id') id: string, @CurrentUser() user: any) {
+    try {
+      return await this.jobsService.applyToJob(id, user.sub || user.userId);
+    } catch (error: any) {
+      if (error.message.includes('not found')) {
+        throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      }
+      if (error.message.includes('Only registered candidates')) {
+        throw new HttpException(error.message, HttpStatus.FORBIDDEN);
+      }
+      if (error.message.includes('Already applied')) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      }
+      if (error.message.includes('not open for applications')) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('Failed to apply to job', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/application-status')
+  async checkApplicationStatus(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.jobsService.checkApplicationStatus(id, user.sub || user.userId);
   }
 }
