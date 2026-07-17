@@ -61,7 +61,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Google OAuth callback' })
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginOAuth(req.user);
-    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3001';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     // Redirect back to frontend callback page with tokens
     return res.redirect(`${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
   }
@@ -77,7 +77,7 @@ export class AuthController {
   @ApiOperation({ summary: 'GitHub OAuth callback' })
   async githubAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginOAuth(req.user);
-    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3001';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     // Redirect back to frontend callback page with tokens
     return res.redirect(`${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
   }

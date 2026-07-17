@@ -7,7 +7,7 @@ export class GithubOAuthGuard extends AuthGuard('github') {
   handleRequest(err: any, user: any, info: any, context: ExecutionContext, status?: any) {
     if (err || !user) {
       const res = context.switchToHttp().getResponse<Response>();
-      const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3001';
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
       
       let errorMsg = 'GithubAuthFailed';
       if (err?.message?.includes('invalid_client')) errorMsg = 'OAuthConfigurationMissing';
