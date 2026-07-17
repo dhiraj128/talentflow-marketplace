@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get, Req, Res } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Req, Res, UseFilters } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -9,6 +9,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 import { GithubOAuthGuard } from './guards/github-oauth.guard';
+import { OAuthExceptionFilter } from './filters/oauth-exception.filter';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -58,6 +59,7 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleOAuthGuard)
+  @UseFilters(OAuthExceptionFilter)
   @ApiOperation({ summary: 'Google OAuth callback' })
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginOAuth(req.user);
@@ -74,6 +76,7 @@ export class AuthController {
 
   @Get('github/callback')
   @UseGuards(GithubOAuthGuard)
+  @UseFilters(OAuthExceptionFilter)
   @ApiOperation({ summary: 'GitHub OAuth callback' })
   async githubAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginOAuth(req.user);
