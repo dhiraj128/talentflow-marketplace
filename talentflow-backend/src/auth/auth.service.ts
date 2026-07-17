@@ -15,11 +15,59 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.prisma.user.findUnique({ where: { email } });
-    if (user && await bcrypt.compare(pass, user.passwordHash)) {
+    if (user && user.passwordHash && await bcrypt.compare(pass, user.passwordHash)) {
       const { passwordHash, ...result } = user;
       return result;
     }
     return null;
+  }
+
+  async validateOAuthUser(oauthUser: any) {
+    const { email, firstName, lastName, provider, providerId, picture } = oauthUser;
+    
+    // Find user by email
+    let user = await this.prisma.user.findUnique({ where: { email } });
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    if (user) {
+      // User exists, link account if not already linked
+      const updateData: any = {};
+      if (!user.provider) updateData.provider = provider;
+      if (provider === 'google' && !user.googleId) updateData.googleId = providerId;
+      if (provider === 'github' && !user.githubId) updateData.githubId = providerId;
+      if (!user.avatarUrl && picture) updateData.avatarUrl = picture;
+
+      if (Object.keys(updateData).length > 0) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: updateData
+        });
+      }
+    } else {
+      // Create new user (default to CANDIDATE role)
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          role: Role.CANDIDATE,
+          isEmailVerified: true, // OAuth emails are generally verified
+          provider,
+          googleId: provider === 'google' ? providerId : null,
+          githubId: provider === 'github' ? providerId : null,
+          avatarUrl: picture,
+        },
+      });
+
+      // Create a Candidate profile by default for OAuth signups
+      await this.prisma.candidateProfile.create({
+        data: {
+          userId: user.id,
+          fullName,
+          avatarUrl: picture,
+        }
+      });
+    }
+
+    return user;
   }
 
   async getProfile(userId: string) {
@@ -49,6 +97,31 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    const payload = { email: user.email, sub: user.id, role: user.role };
+    
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
+      expiresIn: '15m'
+    });
+    
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-change-in-production',
+      expiresIn: '7d'
+    });
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
+    });
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user
+    };
+  }
+
+  async loginOAuth(user: any) {
     const payload = { email: user.email, sub: user.id, role: user.role };
     
     const accessToken = this.jwtService.sign(payload, {

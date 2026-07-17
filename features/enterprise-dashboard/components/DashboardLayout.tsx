@@ -77,7 +77,7 @@ export const DashboardLayout = React.memo(function DashboardLayout() {
           <div className="flex flex-col gap-6 p-6 overflow-y-auto no-scrollbar hide-scrollbar w-full min-w-0 h-full bg-[#081526]/30">
             
             {/* KPI Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full">
               {data.metrics.map(metric => (
                 <MetricCard key={metric.id} metric={metric} />
               ))}

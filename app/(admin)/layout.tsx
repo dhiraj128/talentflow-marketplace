@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { TopNavBar } from "@/components/shared/TopNavBar";
 import { SideNavBar, SidebarRoute } from "@/components/shared/SideNavBar";
+import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, 
   Users, 
@@ -37,11 +38,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         showSidebarToggle 
         onMenuClick={() => setSidebarOpen(!isSidebarOpen)} 
       />
-      <div className="flex flex-1 overflow-hidden">
-        <div className="hidden md:block">
-          <SideNavBar routes={adminRoutes} title="Admin Console" isOpen={isSidebarOpen} />
+      <div className="flex flex-1 overflow-hidden relative">
+        <div 
+          className={cn(
+            "absolute inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 bg-background",
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          <SideNavBar routes={adminRoutes} title="Admin Console" isOpen={true} />
         </div>
-        <main className="flex-1 overflow-y-auto bg-muted/20">
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden" 
+            onClick={() => setSidebarOpen(false)} 
+          />
+        )}
+        <main className="flex-1 overflow-y-auto bg-muted/20 w-full">
           <div className="container py-6">
             {children}
           </div>

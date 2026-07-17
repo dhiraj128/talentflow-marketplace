@@ -1,10 +1,12 @@
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Req, Res } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -44,5 +46,37 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
   async refresh(@Body() body: { refresh_token: string }) {
     return this.authService.refreshToken(body.refresh_token);
+  }
+
+  // --- GOOGLE OAUTH ---
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Login with Google' })
+  async googleAuth(@Req() req: Request) {}
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Google OAuth callback' })
+  async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+    const tokens = await this.authService.loginOAuth(req.user);
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3001';
+    // Redirect back to frontend callback page with tokens
+    return res.redirect(`${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
+  }
+
+  // --- GITHUB OAUTH ---
+  @Get('github')
+  @UseGuards(AuthGuard('github'))
+  @ApiOperation({ summary: 'Login with GitHub' })
+  async githubAuth(@Req() req: Request) {}
+
+  @Get('github/callback')
+  @UseGuards(AuthGuard('github'))
+  @ApiOperation({ summary: 'GitHub OAuth callback' })
+  async githubAuthRedirect(@Req() req: Request, @Res() res: Response) {
+    const tokens = await this.authService.loginOAuth(req.user);
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3001';
+    // Redirect back to frontend callback page with tokens
+    return res.redirect(`${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
   }
 }

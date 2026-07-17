@@ -46,7 +46,11 @@ enum SubscriptionTier {
 model User {
   id              String    @id @default(uuid())
   email           String    @unique
-  passwordHash    String
+  passwordHash    String?   // Optional because OAuth users might not have a password
+  provider        String?   // 'local', 'google', 'github'
+  googleId        String?   @unique
+  githubId        String?   @unique
+  avatarUrl       String?
   role            Role
   isEmailVerified Boolean   @default(false)
   refreshToken    String?

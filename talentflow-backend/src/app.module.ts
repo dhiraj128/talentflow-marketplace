@@ -23,9 +23,24 @@ import { AuthModule } from './auth/auth.module';
 import { ResumeCenterModule } from './resume-center/resume-center.module';
 import { MessagesModule } from './messages/messages.module';
 import { SearchModule } from './search/search.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, EmployersModule, CandidatesModule, JobsModule, ApplicationsModule, CoursesModule, EnrollmentsModule, CertificatesModule, SkillsModule, NotificationsModule, AuditLogsModule, AnalyticsModule, MatchingEngineModule, BillingModule, SubscriptionModule, FileUploadModule, ResumeCenterModule, MessagesModule, SearchModule],
+  imports: [
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100,
+    }]),
+    PrismaModule, AuthModule, UsersModule, EmployersModule, CandidatesModule, JobsModule, ApplicationsModule, CoursesModule, EnrollmentsModule, CertificatesModule, SkillsModule, NotificationsModule, AuditLogsModule, AnalyticsModule, MatchingEngineModule, BillingModule, SubscriptionModule, FileUploadModule, ResumeCenterModule, MessagesModule, SearchModule
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    }
+  ],
 })
 export class AppModule {}

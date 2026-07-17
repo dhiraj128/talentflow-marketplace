@@ -37,8 +37,8 @@ export class AnalyticsService {
     return {
       stats: {
         activeApplications: activeApps,
-        savedJobs: 0, // Not implemented yet
-        resumeViews: Math.floor(Math.random() * 50), // Mock until view tracking
+        savedJobs: 0,
+        resumeViews: 0,
         recruiterInvites: 0,
       },
       metrics: {

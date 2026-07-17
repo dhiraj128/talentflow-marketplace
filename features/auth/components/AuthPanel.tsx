@@ -143,12 +143,12 @@ export function AuthPanel() {
               <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider"><span className="bg-[#081526] px-4 text-slate-500">Or continue with</span></div>
             </div>
             <div className="grid grid-cols-2 gap-2 xl:gap-3">
-              <Button variant="outline" type="button" className="h-[44px] xl:h-[48px] bg-[#0F1E33] border-[#22344F] text-slate-300 hover:bg-[#142640] hover:text-white rounded-xl lg:rounded-[20px] transition-colors shadow-sm">
+              <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://talentflow-backend-qn7b.onrender.com/api/v1'}/auth/google`} className="h-[44px] xl:h-[48px] bg-[#0F1E33] border border-[#22344F] text-slate-300 hover:bg-[#142640] hover:text-white rounded-xl lg:rounded-[20px] transition-colors shadow-sm flex items-center justify-center font-medium">
                 <Mail className="mr-2 h-4 w-4" /> Google
-              </Button>
-              <Button variant="outline" type="button" className="h-[44px] xl:h-[48px] bg-[#0F1E33] border-[#22344F] text-slate-300 hover:bg-[#142640] hover:text-white rounded-xl lg:rounded-[20px] transition-colors shadow-sm">
+              </a>
+              <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://talentflow-backend-qn7b.onrender.com/api/v1'}/auth/github`} className="h-[44px] xl:h-[48px] bg-[#0F1E33] border border-[#22344F] text-slate-300 hover:bg-[#142640] hover:text-white rounded-xl lg:rounded-[20px] transition-colors shadow-sm flex items-center justify-center font-medium">
                 <Globe className="mr-2 h-4 w-4" /> GitHub
-              </Button>
+              </a>
             </div>
             <div className="mt-4 text-center">
               <span className="text-slate-400 text-sm">Don't have an account? </span>

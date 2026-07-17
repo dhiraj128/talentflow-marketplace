@@ -1,11 +1,11 @@
-const http = require('http');
+const http = require('https');
 
 function makeRequest(path, method, body, token) {
   return new Promise((resolve, reject) => {
     const data = body ? JSON.stringify(body) : undefined;
     const options = {
-      hostname: 'localhost',
-      port: 3000,
+      hostname: 'talentflow-backend-qn7b.onrender.com',
+      port: 443,
       path: '/api/v1' + path,
       method: method,
       headers: {
