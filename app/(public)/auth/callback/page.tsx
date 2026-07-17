@@ -17,10 +17,11 @@ function AuthCallbackContent() {
 
     if (accessToken && refreshToken) {
       // First save tokens
-      login(accessToken, refreshToken, null);
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
 
       // Then fetch user profile to complete login
-      authService.getProfile()
+      authService.getCurrentUser()
         .then((res: any) => {
           login(accessToken, refreshToken, res);
           const role = res.role.toUpperCase();
