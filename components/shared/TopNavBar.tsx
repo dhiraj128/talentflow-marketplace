@@ -28,6 +28,7 @@ interface TopNavBarProps {
 export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarProps) {
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -89,9 +90,11 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
         </div>
 
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <Link href="/talent" className="transition-colors hover:text-foreground/80 text-foreground/60">Find Talent</Link>
-          <Link href="/courses" className="transition-colors hover:text-foreground/80 text-foreground/60">Academy</Link>
-          <Link href="/employer/post-job" className="transition-colors hover:text-foreground/80 text-foreground/60">Post a Job</Link>
+          <Link href="/" className="transition-colors hover:text-foreground/80 text-foreground/60">Home</Link>
+          <Link href="/find-jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Find Jobs</Link>
+          <Link href="/find-freelancers" className="transition-colors hover:text-foreground/80 text-foreground/60">Freelance</Link>
+          <Link href="/find-courses" className="transition-colors hover:text-foreground/80 text-foreground/60">Training</Link>
+          <Link href="/find-talent" className="transition-colors hover:text-foreground/80 text-foreground/60">For Employers</Link>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -101,7 +104,7 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
                 <Button variant="ghost">Sign In</Button>
               </Link>
               <Link href="/sign-up">
-                <Button>Get Started</Button>
+                <Button>Sign Up</Button>
               </Link>
             </>
           ) : (
@@ -171,15 +174,18 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
           )}
 
           {/* Mobile Menu */}
-          <Sheet>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "md:hidden focus:outline-none")}>
               <Menu className="h-5 w-5" />
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col gap-4 mt-8">
-                <Link href="/talent" className="text-lg font-medium">Find Talent</Link>
-                <Link href="/courses" className="text-lg font-medium">Academy</Link>
-                <Link href="/employer/post-job" className="text-lg font-medium">Post a Job</Link>
+                <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">🏠 Home</Link>
+                <Link href="/find-jobs" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">💼 Job Seeker</Link>
+                <Link href="/find-talent" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">🏢 Employer</Link>
+                <Link href="/find-freelancers" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">⚡ Freelance</Link>
+                <Link href="/find-courses" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">🎓 Training</Link>
+                {!user && <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">📝 Register</Link>}
               </div>
             </SheetContent>
           </Sheet>
