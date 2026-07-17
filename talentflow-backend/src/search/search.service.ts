@@ -115,4 +115,68 @@ export class SearchService {
       thumbnail: c.thumbnailUrl
     }));
   }
+
+  async getJobSuggestions(q: string) {
+    if (!q || q.length < 2) return { suggestions: [] };
+
+    // Get matching job titles
+    const jobs = await this.prisma.job.findMany({
+      where: { 
+        status: 'PUBLISHED',
+        title: { contains: q, mode: 'insensitive' }
+      },
+      distinct: ['title'],
+      select: { title: true },
+      take: 4
+    });
+
+    // Get matching skills
+    const skills = await this.prisma.skill.findMany({
+      where: { name: { contains: q, mode: 'insensitive' } },
+      select: { name: true },
+      take: 3
+    });
+
+    // Get matching companies
+    const companies = await this.prisma.employerProfile.findMany({
+      where: { companyName: { contains: q, mode: 'insensitive' } },
+      select: { companyName: true },
+      take: 2
+    });
+
+    const suggestions = [
+      ...jobs.map(j => ({ text: j.title, type: 'job_title' })),
+      ...skills.map(s => ({ text: s.name, type: 'skill' })),
+      ...companies.map(c => ({ text: c.companyName, type: 'company' }))
+    ].slice(0, 8); // Max 8 suggestions
+
+    return { suggestions };
+  }
+
+  async getJobLocations(q: string) {
+    if (!q) {
+      // Return some default popular locations if empty query
+      return { locations: ['Remote', 'Bangalore', 'Mumbai', 'Pune', 'Delhi NCR'] };
+    }
+
+    const jobs = await this.prisma.job.findMany({
+      where: {
+        status: 'PUBLISHED',
+        location: { contains: q, mode: 'insensitive' },
+        NOT: { location: null }
+      },
+      distinct: ['location'],
+      select: { location: true },
+      take: 6
+    });
+
+    const locations = jobs.map(j => j.location).filter(Boolean) as string[];
+    
+    // Always include remote if it matches 're...'
+    if ('remote'.includes(q.toLowerCase()) && !locations.some(l => l.toLowerCase() === 'remote')) {
+      locations.push('Remote');
+    }
+
+    return { locations: locations.slice(0, 6) };
+  }
 }

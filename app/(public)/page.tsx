@@ -2,8 +2,8 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Building2, TrendingUp, CheckCircle2, Cpu, ShieldCheck, Briefcase, GraduationCap, FileCheck, Lock, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { UniversalSearch } from "@/features/search";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { HeroSearchBox } from "@/features/search/HeroSearchBox";
 import { PageContainer } from "@/components/shared/PageContainer";
 
 export default function LandingPage() {
@@ -17,14 +17,14 @@ export default function LandingPage() {
             The #1 Precision Talent System
           </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8">
-            Find the World's Best Talent. <br className="hidden md:inline" />
-            <span className="text-primary">Precision Matched.</span>
+            Your Career Ecosystem — <br className="hidden md:inline" />
+            <span className="text-primary">All in One Place.</span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-10">
-            Stop scrolling through endless resumes. Our advanced matching engine connects you with pre-vetted professionals ready to make an impact from day one.
+          <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+            Find jobs, hire talent, freelance work, and upskill with certified courses.
           </p>
           
-          <UniversalSearch />
+          <HeroSearchBox />
           
           <div className="mt-12 text-sm text-muted-foreground">
             Trusted by innovative companies worldwide

@@ -26,4 +26,14 @@ export class SearchController {
   searchCourses(@Query('q') q: string, @Query('location') location: string) {
     return this.searchService.searchCourses(q, location);
   }
+
+  @Get('suggestions')
+  getJobSuggestions(@Query('q') q: string) {
+    return this.searchService.getJobSuggestions(q);
+  }
+
+  @Get('locations')
+  getJobLocations(@Query('q') q: string) {
+    return this.searchService.getJobLocations(q);
+  }
 }

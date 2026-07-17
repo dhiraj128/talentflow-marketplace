@@ -26,6 +26,28 @@ class SearchService {
     }
   }
 
+  async getJobSuggestions(query: string, signal?: AbortSignal): Promise<{ suggestions: { text: string; type: string }[] }> {
+    const config = signal ? { signal } : {};
+    try {
+      const response = await api.get(`/search/suggestions?q=${encodeURIComponent(query)}`, config);
+      return response.data;
+    } catch (error: any) {
+      if (error.name === 'CanceledError' || error.name === 'AbortError') throw error;
+      return { suggestions: [] };
+    }
+  }
+
+  async getLocationSuggestions(query: string, signal?: AbortSignal): Promise<{ locations: string[] }> {
+    const config = signal ? { signal } : {};
+    try {
+      const response = await api.get(`/search/locations?q=${encodeURIComponent(query)}`, config);
+      return response.data;
+    } catch (error: any) {
+      if (error.name === 'CanceledError' || error.name === 'AbortError') throw error;
+      return { locations: [] };
+    }
+  }
+
   async getPopularSearches(type: SearchType): Promise<string[]> {
     try {
       const response = await api.get(`/search/popular?type=${type}`);
