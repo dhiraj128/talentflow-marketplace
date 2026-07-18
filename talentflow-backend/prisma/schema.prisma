@@ -88,6 +88,7 @@ model TrainerProfile {
   expertise String?
   avatarUrl String?
   rating    Float?   @default(0.0)
+  isVerified Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   courses   Course[]
@@ -582,7 +583,9 @@ enum SubscriptionTier {
 
 enum CourseStatus {
   DRAFT
+  PENDING
   PUBLISHED
+  REJECTED
 }
 
 enum ProjectRequestStatus {
