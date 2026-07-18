@@ -16,8 +16,46 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { PageContainer } from "@/components/shared/PageContainer";
+import { freelancerService } from "@/lib/services/freelancer.service";
+import { projectRequestService } from "@/lib/services/project-request.service";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
-export default function CandidateProfilePage() {
+export default function CandidateProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [requestData, setRequestData] = React.useState({ title: '', description: '', budget: '' });
+
+  const unwrappedParams = React.use(params);
+  const freelancerId = unwrappedParams.id;
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['freelancer', freelancerId],
+    queryFn: () => freelancerService.getProfile(freelancerId),
+  });
+
+  const requestMutation = useMutation({
+    mutationFn: (data: any) => projectRequestService.createRequest({ ...data, freelancerId: freelancerId, budget: parseFloat(data.budget) }),
+    onSuccess: () => {
+      toast.success("Request sent successfully!");
+      setIsDialogOpen(false);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to send request");
+    }
+  });
+
+  const handleSendRequest = (e: React.FormEvent) => {
+    e.preventDefault();
+    requestMutation.mutate(requestData);
+  };
+
+  if (isLoading) return <PageContainer><div className="p-12 text-center text-muted-foreground animate-pulse">Loading profile...</div></PageContainer>;
+  if (!profile) return <PageContainer><div className="p-12 text-center text-red-500 font-bold">Profile not found</div></PageContainer>;
+
   return (
     <PageContainer>
       <div className="animate-in fade-in duration-700">
@@ -29,35 +67,66 @@ export default function CandidateProfilePage() {
         <div className="flex flex-col md:flex-row gap-10 items-center relative z-10">
           <div className="relative shrink-0">
             <div className="w-40 h-40 md:w-48 md:h-48 rounded-2xl overflow-hidden border-4 border-background shadow-xl bg-muted flex items-center justify-center">
-               <span className="text-5xl font-bold text-muted-foreground">AR</span>
+               <span className="text-5xl font-bold text-muted-foreground">{profile.fullName.charAt(0)}</span>
             </div>
-            <div className="absolute -bottom-3 -right-3 bg-secondary text-secondary-foreground p-2 rounded-full border-4 border-background shadow-lg">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
+            {profile.isVerified && (
+              <div className="absolute -bottom-3 -right-3 bg-secondary text-secondary-foreground p-2 rounded-full border-4 border-background shadow-lg">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+            )}
           </div>
           <div className="flex-1 text-left">
             <div className="flex flex-wrap items-center justify-start gap-4 mb-2">
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground">Alex Rivera</h1>
-              <Badge className="bg-primary/10 text-primary hover:bg-primary/20" variant="secondary">TOP RATED PLUS</Badge>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground">{profile.fullName}</h1>
+              {profile.rating > 4.5 && <Badge className="bg-primary/10 text-primary hover:bg-primary/20" variant="secondary">TOP RATED</Badge>}
             </div>
-            <p className="text-xl text-muted-foreground mb-6">Senior Product Designer & Systems Architect</p>
+            <p className="text-xl text-muted-foreground mb-6">{profile.title || 'Freelancer'}</p>
             <div className="flex flex-wrap justify-start gap-6 text-muted-foreground mb-8 font-medium">
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
-                <span>San Francisco, CA</span>
+                <span>{profile.location || 'Remote'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <CalendarDays className="w-5 h-5" />
-                <span>Joined 2021</span>
+                <Award className="w-5 h-5" />
+                <span>{profile.rating.toFixed(1)} ({profile.reviewCount} Reviews)</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Globe className="w-5 h-5" />
-                <span>English, Spanish</span>
-              </div>
+              {profile.hourlyRate && (
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  <span>${profile.hourlyRate}/hr</span>
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap items-center justify-start gap-4">
-              <Button size="lg" className="h-14 px-8 text-lg rounded-xl shadow-md">Shortlist Candidate</Button>
-              <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-xl">Message via Portal</Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger>
+                  <Button size="lg" className="h-14 px-8 text-lg rounded-xl shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:-translate-y-1">
+                    Request Project Quote
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Send Project Request to {profile.fullName}</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSendRequest} className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label>Project Title</Label>
+                      <Input required value={requestData.title} onChange={e => setRequestData(d => ({ ...d, title: e.target.value }))} placeholder="E.g., Build a full-stack Next.js app" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Textarea required value={requestData.description} onChange={e => setRequestData(d => ({ ...d, description: e.target.value }))} placeholder="Describe the scope of work..." rows={5} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Estimated Budget ($)</Label>
+                      <Input type="number" required value={requestData.budget} onChange={e => setRequestData(d => ({ ...d, budget: e.target.value }))} placeholder="1000" />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={requestMutation.isPending}>
+                      {requestMutation.isPending ? "Sending..." : "Send Request"}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
@@ -74,8 +143,8 @@ export default function CandidateProfilePage() {
               <CardTitle className="text-2xl font-bold">Professional Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground leading-relaxed text-lg">
-                Multi-disciplinary designer with 8+ years of experience building high-performance SaaS platforms and design systems. Specialized in bridge-the-gap roles between complex engineering requirements and user-centric aesthetics. Proven track record of increasing engagement by 40% through iterative data-driven UI overhauls.
+              <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-wrap">
+                {profile.bio || 'No bio provided.'}
               </p>
             </CardContent>
           </Card>
@@ -156,17 +225,13 @@ export default function CandidateProfilePage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {[
-                  "UI Design", "UX Strategy", "Design Systems", "React.js", 
-                  "Tailwind CSS", "Figma", "Prototyping", "Typescript"
-                ].map(skill => (
-                  <Badge key={skill} variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1 font-medium">{skill}</Badge>
-                ))}
-                {[
-                  "User Research", "A/B Testing"
-                ].map(skill => (
-                  <Badge key={skill} variant="secondary" className="bg-secondary/10 text-secondary hover:bg-secondary/20 px-3 py-1 font-medium">{skill}</Badge>
-                ))}
+                {profile.skills?.length > 0 ? profile.skills.map((s: any, idx: number) => (
+                  <Badge key={s.skill?.name || idx} variant="secondary" className={idx % 2 === 0 ? "bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1 font-medium" : "bg-secondary/10 text-secondary hover:bg-secondary/20 px-3 py-1 font-medium"}>
+                    {s.skill?.name}
+                  </Badge>
+                )) : (
+                  <span className="text-muted-foreground">No skills listed</span>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -21,7 +21,8 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { searchService } from "@/lib/services/search.service";
+import Link from "next/link";
+import { freelancerService } from "@/lib/services/freelancer.service";
 import { Suspense, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -57,7 +58,14 @@ function FreelancerSearchContent() {
   const { data: candidatesData, isLoading } = useQuery({
     queryKey: ['find-freelancers', query, page],
     queryFn: async () => {
-      const results = await searchService.searchFreelancers(query, "");
+      const results = await freelancerService.getMarketplace({ 
+        location: searchParams.get('location') || undefined,
+        rateMin: searchParams.get('rateMin') || undefined,
+        rateMax: searchParams.get('rateMax') || undefined,
+        skills: searchParams.get('skills') || undefined
+      });
+      // The API returns an array of freelancer profiles, we could do client-side pagination or server-side.
+      // For now, doing simple client-side pagination for demo.
       const limit = 6;
       const offset = (page - 1) * limit;
       return results.slice(offset, offset + limit);
@@ -192,14 +200,14 @@ function FreelancerSearchContent() {
               Array(6).fill(0).map((_, i) => (
                 <Skeleton key={`sk-${i}`} className={cn("rounded-xl", viewMode === "grid" ? "h-[300px]" : "h-32")} />
               ))
-            ) : candidates.map((candidate) => (
+            ) : candidates.map((candidate: any) => (
               <Card key={candidate.id} className={cn("overflow-hidden group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg border-border", viewMode === "list" ? "flex flex-row items-center gap-6 p-6" : "flex flex-col p-6 h-full")}>
                 <div className={cn("flex items-start justify-between", viewMode === "grid" ? "mb-4" : "")}>
                   <div className="relative">
                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted border flex items-center justify-center">
-                       <span className="text-xl font-bold text-muted-foreground">{candidate.name.charAt(0)}</span>
+                       <span className="text-xl font-bold text-muted-foreground">{candidate.fullName?.charAt(0) || '?'}</span>
                     </div>
-                    {candidate.availableNow && (
+                    {candidate.availability === 'immediate' && (
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-background rounded-full" title="Available Now"></div>
                     )}
                   </div>
@@ -213,7 +221,7 @@ function FreelancerSearchContent() {
                 
                 <div className={cn("space-y-1", viewMode === "grid" ? "mb-4" : "flex-1")}>
                   <div className="flex justify-between items-start">
-                    <h3 className="text-xl font-bold text-foreground truncate">{candidate.name}</h3>
+                    <h3 className="text-xl font-bold text-foreground truncate">{candidate.fullName}</h3>
                     {viewMode === "list" && (
                       <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-lg shrink-0">
                         <Star className="h-4 w-4 text-orange-400 fill-orange-400" />
@@ -221,18 +229,18 @@ function FreelancerSearchContent() {
                       </div>
                     )}
                   </div>
-                  <p className="text-sm text-primary font-semibold">{candidate.role}</p>
+                  <p className="text-sm text-primary font-semibold">{candidate.title || 'Freelancer'}</p>
                   <div className="flex items-center gap-2 text-muted-foreground text-xs mt-1">
                     <MapPin className="h-3 w-3" />
-                    <span>{candidate.location}</span>
+                    <span>{candidate.location || 'Remote'}</span>
                   </div>
                 </div>
                 
                 <div className={cn("flex flex-wrap gap-2", viewMode === "grid" ? "mb-4 flex-grow" : "flex-1")}>
-                  <Badge variant="outline" className="text-muted-foreground bg-muted/50 rounded">{candidate.experience}</Badge>
-                  {candidate.skills.map((skill: string, idx: number) => (
+                  <Badge variant="outline" className="text-muted-foreground bg-muted/50 rounded">${candidate.hourlyRate}/hr</Badge>
+                  {candidate.skills?.map((s: any, idx: number) => (
                     <Badge key={idx} variant="secondary" className={idx % 2 === 0 ? "bg-secondary/20 text-secondary hover:bg-secondary/20" : "bg-primary/10 text-primary hover:bg-primary/10"}>
-                      {skill}
+                      {s.skill?.name}
                     </Badge>
                   ))}
                 </div>
@@ -240,11 +248,15 @@ function FreelancerSearchContent() {
                 <div className={cn("border-t pt-4 mt-auto flex gap-3", viewMode === "grid" ? "flex-col" : "items-center pl-6 border-t-0 border-l")}>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground w-full">
                     <Verified className="h-4 w-4 text-secondary shrink-0" />
-                    <span className="truncate">{candidate.certification}</span>
+                    <span className="truncate">{candidate.reviewCount} Reviews</span>
                   </div>
                   <div className={cn("gap-2", viewMode === "grid" ? "grid grid-cols-2 w-full mt-2" : "flex")}>
-                    <Button variant="outline" className="w-full">View Profile</Button>
-                    <Button className="w-full">Shortlist</Button>
+                    <Link href={`/find-freelancers/${candidate.id}`} className="w-full">
+                      <Button variant="outline" className="w-full">View Profile</Button>
+                    </Link>
+                    <Link href={`/find-freelancers/${candidate.id}?action=hire`} className="w-full">
+                      <Button className="w-full bg-secondary hover:bg-secondary/90">Hire / Request</Button>
+                    </Link>
                   </div>
                 </div>
               </Card>

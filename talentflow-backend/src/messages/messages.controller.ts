@@ -1,3 +1,5 @@
+import { CreateConversationDto } from './dto/create-conversation.dto';
+import { SendMessageDto } from './dto/send-message.dto';
 import { Controller, Get, Post, Body, Param, Query, UseGuards, Patch } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
@@ -16,7 +18,7 @@ export class MessagesController {
   }
 
   @Post('conversations')
-  createConversation(@Body() data: { participant1Id: string; participant2Id: string }) {
+  createConversation(@Body() data: CreateConversationDto) {
     return this.messagesService.createConversation(data.participant1Id, data.participant2Id);
   }
 
@@ -26,7 +28,7 @@ export class MessagesController {
   }
 
   @Post()
-  sendMessage(@Body() data: { conversationId: string; senderId: string; content: string }) {
+  sendMessage(@Body() data: SendMessageDto) {
     return this.messagesService.sendMessage(data.conversationId, data.senderId, data.content);
   }
 
@@ -35,3 +37,4 @@ export class MessagesController {
     return this.messagesService.markAsRead(id);
   }
 }
+

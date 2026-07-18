@@ -19,7 +19,9 @@ export class AppController {
   getHealth() {
     return {
       status: 'ok',
-      service: 'talentflow-backend'
+      service: 'talentflow-backend',
+      aws_region: process.env.AWS_REGION || 'not-set',
+      s3_bucket: process.env.AWS_S3_BUCKET || 'not-set'
     };
   }
 }

@@ -1,21 +1,33 @@
 import api from '../api';
 
-export interface FreelancerDashboardData {
-  totalEarnings: number;
-  activeProjects: number;
-  pendingProposals: number;
-  completedProjects: number;
-  profileCompletion: number;
-  portfolioCompletion: number;
-  rating: number;
-  messages: number;
-}
+export const freelancerService = {
+  getMarketplace: async (params?: { location?: string; rateMin?: string; rateMax?: string; skills?: string }) => {
+    const { data } = await api.get('/freelancers', { params });
+    return data;
+  },
 
-class FreelancerService {
-  async getFreelancerDashboard(): Promise<FreelancerDashboardData> {
-    const response = await api.get('/freelancer/dashboard');
-    return response.data;
+  getProfile: async (id: string) => {
+    const { data } = await api.get(`/freelancers/${id}`);
+    return data;
+  },
+
+  getMyProfile: async () => {
+    const { data } = await api.get('/freelancers/me');
+    return data;
+  },
+
+  getAdminFreelancers: async () => {
+    const { data } = await api.get('/freelancers/admin/all');
+    return data;
+  },
+
+  updateMyProfile: async (updateData: any) => {
+    const { data } = await api.patch('/freelancers/me', updateData);
+    return data;
+  },
+  
+  verifyFreelancer: async (id: string, isVerified: boolean) => {
+    const { data } = await api.patch(`/freelancers/${id}/verify`, { isVerified });
+    return data;
   }
-}
-
-export const freelancerService = new FreelancerService();
+};

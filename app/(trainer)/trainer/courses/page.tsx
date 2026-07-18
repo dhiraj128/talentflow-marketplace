@@ -6,6 +6,9 @@ import { Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { courseService } from "@/lib/services/course.service"
 import { useAuth } from "@/lib/auth-context"
+import { Badge } from "@/components/ui/badge"
+import api from "@/lib/api"
+import { toast } from "sonner"
 
 export default function CoursesPage() {
   const { user } = useAuth();
@@ -31,6 +34,16 @@ export default function CoursesPage() {
     if (user) fetchCourses();
   }, [user]);
 
+  const handleSubmit = async (courseId: string) => {
+    try {
+      await api.patch(`/courses/${courseId}/submit`);
+      toast.success("Course submitted for approval");
+      setCourses(courses.map(c => c.id === courseId ? { ...c, status: 'PENDING' } : c));
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to submit course");
+    }
+  };
+
 
   return (
     <>
@@ -46,16 +59,29 @@ export default function CoursesPage() {
         ) : courses.length === 0 ? (
           <div className="col-span-full text-center text-muted-foreground py-12">No courses found.</div>
         ) : courses.map((course, idx) => (
-          <CourseCard 
-            key={course.id || idx} 
-            title={course.title}
-            instructor={course.trainer?.fullName || "Trainer"}
-            rating={course.rating || 0}
-            enrolled={course.studentCount || 0}
-            duration={"TBA"}
-            price={"Free"}
-            image={course.thumbnailUrl || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=600&auto=format&fit=crop"}
-          />
+          <div key={course.id || idx} className="relative group">
+            <CourseCard 
+              title={course.title}
+              instructor={course.trainer?.fullName || "Trainer"}
+              rating={course.rating || 0}
+              enrolled={course.studentCount || 0}
+              duration={"TBA"}
+              price={"Free"}
+              image={course.thumbnailUrl || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=600&auto=format&fit=crop"}
+            />
+            <div className="absolute top-4 right-4 flex gap-2">
+              <Badge variant={course.status === 'PUBLISHED' ? 'default' : course.status === 'PENDING' ? 'secondary' : 'outline'}>
+                {course.status}
+              </Badge>
+            </div>
+            {course.status === 'DRAFT' && (
+              <div className="mt-2">
+                <Button onClick={() => handleSubmit(course.id)} className="w-full" variant="outline">
+                  Submit for Approval
+                </Button>
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </>

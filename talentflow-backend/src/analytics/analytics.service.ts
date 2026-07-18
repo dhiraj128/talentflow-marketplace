@@ -103,18 +103,45 @@ export class AnalyticsService {
   }
 
   async getTrainerDashboard(userId: string) {
+    const trainer = await this.prisma.trainerProfile.findUnique({ where: { userId } });
+    if (!trainer) {
+      return { publishedCourses: 0, draftCourses: 0, totalStudents: 0, revenue: 0, courseRating: 0, certificatesIssued: 0, courseCompletionRate: 0, recentCourses: [] };
+    }
+
     const courses = await this.prisma.course.findMany({
+      where: { trainerId: trainer.id },
       orderBy: { createdAt: 'desc' },
       take: 3
     });
     
+    const courseIds = await this.prisma.course.findMany({
+      where: { trainerId: trainer.id },
+      select: { id: true }
+    }).then(res => res.map(c => c.id));
+
+    const totalStudents = await this.prisma.enrollment.count({
+      where: { courseId: { in: courseIds } }
+    });
+
+    const certificatesIssued = await this.prisma.certificate.count({
+      where: { courseId: { in: courseIds } }
+    });
+
+    const draftCourses = await this.prisma.course.count({
+      where: { trainerId: trainer.id, status: 'DRAFT' }
+    });
+
+    const publishedCourses = await this.prisma.course.count({
+      where: { trainerId: trainer.id, status: 'PUBLISHED' }
+    });
+    
     return {
-      publishedCourses: await this.prisma.course.count(),
-      draftCourses: 0,
-      totalStudents: await this.prisma.enrollment.count(),
+      publishedCourses,
+      draftCourses,
+      totalStudents,
       revenue: 0,
       courseRating: 4.5,
-      certificatesIssued: await this.prisma.certificate.count(),
+      certificatesIssued,
       courseCompletionRate: 80,
       recentCourses: courses
     };

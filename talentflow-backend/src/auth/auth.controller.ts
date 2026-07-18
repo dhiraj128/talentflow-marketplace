@@ -1,3 +1,4 @@
+import { RefreshDto } from './dto/refresh.dto';
 import { Controller, Post, Body, UseGuards, Get, Req, Res, UseFilters } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -47,7 +48,7 @@ export class AuthController {
 
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
-  async refresh(@Body() body: { refresh_token: string }) {
+  async refresh(@Body() body: RefreshDto) {
     return this.authService.refreshToken(body.refresh_token);
   }
 
@@ -85,3 +86,4 @@ export class AuthController {
     return res.redirect(`${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
   }
 }
+

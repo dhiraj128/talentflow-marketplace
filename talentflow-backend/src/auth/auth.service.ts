@@ -15,6 +15,9 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.prisma.user.findUnique({ where: { email } });
+    if (user && user.status === 'SUSPENDED') {
+      throw new UnauthorizedException('Your account has been suspended.');
+    }
     if (user && user.passwordHash && await bcrypt.compare(pass, user.passwordHash)) {
       const { passwordHash, ...result } = user;
       return result;
@@ -28,6 +31,10 @@ export class AuthService {
     // Find user by email
     let user = await this.prisma.user.findUnique({ where: { email } });
     const fullName = `${firstName} ${lastName}`.trim();
+
+    if (user && user.status === 'SUSPENDED') {
+      throw new UnauthorizedException('Your account has been suspended.');
+    }
 
     if (user) {
       // User exists, link account if not already linked
@@ -80,7 +87,20 @@ export class AuthService {
     
     let profile = null;
     if (user.role === Role.CANDIDATE) {
-      profile = await this.prisma.candidateProfile.findUnique({ where: { userId } });
+      profile = await this.prisma.candidateProfile.findUnique({ 
+        where: { userId },
+        include: {
+          certificates: {
+            include: {
+              course: {
+                include: {
+                  trainer: true
+                }
+              }
+            }
+          }
+        }
+      });
     } else if (user.role === Role.EMPLOYER) {
       profile = await this.prisma.employerProfile.findUnique({ where: { userId } });
     } else if (user.role === Role.FREELANCER) {
@@ -212,6 +232,10 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
       if (!user || user.refreshToken !== token) {
         throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      if (user.status === 'SUSPENDED') {
+        throw new UnauthorizedException('Your account has been suspended.');
       }
 
       const newPayload = { email: user.email, sub: user.id, role: user.role };

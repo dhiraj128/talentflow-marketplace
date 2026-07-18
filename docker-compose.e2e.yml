@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  db-e2e:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: e2e_user
+      POSTGRES_PASSWORD: e2e_password
+      POSTGRES_DB: talentflow_e2e
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U e2e_user -d talentflow_e2e"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

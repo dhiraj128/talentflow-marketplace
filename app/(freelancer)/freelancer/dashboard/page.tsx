@@ -1,91 +1,123 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { StatsGrid } from "@/components/shared/StatsGrid";
-import { MetricCard } from "@/components/shared/MetricCard";
-import { Briefcase, DollarSign, Star, Clock } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { analyticsService } from "@/lib/services/analytics.service";
-import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
+import React from "react";
+import { PageContainer } from "@/components/shared/PageContainer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { projectRequestService } from "@/lib/services/project-request.service";
+import { toast } from "sonner";
+import { Bell } from "lucide-react";
 
-export default function DashboardPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  const [data, setData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export default function FreelancerDashboardPage() {
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/sign-in");
-    } else if (user) {
-      analyticsService.getFreelancerDashboard().then(res => {
-        setData(res);
-        setIsLoading(false);
-      }).catch(err => {
-        console.error("Failed to load dashboard data", err);
-        setIsLoading(false);
-      });
+  const { data: requests, isLoading } = useQuery({
+    queryKey: ['freelancerRequests'],
+    queryFn: () => projectRequestService.getFreelancerRequests(),
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string, status: 'ACCEPTED' | 'REJECTED' }) => projectRequestService.updateStatus(id, status),
+    onSuccess: () => {
+      toast.success("Request updated!");
+      queryClient.invalidateQueries({ queryKey: ['freelancerRequests'] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to update request");
     }
-  }, [user, loading, router]);
+  });
 
-  if (loading || !user || isLoading) return null;
+  if (isLoading) return <PageContainer><div className="p-12 text-center text-muted-foreground animate-pulse">Loading dashboard...</div></PageContainer>;
+
+  const pendingRequests = requests?.filter((r: any) => r.status === 'PENDING') || [];
+  const activeRequests = requests?.filter((r: any) => r.status === 'ACCEPTED') || [];
+  const completedRequests = requests?.filter((r: any) => r.status === 'COMPLETED') || [];
 
   return (
-    <div className="max-w-7xl mx-auto p-8 space-y-8">
-      <PageHeader 
-        title="Dashboard" 
-        description="Welcome back. Here's an overview of your freelance business."
-        actionLabel="Find Work"
-      />
+    <PageContainer>
+      <div className="max-w-5xl mx-auto space-y-6">
+        <h1 className="text-3xl font-bold">Freelancer Dashboard</h1>
+        
+        {/* Notification Banner for Pending Requests */}
+        {pendingRequests.length > 0 && (
+          <div className="bg-primary/10 border border-primary/20 text-primary p-4 rounded-xl flex items-center gap-3">
+            <Bell className="w-5 h-5" />
+            <span className="font-semibold">{pendingRequests.length} new project request(s) received — Please review them below.</span>
+          </div>
+        )}
 
-      <StatsGrid columns={4}>
-        <MetricCard title="Total Earnings" value="$0" icon={<DollarSign className="w-4 h-4" />} trend="neutral" trendValue="No earnings yet" />
-        <MetricCard title="Active Projects" value={data?.stats?.activeApplications?.toString() || "0"} icon={<Briefcase className="w-4 h-4" />} />
-        <MetricCard title="Proposals Sent" value={data?.stats?.activeApplications?.toString() || "0"} icon={<Clock className="w-4 h-4" />} trend="up" trendValue="+0 this week" />
-        <MetricCard title="Success Rate" value="0%" icon={<Star className="w-4 h-4" />} trend="neutral" trendValue="New" />
-      </StatsGrid>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Applications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {data?.recentApplications?.length > 0 ? data.recentApplications.map((app: any) => (
-                  <div key={app.id} className="flex justify-between items-center border-b pb-4">
+        {/* Pending Requests */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Incoming Project Requests</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {pendingRequests.length === 0 ? (
+              <p className="text-muted-foreground">No pending requests at the moment.</p>
+            ) : (
+              pendingRequests.map((req: any) => (
+                <div key={req.id} className="border p-4 rounded-xl bg-muted/30">
+                  <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-medium">{app.job?.title || "Unknown Job"}</p>
-                      <p className="text-sm text-muted-foreground">Submitted on {new Date(app.appliedAt).toLocaleDateString()}</p>
+                      <h3 className="font-bold text-lg">{req.title}</h3>
+                      <p className="text-sm text-muted-foreground mb-2">From: {req.employer?.companyName || req.employer?.fullName}</p>
+                      <Badge variant="outline" className="mb-4 bg-background">Budget: ${req.budget}</Badge>
+                      <p className="whitespace-pre-wrap text-sm text-muted-foreground">{req.description}</p>
                     </div>
-                    <div className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">{app.status}</div>
+                    <div className="flex flex-col gap-2 min-w-[120px]">
+                      <Button size="sm" onClick={() => updateStatusMutation.mutate({ id: req.id, status: 'ACCEPTED' })}>Accept</Button>
+                      <Button size="sm" variant="outline" onClick={() => updateStatusMutation.mutate({ id: req.id, status: 'REJECTED' })}>Reject</Button>
+                    </div>
                   </div>
-                )) : (
-                  <p className="text-muted-foreground text-sm">No recent applications.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Completion</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div className="bg-primary h-2 rounded-full" style={{ width: `${data?.metrics?.profileCompletion || 0}%` }}></div>
                 </div>
-                <p className="text-sm text-muted-foreground">{data?.metrics?.profileCompletion || 0}% Complete. Add portfolio items to reach 100%.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Active Projects */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Engagements</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {activeRequests.length === 0 ? (
+              <p className="text-muted-foreground">No active projects.</p>
+            ) : (
+              activeRequests.map((req: any) => (
+                <div key={req.id} className="border p-4 rounded-xl bg-muted/30">
+                  <h3 className="font-bold text-lg">{req.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">Client: {req.employer?.companyName || req.employer?.fullName}</p>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">ACCEPTED / IN PROGRESS</Badge>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Completed Projects */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Completed Projects</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {completedRequests.length === 0 ? (
+              <p className="text-muted-foreground">No completed projects yet.</p>
+            ) : (
+              completedRequests.map((req: any) => (
+                <div key={req.id} className="border p-4 rounded-xl bg-muted/30">
+                  <h3 className="font-bold text-lg">{req.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">Client: {req.employer?.companyName || req.employer?.fullName}</p>
+                  <Badge variant="secondary" className="bg-green-100 text-green-700">COMPLETED</Badge>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
       </div>
-    </div>
+    </PageContainer>
   );
 }

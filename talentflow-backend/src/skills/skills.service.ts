@@ -1,26 +1,34 @@
-import { Injectable } from '@nestjs/common';
-import { CreateSkillDto } from './dto/create-skill.dto';
-import { UpdateSkillDto } from './dto/update-skill.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class SkillsService {
-  create(createSkillDto: CreateSkillDto) {
-    return 'This action adds a new skill';
+  constructor(private readonly prisma: PrismaService) {}
+
+  create(data: any) {
+    return this.prisma.skill.create({ data });
   }
 
-  findAll() {
-    return `This action returns all skills`;
+  async findAll(filters: any = {}) {
+    const page = Number(filters.page) || 1;
+    const limit = Number(filters.limit) || 20;
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.prisma.skill.findMany({ skip, take: limit, orderBy: { name: 'asc' } }),
+      this.prisma.skill.count()
+    ]);
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+  findOne(id: string) {
+    return this.prisma.skill.findUnique({ where: { id } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} skill`;
+  update(id: string, data: any) {
+    return this.prisma.skill.update({ where: { id }, data });
   }
 
-  update(id: number, updateSkillDto: UpdateSkillDto) {
-    return `This action updates a #${id} skill`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} skill`;
+  remove(id: string) {
+    return this.prisma.skill.delete({ where: { id } });
   }
 }
+

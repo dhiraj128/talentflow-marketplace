@@ -53,55 +53,7 @@ export default function TrainerDashboard() {
         <MetricCard title="Course Rating" value={isLoading ? "..." : stats?.courseRating} icon={Star} trend="Top 5%" trendUp color="primary" />
       </div>
 
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
-        {/* Engagement Funnel Chart */}
-        <Card className="lg:col-span-8 overflow-hidden shadow-sm border">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between mb-8">
-              <h4 className="text-xl font-bold text-foreground">Student Engagement Funnel</h4>
-              <select className="bg-muted border-none text-sm rounded-lg focus:ring-0 px-3 py-1.5">
-                <option>Last 30 Days</option>
-                <option>All Time</option>
-              </select>
-            </div>
-            
-            <div className="h-64 flex items-end justify-between gap-6 relative">
-              <FunnelBar label="Enrolled" height="100%" delay={0} />
-              <FunnelBar label="Started" height="85%" delay={0.1} />
-              <FunnelBar label="Midway" height="60%" delay={0.2} />
-              <FunnelBar label="Completed" height="42%" delay={0.3} />
-              <FunnelBar label="Certified" height="38%" delay={0.4} />
-            </div>
-
-            <div className="mt-8 pt-8 border-t flex gap-12">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Completion Rate</p>
-                <p className="text-2xl font-bold text-secondary-foreground mt-1">{stats?.courseCompletionRate ?? 0}%</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Certificates Issued</p>
-                <p className="text-2xl font-bold text-foreground mt-1">{stats?.certificatesIssued?.toLocaleString() ?? 0}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity Feed */}
-        <Card className="lg:col-span-4 shadow-sm border">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between mb-8">
-              <h4 className="text-xl font-bold text-foreground">Live Classes & Assignments</h4>
-              <button className="text-primary text-sm font-medium hover:underline">View All</button>
-            </div>
-            <div className="space-y-6">
-              <ActivityItem icon={Video} title={<span><span className="font-bold">Advanced React Patterns</span> Live Q&A</span>} time="Starts in 30 mins" color="primary" />
-              <ActivityItem icon={FileText} title={<span><span className="font-bold">Assignment Due</span> UI/UX Capstone</span>} time="Tomorrow" color="destructive" />
-              <ActivityItem icon={Download} title={<span><span className="font-bold">New Resource</span> Figma templates uploaded</span>} time="2 hrs ago" color="secondary" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Main Content Area removed as it contained mock data */}
 
       {/* Featured Courses */}
       <div className="mb-12">
@@ -152,30 +104,3 @@ function MetricCard({ title, value, icon: Icon, trend, trendUp, color, isNeutral
   );
 }
 
-function FunnelBar({ label, height, delay }: any) {
-  return (
-    <div className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-      <motion.div 
-        className="w-full bg-muted rounded-t-lg hover:bg-primary/20 transition-colors"
-        initial={{ height: 0 }}
-        animate={{ height }}
-        transition={{ duration: 1, delay, ease: [0.16, 1, 0.3, 1] }}
-      />
-      <span className="text-xs text-muted-foreground">{label}</span>
-    </div>
-  );
-}
-
-function ActivityItem({ icon: Icon, title, time, color }: any) {
-  return (
-    <div className="flex gap-4">
-      <div className={`w-8 h-8 rounded-full bg-${color}/10 flex items-center justify-center shrink-0`}>
-        <Icon className={`h-4 w-4 text-${color}`} />
-      </div>
-      <div>
-        <p className="text-sm text-foreground">{title}</p>
-        <p className="text-xs text-muted-foreground mt-1">{time}</p>
-      </div>
-    </div>
-  );
-}

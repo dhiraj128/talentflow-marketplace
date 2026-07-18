@@ -11,6 +11,11 @@ export class CreateApplicationDto {
   @IsUUID()
   jobId: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  resumeId?: string;
+
   @ApiPropertyOptional({ enum: ApplicationStatus })
   @IsOptional()
   @IsEnum(ApplicationStatus)

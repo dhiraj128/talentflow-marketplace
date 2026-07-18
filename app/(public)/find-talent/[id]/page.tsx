@@ -16,8 +16,24 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { PageContainer } from "@/components/shared/PageContainer";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import api from "@/lib/api";
 
 export default function CandidateProfilePage() {
+  const { id } = useParams() as { id: string };
+  
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['candidate', id],
+    queryFn: async () => {
+      const res = await api.get(`/candidates/${id}`);
+      return res.data;
+    }
+  });
+
+  if (isLoading) return <div className="p-12 text-center">Loading profile...</div>;
+  if (!profile) return <div className="p-12 text-center text-red-500">Candidate not found.</div>;
+
   return (
     <PageContainer>
       <div className="animate-in fade-in duration-700">
@@ -28,19 +44,23 @@ export default function CandidateProfilePage() {
         </div>
         <div className="flex flex-col md:flex-row gap-10 items-center relative z-10">
           <div className="relative shrink-0">
-            <div className="w-40 h-40 md:w-48 md:h-48 rounded-2xl overflow-hidden border-4 border-background shadow-xl bg-muted flex items-center justify-center">
-               <span className="text-5xl font-bold text-muted-foreground">AR</span>
-            </div>
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt={profile.fullName} className="w-40 h-40 md:w-48 md:h-48 rounded-2xl object-cover border-4 border-background shadow-xl" />
+            ) : (
+              <div className="w-40 h-40 md:w-48 md:h-48 rounded-2xl overflow-hidden border-4 border-background shadow-xl bg-muted flex items-center justify-center">
+                 <span className="text-5xl font-bold text-muted-foreground">{profile.fullName?.substring(0, 2).toUpperCase() || 'NA'}</span>
+              </div>
+            )}
             <div className="absolute -bottom-3 -right-3 bg-secondary text-secondary-foreground p-2 rounded-full border-4 border-background shadow-lg">
               <CheckCircle2 className="w-6 h-6" />
             </div>
           </div>
           <div className="flex-1 text-left">
             <div className="flex flex-wrap items-center justify-start gap-4 mb-2">
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground">Alex Rivera</h1>
-              <Badge className="bg-primary/10 text-primary hover:bg-primary/20" variant="secondary">TOP RATED PLUS</Badge>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground">{profile.fullName}</h1>
+              <Badge className="bg-primary/10 text-primary hover:bg-primary/20" variant="secondary">CANDIDATE</Badge>
             </div>
-            <p className="text-xl text-muted-foreground mb-6">Senior Product Designer & Systems Architect</p>
+            <p className="text-xl text-muted-foreground mb-6">{profile.title || 'Professional'}</p>
             <div className="flex flex-wrap justify-start gap-6 text-muted-foreground mb-8 font-medium">
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
@@ -74,9 +94,42 @@ export default function CandidateProfilePage() {
               <CardTitle className="text-2xl font-bold">Professional Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground leading-relaxed text-lg">
-                Multi-disciplinary designer with 8+ years of experience building high-performance SaaS platforms and design systems. Specialized in bridge-the-gap roles between complex engineering requirements and user-centric aesthetics. Proven track record of increasing engagement by 40% through iterative data-driven UI overhauls.
+              <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-wrap">
+                {profile.bio || "No summary provided."}
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Certificates */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold flex items-center gap-2"><Award className="w-6 h-6 text-primary" /> Certificates & Training</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {profile.certificates?.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4">
+                  {profile.certificates.map((cert: any) => (
+                    <div key={cert.id} className="border rounded-xl p-4 flex gap-4 items-start">
+                      <div className="bg-primary/10 p-3 rounded-lg border">
+                        <Award className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-foreground">{cert.course?.title}</h4>
+                        <p className="text-sm text-muted-foreground mb-2">Issued by: {cert.course?.trainer?.fullName || 'TalentFlow'}</p>
+                        {cert.certificateUrl && (
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(cert.certificateUrl, '_blank')}>
+                              View Credential
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No certificates earned yet.</p>
+              )}
             </CardContent>
           </Card>
 

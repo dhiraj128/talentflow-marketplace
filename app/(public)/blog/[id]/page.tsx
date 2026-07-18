@@ -48,8 +48,9 @@ async function getPostData(id: string) {
   };
 }
 
-export default async function BlogPostPage({ params }: { params: { id: string } }) {
-  const post = await getPostData(params.id);
+export default async function BlogPostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const post = await getPostData(id);
 
   if (!post) {
     notFound();

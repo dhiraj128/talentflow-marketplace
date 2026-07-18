@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -10,7 +10,7 @@ export class JobsService {
   async create(createJobDto: CreateJobDto, userId: string) {
     const employer = await this.prisma.employerProfile.findUnique({ where: { userId } });
     if (!employer) {
-      throw new Error('Employer profile not found');
+      throw new NotFoundException('Employer profile not found');
     }
     
     // Force employerId to the authenticated employer and status to DRAFT
@@ -26,7 +26,7 @@ export class JobsService {
   async findEmployerJobs(userId: string) {
     const employer = await this.prisma.employerProfile.findUnique({ where: { userId } });
     if (!employer) {
-      throw new Error('Employer profile not found');
+      throw new NotFoundException('Employer profile not found');
     }
 
     const data = await this.prisma.job.findMany({
@@ -88,11 +88,11 @@ export class JobsService {
   async update(id: string, updateJobDto: UpdateJobDto, user: any) {
     if (user.role === 'EMPLOYER') {
       const employer = await this.prisma.employerProfile.findUnique({ where: { userId: user.sub || user.userId } });
-      if (!employer) throw new Error('Employer profile not found');
+      if (!employer) throw new NotFoundException('Employer profile not found');
       
       const job = await this.prisma.job.findUnique({ where: { id } });
       if (!job || job.employerId !== employer.id) {
-        throw new Error('Forbidden');
+        throw new ForbiddenException('You do not have permission to modify this job');
       }
     }
     return this.prisma.job.update({ where: { id }, data: updateJobDto });
@@ -101,11 +101,11 @@ export class JobsService {
   async remove(id: string, user: any) {
     if (user.role === 'EMPLOYER') {
       const employer = await this.prisma.employerProfile.findUnique({ where: { userId: user.sub || user.userId } });
-      if (!employer) throw new Error('Employer profile not found');
+      if (!employer) throw new NotFoundException('Employer profile not found');
       
       const job = await this.prisma.job.findUnique({ where: { id } });
       if (!job || job.employerId !== employer.id) {
-        throw new Error('Forbidden');
+        throw new ForbiddenException('You do not have permission to modify this job');
       }
     }
     return this.prisma.job.delete({ where: { id } });
@@ -113,7 +113,7 @@ export class JobsService {
 
   async approveJob(id: string, user: any) {
     if (user.role !== 'ADMIN') {
-      throw new Error('Forbidden: Only Admins can approve jobs');
+      throw new ForbiddenException('Only Admins can approve jobs');
     }
     return this.prisma.job.update({
       where: { id },
@@ -121,26 +121,33 @@ export class JobsService {
     });
   }
 
-  async applyToJob(jobId: string, userId: string) {
+  async applyToJob(jobId: string, userId: string, resumeId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { role: true, candidateProfile: true }
     });
 
     if (!user || user.role !== 'CANDIDATE' || !user.candidateProfile) {
-      throw new Error('Only registered candidates can apply for jobs');
+      throw new ForbiddenException('Only registered candidates can apply for jobs');
     }
 
     const job = await this.prisma.job.findUnique({ where: { id: jobId } });
     if (!job || job.deletedAt) {
-      throw new Error('Job not found');
+      throw new NotFoundException('Job not found');
     }
 
     if (job.status !== 'PUBLISHED') {
-      throw new Error('Job is not open for applications');
+      throw new BadRequestException('Job is not open for applications');
     }
 
     const candidateId = user.candidateProfile.id;
+
+    if (resumeId) {
+      const resume = await this.prisma.resume.findUnique({ where: { id: resumeId } });
+      if (!resume || resume.candidateId !== candidateId) {
+        throw new ForbiddenException('You do not have permission to use this resume');
+      }
+    }
 
     // Check if already applied
     const existing = await this.prisma.application.findUnique({
@@ -148,13 +155,14 @@ export class JobsService {
     });
 
     if (existing) {
-      throw new Error('Already applied to this job');
+      throw new BadRequestException('Already applied to this job');
     }
 
     return this.prisma.application.create({
       data: {
         candidateId,
         jobId,
+        resumeId,
         status: 'PENDING'
       }
     });

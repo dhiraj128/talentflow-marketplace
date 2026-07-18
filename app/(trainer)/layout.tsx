@@ -37,7 +37,7 @@ const trainerRoutes: SidebarRoute[] = [
 ];
 
 export default function TrainerLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

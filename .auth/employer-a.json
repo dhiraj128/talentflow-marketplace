@@ -1,0 +1,43 @@
+{
+  "cookies": [
+    {
+      "name": "access_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImVtcGxveWVyX2FfZTJlQHRhbGVudGZsb3cudGVzdCIsInN1YiI6ImQwYTM0YWE5LTRkMmEtNDI0Ny1hYWY3LTNmMzc1OTE1MDI3YyIsInJvbGUiOiJFTVBMT1lFUiIsImlhdCI6MTc4NDM0NjU1OCwiZXhwIjoxNzg0MzQ3NDU4fQ.2Q2DiPOd1CeXEG1DVEDKwv-n5zhgab1U4LdBeqniPhU",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1784432958.44138,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "user_role",
+      "value": "EMPLOYER",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1784432958.443336,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "user",
+          "value": "{\"id\":\"d0a34aa9-4d2a-4247-aaf7-3f375915027c\",\"email\":\"employer_a_e2e@talentflow.test\",\"role\":\"EMPLOYER\",\"isEmailVerified\":true,\"refreshToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImVtcGxveWVyX2FfZTJlQHRhbGVudGZsb3cudGVzdCIsInN1YiI6ImQwYTM0YWE5LTRkMmEtNDI0Ny1hYWY3LTNmMzc1OTE1MDI3YyIsInJvbGUiOiJFTVBMT1lFUiIsImlhdCI6MTc4NDM0NjIyMywiZXhwIjoxNzg0OTUxMDIzfQ.oZm7LzobVgfmlKkc4pcWlB5lKF6f9CEsdILEm7WqDKo\",\"createdAt\":\"2026-07-18T03:38:37.902Z\",\"updatedAt\":\"2026-07-18T03:43:43.144Z\",\"deletedAt\":null,\"avatarUrl\":null,\"githubId\":null,\"googleId\":null,\"provider\":null,\"status\":\"ACTIVE\"}"
+        },
+        {
+          "name": "refresh_token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImVtcGxveWVyX2FfZTJlQHRhbGVudGZsb3cudGVzdCIsInN1YiI6ImQwYTM0YWE5LTRkMmEtNDI0Ny1hYWY3LTNmMzc1OTE1MDI3YyIsInJvbGUiOiJFTVBMT1lFUiIsImlhdCI6MTc4NDM0NjU1OCwiZXhwIjoxNzg0OTUxMzU4fQ.bJzeGkI_jxZTFky5inWaJUXo6W08StdZH5ovevLgG4A"
+        },
+        {
+          "name": "access_token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImVtcGxveWVyX2FfZTJlQHRhbGVudGZsb3cudGVzdCIsInN1YiI6ImQwYTM0YWE5LTRkMmEtNDI0Ny1hYWY3LTNmMzc1OTE1MDI3YyIsInJvbGUiOiJFTVBMT1lFUiIsImlhdCI6MTc4NDM0NjU1OCwiZXhwIjoxNzg0MzQ3NDU4fQ.2Q2DiPOd1CeXEG1DVEDKwv-n5zhgab1U4LdBeqniPhU"
+        }
+      ]
+    }
+  ]
+}

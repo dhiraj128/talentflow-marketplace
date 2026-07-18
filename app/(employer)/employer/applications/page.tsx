@@ -109,8 +109,8 @@ export default function ApplicationsPage() {
                 <div className="flex flex-col items-end justify-between gap-4">
                   <p className="text-sm text-muted-foreground">Applied {new Date(app.appliedAt).toLocaleDateString()}</p>
                   <div className="flex flex-wrap gap-2 justify-end">
-                    <Button variant="outline" size="sm" className="min-h-[44px]">
-                      <Eye className="w-4 h-4 mr-2" /> View Resume
+                    <Button variant="outline" size="sm" className="min-h-[44px]" onClick={() => window.open(`/find-talent/${app.candidateId}`, '_blank')}>
+                      <Eye className="w-4 h-4 mr-2" /> View Profile & Resume
                     </Button>
                     {app.status === "PENDING" && (
                       <Button variant="outline" size="sm" className="min-h-[44px] bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200" onClick={() => updateStatus(app.id, "REVIEWING")}>

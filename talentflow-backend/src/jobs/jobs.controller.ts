@@ -67,9 +67,13 @@ export class JobsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post(':id/apply')
-  async applyToJob(@Param('id') id: string, @CurrentUser() user: any) {
+  async applyToJob(
+    @Param('id') id: string, 
+    @Body() body: { resumeId?: string },
+    @CurrentUser() user: any
+  ) {
     try {
-      return await this.jobsService.applyToJob(id, user.sub || user.userId);
+      return await this.jobsService.applyToJob(id, user.sub || user.userId, body?.resumeId);
     } catch (error: any) {
       if (error.message.includes('not found')) {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);

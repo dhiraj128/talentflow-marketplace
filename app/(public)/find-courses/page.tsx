@@ -22,8 +22,10 @@ import { Suspense, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { EnterpriseHero } from "@/components/shared/EnterpriseHero";
+import { useAuth } from "@/lib/auth-context";
+import { courseService } from "@/lib/services/course.service";
 
 function AcademyDashboardContent() {
   const searchParams = useSearchParams();
@@ -70,7 +72,21 @@ function AcademyDashboardContent() {
     }
   });
 
+  const { user } = useAuth();
+  
+  const { data: myLearningData } = useQuery({
+    queryKey: ['my-learning', user?.id],
+    queryFn: async () => {
+      if (user?.role !== 'job-seeker') return [];
+      return await courseService.getMyLearning();
+    },
+    enabled: user?.role === 'job-seeker'
+  });
+
   const courses = coursesData || [];
+  const inProgressCourses = myLearningData?.filter((e: any) => e.progress < 100) || [];
+  const activeCourse = inProgressCourses[0]?.course;
+  const activeProgress = inProgressCourses[0]?.progress || 0;
 
   return (
     <PageContainer>
@@ -120,6 +136,38 @@ function AcademyDashboardContent() {
         </div>
       </section>
 
+      {/* Continue Learning Banner */}
+      {activeCourse && (
+        <section className="mb-16">
+          <Card className="overflow-hidden border-primary/20 shadow-lg bg-primary/5 rounded-3xl cursor-pointer hover:shadow-xl transition-all" onClick={() => router.push(`/job-seeker/learning/${activeCourse.id}`)}>
+            <CardContent className="p-0 flex flex-col md:flex-row items-center">
+              <div className="w-full md:w-1/3 aspect-video bg-muted relative">
+                {activeCourse.thumbnailUrl ? (
+                  <img src={activeCourse.thumbnailUrl} alt={activeCourse.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-900">
+                    <Play className="w-12 h-12 text-primary" />
+                  </div>
+                )}
+              </div>
+              <div className="p-6 md:p-8 flex-1 w-full">
+                <Badge className="mb-3 bg-primary/10 text-primary hover:bg-primary/20 border-none">Continue Learning</Badge>
+                <h3 className="text-2xl font-bold mb-2 text-foreground">{activeCourse.title}</h3>
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-sm font-medium text-muted-foreground">{activeCourse.trainer?.fullName}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary" style={{ width: `${activeProgress}%` }}></div>
+                  </div>
+                  <span className="font-bold text-primary">{activeProgress}%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
       {/* Course Grid */}
       <section>
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
@@ -143,37 +191,52 @@ function AcademyDashboardContent() {
               <Card key={course.id} className="group overflow-hidden rounded-3xl border-border hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 flex flex-col h-full bg-card">
                 <div className="relative h-48 w-full bg-muted overflow-hidden flex items-center justify-center p-6">
                   <div className="absolute inset-0 bg-gradient-to-tr from-background/80 to-transparent z-10"></div>
-                  <course.icon className={`w-16 h-16 ${course.categoryColor} opacity-50 transform group-hover:scale-110 transition-transform duration-500 z-0`} />
+                  {course.thumbnailUrl ? (
+                    <img src={course.thumbnailUrl} alt={course.title} className="absolute inset-0 w-full h-full object-cover opacity-80" />
+                  ) : (
+                    <BrainCircuit className="w-16 h-16 text-primary opacity-50 transform group-hover:scale-110 transition-transform duration-500 z-0" />
+                  )}
                   <div className="absolute top-4 right-4 z-20 flex gap-2">
-                    {course.tags.map((tag: string, i: number) => (
-                      <Badge key={i} className={`${course.tagColor} border-none`}>{tag}</Badge>
-                    ))}
+                    {course.level && (
+                      <Badge className="bg-primary text-primary-foreground border-none">{course.level}</Badge>
+                    )}
                   </div>
                 </div>
                 <CardContent className="p-6 flex flex-col flex-grow">
                   <div className="flex items-center justify-between mb-3">
-                    <span className={`text-xs font-bold uppercase tracking-wider ${course.categoryColor}`}>{course.category || 'Category'}</span>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-orange-400 fill-orange-400" />
-                      <span className="font-semibold text-foreground text-sm">{course.rating || '4.9'}</span>
-                      <span className="text-sm text-muted-foreground">({course.reviews || '2k'})</span>
-                    </div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary">{course.category || 'General'}</span>
+                    {course.rating > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-orange-400 fill-orange-400" />
+                        <span className="font-semibold text-foreground text-sm">{course.rating.toFixed(1)}</span>
+                        <span className="text-sm text-muted-foreground">({course.studentCount})</span>
+                      </div>
+                    )}
                   </div>
-                  <h3 className={`text-xl font-bold text-foreground mb-4 leading-tight group-hover:${course.categoryColor || 'text-primary'} transition-colors`}>
-                    {course.title || `Course Title ${course.id}`}
+                  <h3 className="text-xl font-bold text-foreground mb-4 leading-tight group-hover:text-primary transition-colors">
+                    {course.title}
                   </h3>
                   <div className="flex items-center gap-3 mb-6 mt-auto">
                     <div className="w-8 h-8 rounded-full bg-muted border flex items-center justify-center overflow-hidden">
-                      <span className="font-bold text-xs text-muted-foreground">{(course.instructor || 'I').charAt(0)}</span>
+                      {course.trainer?.avatarUrl ? (
+                        <img src={course.trainer.avatarUrl} alt={course.trainer.fullName} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="font-bold text-xs text-muted-foreground">{(course.trainer?.fullName || 'T').charAt(0)}</span>
+                      )}
                     </div>
-                    <span className="font-medium text-muted-foreground text-sm">{course.instructor || 'Instructor Name'}</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium text-foreground text-sm">{course.trainer?.fullName || 'Trainer Name'}</span>
+                      {course.trainer?.expertise && <span className="text-xs text-muted-foreground">{course.trainer.expertise}</span>}
+                    </div>
                   </div>
                   <div className="pt-4 border-t flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground font-medium">{course.duration || '20 Hours'}</span>
-                      <span className={`text-xl font-bold ${course.categoryColor}`}>{course.price || '$99.00'}</span>
+                      <span className="text-sm text-muted-foreground font-medium">{course.duration || 'Self-paced'}</span>
+                      <span className="text-xl font-bold text-primary">
+                        {course.price === 0 ? 'FREE' : `$${course.price}`}
+                      </span>
                     </div>
-                    <Button className={`${course.buttonColor} rounded-lg font-semibold`}>Enroll Now</Button>
+                    <Button className="rounded-lg font-semibold" onClick={() => router.push(`/find-courses/${course.id}`)}>View Details</Button>
                   </div>
                 </CardContent>
               </Card>

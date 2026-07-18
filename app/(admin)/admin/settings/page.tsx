@@ -40,6 +40,59 @@ export default function AdminSettingsPage() {
           </div>
         </form>
       </div>
+
+      <div className="bg-card text-card-foreground border p-6 rounded-xl space-y-6">
+        <h3 className="text-lg font-semibold">Master Data Management</h3>
+        <p className="text-sm text-muted-foreground">Manage global taxonomies used across the platform for dropdowns, matching, and filtering.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <a href="/admin/settings/categories" className="block p-4 border rounded hover:bg-muted transition-colors">
+            <h4 className="font-semibold">Categories</h4>
+            <p className="text-xs text-muted-foreground mt-1">Manage job categories</p>
+          </a>
+          <a href="/admin/settings/designations" className="block p-4 border rounded hover:bg-muted transition-colors">
+            <h4 className="font-semibold">Designations</h4>
+            <p className="text-xs text-muted-foreground mt-1">Manage job roles/titles</p>
+          </a>
+          <a href="/admin/settings/locations" className="block p-4 border rounded hover:bg-muted transition-colors">
+            <h4 className="font-semibold">Locations</h4>
+            <p className="text-xs text-muted-foreground mt-1">Manage cities/countries</p>
+          </a>
+          <a href="/admin/settings/skills" className="block p-4 border rounded hover:bg-muted transition-colors">
+            <h4 className="font-semibold">Skills</h4>
+            <p className="text-xs text-muted-foreground mt-1">Manage platform skills</p>
+          </a>
+        </div>
+      </div>
+
+      <div className="bg-card text-card-foreground border p-6 rounded-xl space-y-6">
+        <h3 className="text-lg font-semibold">Marketing & Growth</h3>
+        <p className="text-sm text-muted-foreground">Manage platform promotional offers and discount coupons.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <a href="/admin/settings/coupons" className="block p-4 border rounded hover:bg-muted transition-colors">
+            <h4 className="font-semibold">Coupons</h4>
+            <p className="text-xs text-muted-foreground mt-1">Manage discount codes</p>
+          </a>
+          <a href="/admin/settings/offers" className="block p-4 border rounded hover:bg-muted transition-colors">
+            <h4 className="font-semibold">Offers</h4>
+            <p className="text-xs text-muted-foreground mt-1">Manage promotional banners and deals</p>
+          </a>
+        </div>
+      </div>
+
+      <div className="bg-card text-card-foreground border p-6 rounded-xl space-y-6">
+        <h3 className="text-lg font-semibold">Billing & Subscriptions</h3>
+        <p className="text-sm text-muted-foreground">Manage platform plans and user subscriptions.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <a href="/admin/settings/plans" className="block p-4 border rounded hover:bg-muted transition-colors">
+            <h4 className="font-semibold">Plans</h4>
+            <p className="text-xs text-muted-foreground mt-1">Manage pricing plans</p>
+          </a>
+          <a href="/admin/settings/subscriptions" className="block p-4 border rounded hover:bg-muted transition-colors">
+            <h4 className="font-semibold">Subscriptions</h4>
+            <p className="text-xs text-muted-foreground mt-1">Manage user subscriptions</p>
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

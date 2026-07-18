@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { candidateService } from "@/lib/services/candidate.service";
 import { toast } from "sonner";
+import { Award, ExternalLink } from "lucide-react";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -155,6 +156,45 @@ export default function ProfilePage() {
                   {isSavingLinks ? "Updating..." : "Update Links"}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-3 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Certificates & Training</CardTitle>
+              <CardDescription>Verified courses and certifications from the EliteTalent ecosystem.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {profile?.certificates?.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {profile.certificates.map((cert: any) => (
+                    <div key={cert.id} className="border rounded-xl p-4 flex gap-4 items-start">
+                      <div className="bg-primary/10 p-3 rounded-lg border">
+                        <Award className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-foreground">{cert.course?.title}</h4>
+                        <p className="text-sm text-muted-foreground mb-2">Issued by: {cert.course?.trainer?.fullName || 'TalentFlow'}</p>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(cert.certificateUrl, '_blank')}>
+                            <ExternalLink className="w-3 h-3 mr-1" /> View Credential
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-xl border border-dashed">
+                  <Award className="w-8 h-8 mx-auto mb-3 text-muted-foreground/50" />
+                  <p>You haven't earned any certificates yet.</p>
+                  <Button variant="link" className="mt-2 text-primary" onClick={() => window.location.href = '/find-courses'}>
+                    Browse Courses
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

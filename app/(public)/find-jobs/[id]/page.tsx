@@ -5,35 +5,55 @@ import { PageContainer } from "@/components/shared/PageContainer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, MapPin, Briefcase, DollarSign, Clock, Users, ArrowLeft, Bookmark, Share2, CheckCircle2 } from "lucide-react";
+import { Building2, MapPin, Briefcase, DollarSign, Clock, Users, ArrowLeft, Bookmark, Share2, CheckCircle2, FileText, Upload } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { jobService } from "@/lib/services/job.service";
+import { resumeService } from "@/lib/services/resume.service";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-export default function JobDetailsPage({ params }: { params: { id: string } }) {
+export default function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { user } = useAuth();
   const router = useRouter();
   const [isApplying, setIsApplying] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [selectedResumeId, setSelectedResumeId] = useState<string>("");
+
+  const unwrappedParams = React.use(params);
+  const jobId = unwrappedParams.id;
 
   const { data: job, isLoading, error } = useQuery({
-    queryKey: ['job', params.id],
-    queryFn: () => jobService.getJob(params.id)
+    queryKey: ['job', jobId],
+    queryFn: () => jobService.getJob(jobId)
   });
 
   const { data: applicationStatus, refetch: refetchStatus } = useQuery({
-    queryKey: ['job-application-status', params.id],
-    queryFn: () => jobService.checkApplicationStatus(params.id),
+    queryKey: ['job-application-status', jobId],
+    queryFn: () => jobService.checkApplicationStatus(jobId),
     enabled: !!user && user.role === 'job-seeker'
   });
 
-  const handleApply = async () => {
+  const { data: resumes, isLoading: resumesLoading } = useQuery({
+    queryKey: ['candidate-resumes', (user as any)?.profile?.id],
+    queryFn: () => resumeService.getResumes((user as any)?.profile?.id),
+    enabled: !!user && user.role === 'job-seeker' && !!(user as any)?.profile?.id
+  });
+
+  const handleApplyClick = () => {
     if (!user) {
       toast.error("Please sign in to apply");
-      router.push(`/sign-in?redirect=/find-jobs/${params.id}`);
+      router.push(`/sign-in?redirect=/find-jobs/${jobId}`);
       return;
     }
 
@@ -41,11 +61,26 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
       toast.error("Only Job Seekers can apply for jobs");
       return;
     }
+    
+    // Automatically select default resume if available
+    if (resumes && resumes.length > 0) {
+      const defaultResume = resumes.find((r: any) => r.isDefault);
+      if (defaultResume) {
+        setSelectedResumeId(defaultResume.id);
+      } else {
+        setSelectedResumeId(resumes[0].id);
+      }
+    }
+    
+    setShowResumeModal(true);
+  };
 
+  const submitApplication = async () => {
     setIsApplying(true);
     try {
-      await jobService.applyToJob(params.id);
+      await jobService.applyToJob(jobId, selectedResumeId);
       toast.success("Successfully applied to the job!");
+      setShowResumeModal(false);
       refetchStatus();
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || "Failed to apply");
@@ -77,10 +112,10 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
     <Button 
       size="lg" 
       className={className} 
-      onClick={handleApply} 
+      onClick={handleApplyClick} 
       disabled={isApplyDisabled}
     >
-      {hasApplied ? "Applied" : isApplying ? "Applying..." : "Apply Now"}
+      {hasApplied ? "Applied" : "Apply Now"}
     </Button>
   );
 
@@ -196,6 +231,74 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
           </div>
         </div>
       </div>
+
+      <Dialog open={showResumeModal} onOpenChange={setShowResumeModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Resume</DialogTitle>
+            <DialogDescription>
+              Choose which resume to send to the employer for this application.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            {resumesLoading ? (
+              <p className="text-sm text-muted-foreground text-center">Loading your resumes...</p>
+            ) : resumes && resumes.length > 0 ? (
+              <div className="space-y-3">
+                {resumes.map((resume: any) => (
+                  <div 
+                    key={resume.id} 
+                    className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${selectedResumeId === resume.id ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
+                    onClick={() => setSelectedResumeId(resume.id)}
+                  >
+                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${selectedResumeId === resume.id ? 'border-primary' : 'border-muted-foreground'}`}>
+                      {selectedResumeId === resume.id && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                    </div>
+                    <FileText className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-sm font-medium truncate">{resume.fileName || resume.title || "Untitled Resume"}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                          {resume.type === 'ATS' ? 'ATS Friendly' : 'Original'}
+                        </Badge>
+                        {resume.isDefault && (
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-blue-100 text-blue-800">
+                            Default
+                          </Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground ml-auto">
+                          {new Date(resume.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 space-y-4 border-2 border-dashed rounded-lg">
+                <p className="text-sm text-muted-foreground">You don't have any resumes uploaded yet.</p>
+                <Link href="/job-seeker/resume-center">
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" /> Upload Resume
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <Button type="button" variant="outline" onClick={() => setShowResumeModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={submitApplication}
+              disabled={isApplying || !selectedResumeId}
+            >
+              {isApplying ? "Applying..." : "Confirm Application"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageContainer>
   );
 }

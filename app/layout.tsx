@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
 import { QueryProvider } from "@/lib/providers/query-provider";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
           >
             <AuthProvider>
               {children}
+              <Toaster position="bottom-right" richColors />
             </AuthProvider>
           </ThemeProvider>
         </QueryProvider>

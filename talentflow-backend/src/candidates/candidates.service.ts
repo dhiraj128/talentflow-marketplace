@@ -11,11 +11,34 @@ export class CandidatesService {
   }
 
   findAll(skip: number = 0, take: number = 10) {
-    return this.prisma.candidateProfile.findMany({ skip, take });
+    return this.prisma.candidateProfile.findMany({ 
+      skip, 
+      take,
+      include: {
+        certificates: {
+          include: {
+            course: {
+              include: { trainer: true }
+            }
+          }
+        }
+      }
+    });
   }
 
   async findOne(id: string) {
-    const candidate = await this.prisma.candidateProfile.findUnique({ where: { id } });
+    const candidate = await this.prisma.candidateProfile.findUnique({ 
+      where: { id },
+      include: {
+        certificates: {
+          include: {
+            course: {
+              include: { trainer: true }
+            }
+          }
+        }
+      }
+    });
     if (!candidate) throw new NotFoundException('Candidate not found');
     return candidate;
   }

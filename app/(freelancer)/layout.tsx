@@ -33,7 +33,7 @@ const freelancerRoutes: SidebarRoute[] = [
 ];
 
 export default function FreelancerLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen flex-col">

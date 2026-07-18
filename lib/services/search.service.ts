@@ -19,7 +19,7 @@ class SearchService {
     const config = signal ? { signal } : {};
     try {
       const response = await api.get(`/search/suggestions?q=${encodeURIComponent(query)}&type=${type}`, config);
-      return response.data;
+      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
     } catch (error: any) {
       if (error.name === 'CanceledError' || error.name === 'AbortError') throw error;
       return { suggestions: [] };
@@ -30,7 +30,7 @@ class SearchService {
     const config = signal ? { signal } : {};
     try {
       const response = await api.get(`/search/suggestions?q=${encodeURIComponent(query)}`, config);
-      return response.data;
+      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
     } catch (error: any) {
       if (error.name === 'CanceledError' || error.name === 'AbortError') throw error;
       return { suggestions: [] };
@@ -41,7 +41,7 @@ class SearchService {
     const config = signal ? { signal } : {};
     try {
       const response = await api.get(`/search/locations?q=${encodeURIComponent(query)}`, config);
-      return response.data;
+      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
     } catch (error: any) {
       if (error.name === 'CanceledError' || error.name === 'AbortError') throw error;
       return { locations: [] };
@@ -51,7 +51,7 @@ class SearchService {
   async getPopularSearches(type: SearchType): Promise<string[]> {
     try {
       const response = await api.get(`/search/popular?type=${type}`);
-      return response.data;
+      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
     } catch {
       return [];
     }
@@ -60,7 +60,7 @@ class SearchService {
   async getTrendingSkills(): Promise<string[]> {
     try {
       const response = await api.get(`/search/trending-skills`);
-      return response.data;
+      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
     } catch {
       return [];
     }
@@ -68,22 +68,22 @@ class SearchService {
 
   async searchTalent(query: string, location: string): Promise<any[]> {
     const response = await api.get(`/users?role=CANDIDATE&q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   }
 
   async searchJobs(query: string, location: string): Promise<any[]> {
     const response = await api.get(`/jobs?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   }
 
   async searchFreelancers(query: string, location: string): Promise<any[]> {
     const response = await api.get(`/users?role=FREELANCER&q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   }
 
   async searchCourses(query: string, location: string): Promise<any[]> {
     const response = await api.get(`/courses?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   }
 }
 

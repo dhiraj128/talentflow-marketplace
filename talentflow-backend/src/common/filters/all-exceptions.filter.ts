@@ -53,13 +53,20 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     // Never leak stack traces in response
-    const errorResponse = {
+    const errorResponse: any = {
       statusCode,
       message,
       error,
       timestamp: new Date().toISOString(),
       path: request.url,
     };
+
+    if (exception instanceof HttpException) {
+      const responsePayload = exception.getResponse() as any;
+      if (typeof responsePayload === 'object') {
+        Object.assign(errorResponse, responsePayload);
+      }
+    }
 
     response.status(statusCode).json(errorResponse);
   }

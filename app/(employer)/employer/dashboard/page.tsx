@@ -10,11 +10,26 @@ import { analyticsService } from "@/lib/services/analytics.service";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 
+import { projectRequestService } from "@/lib/services/project-request.service";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+
 export default function EmployerDashboard() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Review state
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewData, setReviewData] = useState({ requestId: '', rating: '5', text: '' });
 
   useEffect(() => {
     if (!loading && !user) {
@@ -29,6 +44,31 @@ export default function EmployerDashboard() {
       });
     }
   }, [user, loading, router]);
+
+  const { data: requests } = useQuery({
+    queryKey: ['employerRequests'],
+    queryFn: () => projectRequestService.getEmployerRequests(),
+    enabled: !!user,
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string, status: 'COMPLETED' }) => projectRequestService.updateStatus(id, status),
+    onSuccess: () => {
+      toast.success("Project marked as COMPLETED!");
+      queryClient.invalidateQueries({ queryKey: ['employerRequests'] });
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || "Failed to update project status")
+  });
+
+  const reviewMutation = useMutation({
+    mutationFn: () => projectRequestService.createReview(reviewData.requestId, { rating: parseInt(reviewData.rating), text: reviewData.text }),
+    onSuccess: () => {
+      toast.success("Review submitted successfully!");
+      setIsReviewOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['employerRequests'] });
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || "Failed to submit review")
+  });
 
   if (loading || !user || isLoading) return null;
 
@@ -65,6 +105,63 @@ export default function EmployerDashboard() {
         </CardHeader>
         <CardContent>
           <DataTable columns={columns} data={tableData} searchKey="applicant" />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Freelancer Project Requests</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!requests || requests.length === 0 ? (
+            <p className="text-muted-foreground">No project requests sent yet.</p>
+          ) : (
+            requests.map((req: any) => (
+              <div key={req.id} className="border p-4 rounded-xl flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-lg">{req.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">Freelancer: {req.freelancer?.fullName}</p>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">${req.budget}</Badge>
+                    <Badge className={req.status === 'COMPLETED' ? 'bg-green-500' : req.status === 'ACCEPTED' ? 'bg-blue-500' : req.status === 'REJECTED' ? 'bg-red-500' : 'bg-yellow-500'}>
+                      {req.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {req.status === 'ACCEPTED' && (
+                    <Button onClick={() => statusMutation.mutate({ id: req.id, status: 'COMPLETED' })}>Mark Completed</Button>
+                  )}
+                  {req.status === 'COMPLETED' && (
+                    <Dialog open={isReviewOpen && reviewData.requestId === req.id} onOpenChange={(open) => {
+                      setIsReviewOpen(open);
+                      if (open) setReviewData({ requestId: req.id, rating: '5', text: '' });
+                    }}>
+                      <DialogTrigger>
+                        <Button variant="outline">Leave Review</Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader><DialogTitle>Review Freelancer</DialogTitle></DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>Rating (1-5)</Label>
+                            <Input type="number" min="1" max="5" value={reviewData.rating} onChange={e => setReviewData(d => ({ ...d, rating: e.target.value }))} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Review Comments (Optional)</Label>
+                            <Textarea value={reviewData.text} onChange={e => setReviewData(d => ({ ...d, text: e.target.value }))} />
+                          </div>
+                          <Button className="w-full" onClick={() => reviewMutation.mutate()} disabled={reviewMutation.isPending}>
+                            Submit Review
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

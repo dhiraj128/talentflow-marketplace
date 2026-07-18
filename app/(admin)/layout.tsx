@@ -30,7 +30,7 @@ const adminRoutes: SidebarRoute[] = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen flex-col">

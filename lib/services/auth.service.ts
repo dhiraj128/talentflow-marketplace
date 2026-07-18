@@ -14,7 +14,7 @@ export const authService = {
         }
       }
     }
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
   register: async (userData: any) => {
     const response = await api.post('/auth/register', userData);
@@ -25,7 +25,7 @@ export const authService = {
         localStorage.setItem('user', JSON.stringify(response.data.user));
       }
     }
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
   logout: async () => {
     try {
@@ -41,6 +41,6 @@ export const authService = {
   },
   getCurrentUser: async () => {
     const response = await api.get('/auth/me');
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   }
 };

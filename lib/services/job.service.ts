@@ -9,36 +9,36 @@ export const jobService = {
       });
     }
     const response = await api.get(`/jobs?${searchParams.toString()}`);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
   getJob: async (id: string) => {
     const response = await api.get(`/jobs/${id}`);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
   createJob: async (data: any) => {
     const response = await api.post('/jobs', data);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
   updateJob: async (id: string, data: any) => {
     const response = await api.patch(`/jobs/${id}`, data);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
   deleteJob: async (id: string) => {
     const response = await api.delete(`/jobs/${id}`);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
   getApplicationsForJob: async (jobId: string) => {
     const response = await api.get(`/applications?jobId=${jobId}`);
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
-  applyToJob: async (jobId: string) => {
-    const response = await api.post(`/jobs/${jobId}/apply`);
-    return response.data;
+  applyToJob: async (jobId: string, resumeId?: string) => {
+    const response = await api.post(`/jobs/${jobId}/apply`, { resumeId });
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
   checkApplicationStatus: async (jobId: string) => {
     try {
       const response = await api.get(`/jobs/${jobId}/application-status`);
-      return response.data;
+      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
     } catch {
       return { hasApplied: false };
     }

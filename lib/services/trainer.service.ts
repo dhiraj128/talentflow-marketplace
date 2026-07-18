@@ -14,7 +14,7 @@ export interface TrainerDashboardData {
 class TrainerService {
   async getTrainerDashboard(): Promise<any> {
     const response = await api.get('/analytics/dashboard/trainer');
-    return response.data;
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   }
 }
 
