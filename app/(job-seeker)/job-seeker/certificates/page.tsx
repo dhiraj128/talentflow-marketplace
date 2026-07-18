@@ -1,59 +1,39 @@
 "use client";
 
-import { PageHeader } from "@/components/shared/PageHeader";
-import { VerificationModule } from "@/components/shared/VerificationModule";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { PageContainer } from "@/components/shared/PageContainer";
+import { CertificateGallery } from "@/features/training/certificates/CertificateGallery";
+import { Certificate } from "@/features/training/certificates/CertificateCard";
 
 export default function CertificatesPage() {
+  const myCertificates: Certificate[] = [
+    {
+      id: "cert-1",
+      courseTitle: "Advanced React Patterns & Architecture",
+      issueDate: "Oct 24, 2026",
+      credentialId: "TF-894-REACT",
+      skills: ["React", "Architecture", "Hooks", "Next.js"],
+      thumbnailUrl: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=600&auto=format&fit=crop"
+    },
+    {
+      id: "cert-2",
+      courseTitle: "Figma UI/UX Design Fundamentals",
+      issueDate: "Sep 12, 2026",
+      credentialId: "TF-421-FIGMA",
+      skills: ["UI Design", "Figma", "Prototyping", "User Research"],
+      thumbnailUrl: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=600&auto=format&fit=crop"
+    }
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto p-8 space-y-8">
-      <PageHeader 
-        title="Certifications & Licenses" 
-        description="Manage and verify your professional credentials"
-        action={<Button><Plus className="h-4 w-4 mr-2" /> Add Certificate</Button>}
-      />
+    <PageContainer className="py-8">
+      <div className="flex flex-col gap-8">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight mb-2">My Certificates</h1>
+          <p className="text-muted-foreground">Manage and share your verified credentials.</p>
+        </div>
 
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Add New Certificate</CardTitle>
-            <CardDescription>Enter details of your certification.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label>Certificate Name</Label>
-                <Input placeholder="AWS Certified Solutions Architect" />
-              </div>
-              <div className="space-y-2">
-                <Label>Issuing Organization</Label>
-                <Input placeholder="Amazon Web Services" />
-              </div>
-              <div className="space-y-2">
-                <Label>Issue Date</Label>
-                <Input type="month" />
-              </div>
-              <div className="space-y-2">
-                <Label>Credential ID (Optional)</Label>
-                <Input placeholder="ABC-123456" />
-              </div>
-              <div className="col-span-1 md:col-span-2">
-                <Button>Save Certificate</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        <VerificationModule 
-          type="document" 
-          title="Verify AWS Certification" 
-          description="Upload your certificate document for official verification to stand out to employers."
-        />
+        <CertificateGallery certificates={myCertificates} />
       </div>
-    </div>
+    </PageContainer>
   );
 }

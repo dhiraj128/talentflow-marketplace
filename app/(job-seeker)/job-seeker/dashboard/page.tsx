@@ -26,6 +26,13 @@ import { DashboardSkeleton } from "@/features/job-seeker/dashboard/DashboardSkel
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Sparkles, Briefcase, GraduationCap } from "lucide-react";
 
+// Phase 7 Training Hub Widgets
+import { ContinueLearningBanner } from "@/features/training/dashboard/ContinueLearningBanner";
+import { MyCoursesWidget } from "@/features/training/dashboard/MyCoursesWidget";
+import { UpcomingAssessments } from "@/features/training/dashboard/UpcomingAssessments";
+import { RecommendedCourses } from "@/features/training/dashboard/RecommendedCourses";
+import { CertificatesWidget } from "@/features/training/dashboard/CertificatesWidget";
+
 export default function CandidateDashboard() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -163,6 +170,9 @@ export default function CandidateDashboard() {
           resumeStatus={data?.metrics?.profileCompletion > 50 ? "Complete" : "Needs Update"}
         />
 
+        {/* Phase 7: LMS Integration (Continue Learning) */}
+        <ContinueLearningBanner />
+
         {/* Career Journey */}
         <div className="space-y-4">
           <SectionHeader title="Your Career Journey" />
@@ -208,9 +218,13 @@ export default function CandidateDashboard() {
               <RecommendedJobsList jobs={data?.recommendedJobs || []} />
             </div>
 
-            {/* Learning Recommendations */}
+            {/* Phase 7: Training Hub (My Courses & Recommendations) */}
             <div className="space-y-4 pt-4">
-              <LearningRecommendationsPanel courses={data?.recommendedCourses || []} />
+              <MyCoursesWidget />
+            </div>
+            
+            <div className="space-y-4 pt-4">
+              <RecommendedCourses />
             </div>
 
           </div>
@@ -239,6 +253,10 @@ export default function CandidateDashboard() {
                 "Include link to your GitHub profile"
               ]}
             />
+
+            {/* Phase 7: Training Hub Widgets */}
+            <UpcomingAssessments />
+            <CertificatesWidget />
 
             <ActivityAndNotifications 
               activities={mockActivities} 
