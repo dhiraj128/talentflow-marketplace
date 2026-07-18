@@ -19,6 +19,8 @@ Test timeout of 30000ms exceeded.
 Error: page.waitForURL: Test timeout of 30000ms exceeded.
 =========================== logs ===========================
 waiting for navigation to "**/employer/dashboard" until "load"
+  navigated to "http://localhost:3000/sign-in"
+  navigated to "http://localhost:3000/sign-in"
 ============================================================
 ```
 
@@ -144,121 +146,121 @@ waiting for navigation to "**/employer/dashboard" until "load"
             - generic [ref=e152]:
               - generic [ref=e153]:
                 - generic [ref=e154]: Email
-                - textbox "Email" [ref=e155]: employer_a_e2e@talentflow.test
+                - textbox "Email" [ref=e155]
               - generic [ref=e156]:
                 - generic [ref=e157]:
                   - generic [ref=e158]: Password
                   - link "Forgot password?" [ref=e159] [cursor=pointer]:
                     - /url: "#"
-                - textbox "Password" [ref=e160]: e2e_secure_empA_123
-              - button "Signing in..." [disabled]
-            - generic [ref=e161]:
-              - generic [ref=e166]: Or continue with
-              - generic [ref=e167]:
-                - link "Google" [ref=e168] [cursor=pointer]:
+                - textbox "Password" [ref=e160]
+              - button "Sign In" [ref=e161]
+            - generic [ref=e162]:
+              - generic [ref=e167]: Or continue with
+              - generic [ref=e168]:
+                - link "Google" [ref=e169] [cursor=pointer]:
                   - /url: https://talentflow-backend-qn7b.onrender.com/api/v1/auth/google
-                  - img [ref=e169]
+                  - img [ref=e170]
                   - text: Google
-                - link "GitHub" [ref=e172] [cursor=pointer]:
+                - link "GitHub" [ref=e173] [cursor=pointer]:
                   - /url: https://talentflow-backend-qn7b.onrender.com/api/v1/auth/github
-                  - img [ref=e173]
+                  - img [ref=e174]
                   - text: GitHub
-              - generic [ref=e176]:
+              - generic [ref=e177]:
                 - text: Don't have an account?
-                - link "Sign up" [ref=e177] [cursor=pointer]:
+                - link "Sign up" [ref=e178] [cursor=pointer]:
                   - /url: /sign-up
-            - generic [ref=e178]:
-              - generic [ref=e179]:
-                - img [ref=e180]
-                - generic [ref=e182]: Identity Verification
-              - paragraph [ref=e183]: Upload ANY ONE government-issued identity document.
-              - generic [ref=e184]:
-                - generic [ref=e185]: Aadhaar
-                - generic [ref=e186]: PAN
-                - generic [ref=e187]: Passport
-                - generic [ref=e188]: Driving Licence
-                - generic [ref=e189]: Voter ID
-              - paragraph [ref=e190]: One verified government-issued identity document is sufficient.
-          - generic [ref=e191]:
-            - generic [ref=e192]:
-              - img [ref=e193]
+            - generic [ref=e179]:
+              - generic [ref=e180]:
+                - img [ref=e181]
+                - generic [ref=e183]: Identity Verification
+              - paragraph [ref=e184]: Upload ANY ONE government-issued identity document.
+              - generic [ref=e185]:
+                - generic [ref=e186]: Aadhaar
+                - generic [ref=e187]: PAN
+                - generic [ref=e188]: Passport
+                - generic [ref=e189]: Driving Licence
+                - generic [ref=e190]: Voter ID
+              - paragraph [ref=e191]: One verified government-issued identity document is sufficient.
+          - generic [ref=e192]:
+            - generic [ref=e193]:
+              - img [ref=e194]
               - text: 256-bit SSL
-            - generic [ref=e196]:
-              - img [ref=e197]
+            - generic [ref=e197]:
+              - img [ref=e198]
               - text: JWT Authentication
-            - generic [ref=e200]:
-              - img [ref=e201]
+            - generic [ref=e201]:
+              - img [ref=e202]
               - text: Secure Payments
-            - generic [ref=e204]:
-              - img [ref=e205]
+            - generic [ref=e205]:
+              - img [ref=e206]
               - text: SOC 2 Ready
-            - generic [ref=e208]:
-              - img [ref=e209]
+            - generic [ref=e209]:
+              - img [ref=e210]
               - text: GDPR Ready
-    - contentinfo [ref=e212]:
-      - generic [ref=e213]:
-        - generic [ref=e214]:
-          - generic [ref=e215]:
+    - contentinfo [ref=e213]:
+      - generic [ref=e214]:
+        - generic [ref=e215]:
+          - generic [ref=e216]:
             - text: TalentFlow
-            - paragraph [ref=e216]: Your Career Ecosystem — All in One Place. Connect with verified employers, freelance projects, and certified training programs.
-            - paragraph [ref=e217]: Powered by TalentFlow Platform
-          - generic [ref=e218]:
-            - heading "Platform" [level=3] [ref=e219]
-            - list [ref=e220]:
-              - listitem [ref=e221]:
-                - link "Find Jobs" [ref=e222] [cursor=pointer]:
+            - paragraph [ref=e217]: Your Career Ecosystem — All in One Place. Connect with verified employers, freelance projects, and certified training programs.
+            - paragraph [ref=e218]: Powered by TalentFlow Platform
+          - generic [ref=e219]:
+            - heading "Platform" [level=3] [ref=e220]
+            - list [ref=e221]:
+              - listitem [ref=e222]:
+                - link "Find Jobs" [ref=e223] [cursor=pointer]:
                   - /url: /find-jobs
-              - listitem [ref=e223]:
-                - link "Freelancers" [ref=e224] [cursor=pointer]:
+              - listitem [ref=e224]:
+                - link "Freelancers" [ref=e225] [cursor=pointer]:
                   - /url: /find-freelancers
-              - listitem [ref=e225]:
-                - link "Training" [ref=e226] [cursor=pointer]:
+              - listitem [ref=e226]:
+                - link "Training" [ref=e227] [cursor=pointer]:
                   - /url: /find-courses
-              - listitem [ref=e227]:
-                - link "Employers" [ref=e228] [cursor=pointer]:
+              - listitem [ref=e228]:
+                - link "Employers" [ref=e229] [cursor=pointer]:
                   - /url: /find-talent
-          - generic [ref=e229]:
-            - heading "Company" [level=3] [ref=e230]
-            - list [ref=e231]:
-              - listitem [ref=e232]:
-                - link "About Us" [ref=e233] [cursor=pointer]:
+          - generic [ref=e230]:
+            - heading "Company" [level=3] [ref=e231]
+            - list [ref=e232]:
+              - listitem [ref=e233]:
+                - link "About Us" [ref=e234] [cursor=pointer]:
                   - /url: /about
-              - listitem [ref=e234]:
-                - link "Blog" [ref=e235] [cursor=pointer]:
+              - listitem [ref=e235]:
+                - link "Blog" [ref=e236] [cursor=pointer]:
                   - /url: /blog
-              - listitem [ref=e236]:
-                - link "Career Resources" [ref=e237] [cursor=pointer]:
+              - listitem [ref=e237]:
+                - link "Career Resources" [ref=e238] [cursor=pointer]:
                   - /url: /careers
-              - listitem [ref=e238]:
-                - link "Contact" [ref=e239] [cursor=pointer]:
+              - listitem [ref=e239]:
+                - link "Contact" [ref=e240] [cursor=pointer]:
                   - /url: /contact
-          - generic [ref=e240]:
-            - heading "Legal" [level=3] [ref=e241]
-            - list [ref=e242]:
-              - listitem [ref=e243]:
-                - link "Privacy Policy" [ref=e244] [cursor=pointer]:
+          - generic [ref=e241]:
+            - heading "Legal" [level=3] [ref=e242]
+            - list [ref=e243]:
+              - listitem [ref=e244]:
+                - link "Privacy Policy" [ref=e245] [cursor=pointer]:
                   - /url: /privacy
-              - listitem [ref=e245]:
-                - link "Terms & Conditions" [ref=e246] [cursor=pointer]:
+              - listitem [ref=e246]:
+                - link "Terms & Conditions" [ref=e247] [cursor=pointer]:
                   - /url: /terms
-              - listitem [ref=e247]:
-                - link "Cookie Policy" [ref=e248] [cursor=pointer]:
+              - listitem [ref=e248]:
+                - link "Cookie Policy" [ref=e249] [cursor=pointer]:
                   - /url: /cookie
-        - generic [ref=e249]:
-          - paragraph [ref=e250]: TalentFlow Marketplace © 2026. All rights reserved.
-          - generic [ref=e251]:
-            - link "Twitter" [ref=e252] [cursor=pointer]:
+        - generic [ref=e250]:
+          - paragraph [ref=e251]: TalentFlow Marketplace © 2026. All rights reserved.
+          - generic [ref=e252]:
+            - link "Twitter" [ref=e253] [cursor=pointer]:
               - /url: "#"
-              - generic [ref=e253]: Twitter
-              - img [ref=e254]
-            - link "LinkedIn" [ref=e256] [cursor=pointer]:
+              - generic [ref=e254]: Twitter
+              - img [ref=e255]
+            - link "LinkedIn" [ref=e257] [cursor=pointer]:
               - /url: "#"
-              - generic [ref=e257]: LinkedIn
-              - img [ref=e258]
+              - generic [ref=e258]: LinkedIn
+              - img [ref=e259]
   - region "Notifications alt+T"
-  - button "Open Next.js Dev Tools" [ref=e265] [cursor=pointer]:
-    - img [ref=e266]
-  - alert [ref=e269]
+  - button "Open Next.js Dev Tools" [ref=e266] [cursor=pointer]:
+    - img [ref=e267]
+  - alert [ref=e270]
 ```
 
 # Test source
