@@ -22,13 +22,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ResumeSelectionCard } from "@/components/shared/ResumeSelectionCard";
+import { PremiumUpgradeModal } from "@/components/shared/PremiumUpgradeModal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { user } = useAuth();
   const router = useRouter();
   const [isApplying, setIsApplying] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedResumeId, setSelectedResumeId] = useState<string>("");
+
+  // Mock premium state for this phase
+  const hasPremium = false;
 
   const unwrappedParams = React.use(params);
   const jobId = unwrappedParams.id;
@@ -233,59 +240,98 @@ export default function JobDetailsPage({ params }: { params: Promise<{ id: strin
       </div>
 
       <Dialog open={showResumeModal} onOpenChange={setShowResumeModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-xl bg-gradient-to-b from-background to-muted/20">
           <DialogHeader>
             <DialogTitle>Select Resume</DialogTitle>
             <DialogDescription>
               Choose which resume to send to the employer for this application.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-4">
-            {resumesLoading ? (
-              <p className="text-sm text-muted-foreground text-center">Loading your resumes...</p>
-            ) : resumes && resumes.length > 0 ? (
-              <div className="space-y-3">
-                {resumes.map((resume: any) => (
-                  <div 
-                    key={resume.id} 
-                    className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${selectedResumeId === resume.id ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
-                    onClick={() => setSelectedResumeId(resume.id)}
-                  >
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${selectedResumeId === resume.id ? 'border-primary' : 'border-muted-foreground'}`}>
-                      {selectedResumeId === resume.id && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                    </div>
-                    <FileText className="h-8 w-8 text-muted-foreground flex-shrink-0" />
-                    <div className="flex-1 overflow-hidden">
-                      <p className="text-sm font-medium truncate">{resume.fileName || resume.title || "Untitled Resume"}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                          {resume.type === 'ATS' ? 'ATS Friendly' : 'Original'}
-                        </Badge>
-                        {resume.isDefault && (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-blue-100 text-blue-800">
-                            Default
-                          </Badge>
-                        )}
-                        <span className="text-xs text-muted-foreground ml-auto">
-                          {new Date(resume.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
+          <div className="py-2">
+            <Tabs defaultValue="original" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="original">Original Resumes</TabsTrigger>
+                <TabsTrigger value="ats">ATS Optimized</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="original" className="space-y-4 max-h-[50vh] overflow-y-auto px-1 py-2">
+                {resumesLoading ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Loading your resumes...</p>
+                ) : resumes && resumes.filter((r: any) => r.type !== 'ATS').length > 0 ? (
+                  <div className="space-y-3">
+                    {resumes.filter((r: any) => r.type !== 'ATS').map((resume: any) => (
+                      <ResumeSelectionCard
+                        key={resume.id}
+                        type="original"
+                        title={resume.fileName || resume.title || "Untitled Resume"}
+                        date={new Date(resume.createdAt).toLocaleDateString()}
+                        selected={selectedResumeId === resume.id}
+                        onSelect={() => setSelectedResumeId(resume.id)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 space-y-4 border-2 border-dashed rounded-lg bg-background">
+                    <p className="text-sm text-muted-foreground">You don't have any standard resumes uploaded.</p>
+                    <Link href="/job-seeker/resume-center">
+                      <Button variant="outline" size="sm">
+                        <Upload className="h-4 w-4 mr-2" /> Upload Resume
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="ats" className="space-y-4 max-h-[50vh] overflow-y-auto px-1 py-2">
+                {!hasPremium ? (
+                  <div className="space-y-3">
+                    <ResumeSelectionCard
+                      type="ats"
+                      title="AI Optimized ATS Resume"
+                      date="Auto-generated"
+                      score={95}
+                      hasAccess={false}
+                      isPremium={true}
+                      onUpgrade={() => {
+                        setShowResumeModal(false);
+                        setShowUpgradeModal(true);
+                      }}
+                    />
+                    <div className="text-sm text-muted-foreground text-center mt-4">
+                      Employers prefer ATS optimized resumes because they match job descriptions perfectly.
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6 space-y-4 border-2 border-dashed rounded-lg">
-                <p className="text-sm text-muted-foreground">You don't have any resumes uploaded yet.</p>
-                <Link href="/job-seeker/resume-center">
-                  <Button variant="outline" size="sm">
-                    <Upload className="h-4 w-4 mr-2" /> Upload Resume
-                  </Button>
-                </Link>
-              </div>
-            )}
+                ) : (
+                  <div className="space-y-3">
+                    {resumes && resumes.filter((r: any) => r.type === 'ATS').length > 0 ? (
+                      resumes.filter((r: any) => r.type === 'ATS').map((resume: any) => (
+                        <ResumeSelectionCard
+                          key={resume.id}
+                          type="ats"
+                          title={resume.fileName || resume.title || "ATS Optimized Resume"}
+                          date={new Date(resume.createdAt).toLocaleDateString()}
+                          score={88}
+                          isPremium={true}
+                          selected={selectedResumeId === resume.id}
+                          onSelect={() => setSelectedResumeId(resume.id)}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 space-y-4 border-2 border-dashed rounded-lg border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+                        <p className="text-sm text-amber-800 dark:text-amber-300">You haven't generated your ATS resume yet.</p>
+                        <Link href="/job-seeker/resume-center/ats">
+                          <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white">
+                            <FileText className="h-4 w-4 mr-2" /> Generate ATS Resume
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
-          <DialogFooter className="sm:justify-end">
+          <DialogFooter className="sm:justify-end mt-2">
             <Button type="button" variant="outline" onClick={() => setShowResumeModal(false)}>
               Cancel
             </Button>
@@ -299,6 +345,14 @@ export default function JobDetailsPage({ params }: { params: Promise<{ id: strin
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <PremiumUpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={(open) => {
+          setShowUpgradeModal(open);
+          if (!open) setShowResumeModal(true);
+        }}
+      />
     </PageContainer>
   );
 }

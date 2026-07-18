@@ -13,6 +13,8 @@ import { CareerJourneyTimeline } from "@/features/job-seeker/dashboard/CareerJou
 import { DashboardStatistics } from "@/features/job-seeker/dashboard/DashboardStatistics";
 import { ProfileCompletionMeter } from "@/features/job-seeker/dashboard/ProfileCompletionMeter";
 import { ResumeStrengthWidget } from "@/features/job-seeker/dashboard/ResumeStrengthWidget";
+import { ATSResumeServicesWidget } from "@/features/job-seeker/dashboard/ATSResumeServicesWidget";
+import { ResumeAnalyticsCard } from "@/features/job-seeker/dashboard/ResumeAnalyticsCard";
 import { AIMatchEngine } from "@/features/job-seeker/dashboard/AIMatchEngine";
 import { RecommendedJobsList } from "@/features/job-seeker/dashboard/RecommendedJobsList";
 import { LearningRecommendationsPanel } from "@/features/job-seeker/dashboard/LearningRecommendationsPanel";
@@ -220,6 +222,13 @@ export default function CandidateDashboard() {
               score={data?.metrics?.profileCompletion || 65} 
               missingItems={missingProfileItems} 
             />
+
+            <ATSResumeServicesWidget 
+              score={88} 
+              hasPremium={false} 
+            />
+            
+            <ResumeAnalyticsCard />
 
             <ResumeStrengthWidget 
               atsScore={82}
