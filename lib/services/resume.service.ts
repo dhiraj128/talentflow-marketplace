@@ -17,9 +17,6 @@ export const resumeService = {
     const formData = new FormData();
     formData.append('file', file);
     const response = await api.post('/file-upload/resume', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total && onProgress) {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);

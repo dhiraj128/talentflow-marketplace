@@ -73,7 +73,9 @@ export class S3StorageService extends AbstractStorageService {
         ContentType: file.mimetype,
       });
 
+      console.log(`[S3StorageService] Before PutObject. Bucket: ${this.bucket}, Key: ${key}`);
       await this.s3Client.send(command);
+      console.log(`[S3StorageService] After PutObject success. Key: ${key}`);
 
       return {
         key,

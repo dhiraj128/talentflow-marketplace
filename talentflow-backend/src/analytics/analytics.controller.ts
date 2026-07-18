@@ -20,25 +20,25 @@ export class AnalyticsController {
   @Get('dashboard/candidate')
   @ApiOperation({ summary: 'Get candidate dashboard statistics' })
   getCandidateDashboard(@CurrentUser() user: any) {
-    return this.analyticsService.getCandidateDashboard(user.sub);
+    return this.analyticsService.getCandidateDashboard(user.userId || user.sub);
   }
 
   @Get('dashboard/employer')
   @ApiOperation({ summary: 'Get employer dashboard statistics' })
   getEmployerDashboard(@CurrentUser() user: any) {
-    return this.analyticsService.getEmployerDashboard(user.sub);
+    return this.analyticsService.getEmployerDashboard(user.userId || user.sub);
   }
 
   @Get('dashboard/freelancer')
   @ApiOperation({ summary: 'Get freelancer dashboard statistics' })
   getFreelancerDashboard(@CurrentUser() user: any) {
-    return this.analyticsService.getFreelancerDashboard(user.sub);
+    return this.analyticsService.getFreelancerDashboard(user.userId || user.sub);
   }
 
   @Get('dashboard/trainer')
   @ApiOperation({ summary: 'Get trainer dashboard statistics' })
   getTrainerDashboard(@CurrentUser() user: any) {
-    return this.analyticsService.getTrainerDashboard(user.sub);
+    return this.analyticsService.getTrainerDashboard(user.userId || user.sub);
   }
 
   @Get('dashboard/admin')

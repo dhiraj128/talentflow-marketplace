@@ -13,9 +13,17 @@ export class FileUploadController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   uploadResume(@UploadedFile() file: Express.Multer.File, @CurrentUser() user: any) {
+    console.log('[FileUploadController] Request received for resume upload');
     if (!file) {
+      console.log('[FileUploadController] File missing in request');
       throw new BadRequestException('No file provided');
     }
+    console.log(`[FileUploadController] File received. Size: ${file.size} bytes, Mime Type: ${file.mimetype}`);
     return this.fileUploadService.uploadResume(file, user.userId || user.sub);
+  }
+
+  @Post('aws-test')
+  async testAws() {
+    return this.fileUploadService.testAws();
   }
 }

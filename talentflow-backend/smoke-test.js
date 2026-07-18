@@ -26,18 +26,25 @@ async function run() {
     await page.fill('input[type="email"]', EMPLOYER_A_EMAIL);
     await page.fill('input[type="password"]', PWD);
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForSelector('text=Dashboard', { timeout: 15000 });
     console.log('Logged in as Employer A.');
 
-    // We can extract token from localStorage if not in cookies
     let employerAToken = await page.evaluate(() => localStorage.getItem('access_token'));
-    if (!employerAToken) {
-       console.log('Token not found in local storage, extracting from auth-context...');
-       employerAToken = await page.evaluate(() => {
-           // We might need to wait for token
-           return localStorage.getItem('access_token');
-       });
+    let retries = 5;
+    while (!employerAToken && retries > 0) {
+       await page.waitForTimeout(1000);
+       employerAToken = await page.evaluate(() => localStorage.getItem('access_token'));
+       retries--;
     }
+    
+    if (!employerAToken) {
+       // fallback to cookie
+       const cookies = await context.cookies();
+       const tokenCookie = cookies.find(c => c.name === 'access_token');
+       if (tokenCookie) employerAToken = tokenCookie.value;
+    }
+
+    if (!employerAToken) throw new Error('Could not get employer A token');
 
     console.log('Creating Test Job via API to bypass UI bug...');
     const jobTitle = `Production Resume Smoke Test Job ${Date.now()}`;
@@ -70,7 +77,7 @@ async function run() {
     await page.fill('input[type="email"]', CANDIDATE_EMAIL);
     await page.fill('input[type="password"]', PWD);
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForSelector('text=Dashboard', { timeout: 15000 });
     console.log('Logged in as Candidate.');
 
     console.log('Uploading Resume...');
@@ -171,9 +178,14 @@ async function run() {
     await page.fill('input[type="email"]', EMPLOYER_A_EMAIL);
     await page.fill('input[type="password"]', PWD);
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForSelector('text=Dashboard', { timeout: 15000 });
     
-    employerAToken = await page.evaluate(() => localStorage.getItem('access_token'));
+    let retries2 = 5;
+    while (!employerAToken && retries2 > 0) {
+       await page.waitForTimeout(1000);
+       employerAToken = await page.evaluate(() => localStorage.getItem('access_token'));
+       retries2--;
+    }
     
     if (employerAToken) {
       try {
@@ -203,10 +215,16 @@ async function run() {
     await page.fill('input[type="email"]', EMPLOYER_B_EMAIL);
     await page.fill('input[type="password"]', PWD);
     await page.click('button[type="submit"]');
-    await page.waitForURL('**/dashboard');
+    await page.waitForSelector('text=Dashboard', { timeout: 15000 });
     console.log('Logged in as Employer B.');
     
-    const employerBToken = await page.evaluate(() => localStorage.getItem('access_token'));
+    let employerBToken = await page.evaluate(() => localStorage.getItem('access_token'));
+    let retries3 = 5;
+    while (!employerBToken && retries3 > 0) {
+       await page.waitForTimeout(1000);
+       employerBToken = await page.evaluate(() => localStorage.getItem('access_token'));
+       retries3--;
+    }
     
     if (employerBToken) {
         try {

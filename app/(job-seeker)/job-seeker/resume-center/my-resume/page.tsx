@@ -5,8 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Edit, Trash2, Eye, History, CheckCircle, AlertCircle } from "lucide-react";
 import { FileUpload } from "@/components/shared/FileUpload";
+import { resumeService } from "@/lib/services/resume.service";
+import { useAuth } from "@/lib/auth-context";
 
 export default function MyResumePage() {
+  const { user } = useAuth();
   const [resumes, setResumes] = useState([
     { id: 1, name: "Software Engineer Resume.pdf", date: "Oct 12, 2023", default: true, published: true, isPublic: true, atsScore: 85 },
     { id: 2, name: "Frontend Developer Tailored.pdf", date: "Nov 05, 2023", default: false, published: false, isPublic: false, atsScore: 72 },
@@ -21,21 +24,17 @@ export default function MyResumePage() {
 
   const handleFileSelect = (file: File | null) => {
     if (file) {
-      setUploading(true);
-      setTimeout(() => {
-        const newResume = {
-          id: Date.now(),
-          name: file.name,
-          date: new Date().toLocaleDateString(),
-          default: resumes.length === 0,
-          published: false,
-          isPublic: false,
-          atsScore: Math.floor(Math.random() * 30) + 60, // random score 60-90
-        };
-        setResumes([newResume, ...resumes]);
-        setVersionHistory([{ version: `v${versionHistory.length + 1}.0`, date: new Date().toLocaleDateString(), changes: `Uploaded ${file.name}` }, ...versionHistory]);
-        setUploading(false);
-      }, 1000);
+      const newResume = {
+        id: Date.now(),
+        name: file.name,
+        date: new Date().toLocaleDateString(),
+        default: resumes.length === 0,
+        published: false,
+        isPublic: false,
+        atsScore: Math.floor(Math.random() * 30) + 60,
+      };
+      setResumes([newResume, ...resumes]);
+      setVersionHistory([{ version: `v${versionHistory.length + 1}.0`, date: new Date().toLocaleDateString(), changes: `Uploaded ${file.name}` }, ...versionHistory]);
     }
   };
 
@@ -70,6 +69,7 @@ export default function MyResumePage() {
             <CardContent>
               <FileUpload 
                 onFileSelect={handleFileSelect} 
+                onUpload={(file, onProgress) => resumeService.uploadResumeFile(file, onProgress)}
                 accept=".pdf,.doc,.docx"
                 maxSizeMB={5}
               />

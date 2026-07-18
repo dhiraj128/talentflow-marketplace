@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import api from './api';
 
 type UserRole = 'admin' | 'employer' | 'job-seeker' | 'freelancer' | 'trainer' | null;
 
@@ -36,13 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(JSON.parse(storedUser));
         
         // Fetch fresh profile
-        fetch(process.env.NEXT_PUBLIC_API_BASE_URL + '/auth/me', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
-        .then(res => {
-          if (res.ok) return res.json();
-          throw new Error('Failed to fetch profile');
-        })
+        api.get('/auth/me')
+        .then(res => res.data)
         .then(freshUser => {
           // Normalize role for frontend if needed, or just merge
           const normalizedRole = freshUser.role.toLowerCase() === 'candidate' ? 'job-seeker' : freshUser.role.toLowerCase().replace('_', '-');
