@@ -76,9 +76,16 @@ export class S3StorageService extends AbstractStorageService {
         key,
         url: this.getFileUrl(key)
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('S3 Upload Error:', error);
-      throw new InternalServerErrorException('Failed to upload file to S3');
+      throw new InternalServerErrorException({
+        message: 'Failed to upload file to S3',
+        awsErrorName: error?.name,
+        awsErrorCode: error?.Code || error?.code,
+        awsRequestId: error?.$metadata?.requestId,
+        httpStatusCode: error?.$metadata?.httpStatusCode,
+        details: error?.message
+      });
     }
   }
 
