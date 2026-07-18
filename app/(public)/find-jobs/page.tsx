@@ -326,9 +326,12 @@ function FindJobsContent() {
                       </CardContent>
                       <CardFooter className="pt-0 pb-5">
                         <div className="flex gap-3 w-full sm:w-auto ml-auto">
-                          <Button variant="outline" className="rounded-xl h-11 px-6 font-semibold hidden sm:flex" asChild>
-                            <Link href={`/jobs/${job.id}`}>View Details</Link>
-                          </Button>
+                          <Link 
+                            href={`/find-jobs/${job.id}`} 
+                            className="inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 min-h-[44px] md:min-h-0 md:h-8 px-2.5 rounded-xl h-11 px-6 font-semibold hidden sm:flex border-primary/20 text-foreground hover:bg-primary/5 bg-background border-2"
+                          >
+                            Details
+                          </Link>
                           <Button className="w-full sm:w-auto rounded-xl h-11 px-8 font-bold bg-primary hover:bg-primary/90 text-primary-foreground transition-transform active:scale-95">
                             Quick Apply
                           </Button>

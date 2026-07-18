@@ -3,6 +3,7 @@
 import React from "react";
 import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -35,24 +36,20 @@ export function MobileFilterDrawer({
 }: MobileFilterDrawerProps) {
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" className="md:hidden flex items-center gap-2 h-12 rounded-xl bg-card border-border shadow-sm">
-          <Filter className="h-4 w-4" />
-          <span>Filters</span>
-          {activeFilterCount > 0 && (
-            <span className="ml-1 bg-primary text-primary-foreground w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold">
-              {activeFilterCount}
-            </span>
-          )}
-        </Button>
+      <SheetTrigger className="md:hidden flex items-center gap-2 h-12 rounded-xl px-4 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground font-semibold inline-flex shrink-0 items-center justify-center border bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50">
+        <Filter className="h-4 w-4" />
+        <span>Filters</span>
+        {activeFilterCount > 0 && (
+          <Badge variant="secondary" className="ml-1 px-1.5 min-w-[20px] h-5">{activeFilterCount}</Badge>
+        )}
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl flex flex-col p-0 pb-6 overflow-hidden">
         <SheetHeader className="px-6 py-4 border-b bg-muted/30 text-left flex flex-row items-center justify-between">
           <SheetTitle className="text-xl font-bold flex items-center gap-2 m-0">
             <Filter className="h-5 w-5 text-primary" /> Filters
           </SheetTitle>
-          <SheetClose asChild>
-             {/* Built in close button handles closing */}
+          <SheetClose className="inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50 rounded-full h-8 w-8">
+            <X className="h-4 w-4" />
           </SheetClose>
         </SheetHeader>
         
@@ -110,7 +107,7 @@ export function MobileFilterDrawer({
                     min={filter.min || 0}
                     max={filter.max || 100}
                     step={filter.step || 1}
-                    onValueChange={(v) => onFilterChange(filter.id, v[0])}
+                    onValueChange={(v) => onFilterChange(filter.id, Array.isArray(v) ? v[0] : v)}
                     className="py-4"
                   />
                   <div className="flex justify-between text-base font-medium text-muted-foreground">
@@ -127,10 +124,8 @@ export function MobileFilterDrawer({
           <Button onClick={onClearAll} variant="outline" size="lg" className="flex-1 h-14 rounded-xl font-semibold">
             Reset
           </Button>
-          <SheetClose asChild>
-            <Button size="lg" className="flex-1 h-14 rounded-xl font-semibold bg-primary hover:bg-primary/90">
-              Apply Filters
-            </Button>
+          <SheetClose className="inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 min-h-[44px] md:min-h-0 md:h-8 px-2.5 flex-1 h-14 rounded-xl font-semibold bg-primary hover:bg-primary/90 text-primary-foreground">
+            Apply Filters
           </SheetClose>
         </div>
       </SheetContent>

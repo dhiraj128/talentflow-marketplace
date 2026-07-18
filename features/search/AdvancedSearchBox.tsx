@@ -164,17 +164,16 @@ export function AdvancedSearchBox() {
           >
             {/* Category Selector */}
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className={cn(
-                  "flex-none justify-between hover:bg-muted text-base border-r-0 md:border-r border-border rounded-xl md:rounded-l-full md:rounded-r-none h-12 md:h-full",
-                  isSticky ? "w-[140px] px-4" : "w-full md:w-48 px-6"
+              <DropdownMenuTrigger className={cn(
+                  "flex-none justify-between hover:bg-muted text-base border-r-0 md:border-r border-b md:border-b-0 border-border h-14 md:h-16 rounded-t-2xl md:rounded-l-full md:rounded-tr-none px-6",
+                  isSticky ? "w-[140px] px-4" : "w-full md:w-48 px-6",
+                  "inline-flex shrink-0 items-center border bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
                 )}>
-                  <div className="flex items-center gap-2">
-                    <activeCategory.icon className={cn("text-primary", isSticky ? "h-4 w-4" : "h-5 w-5")} />
-                    <span>{activeCategory.label}</span>
+                  <div className="flex items-center gap-3">
+                    <activeCategory.icon className="w-5 h-5 text-primary" />
+                    <span className="font-semibold">{activeCategory.label}</span>
                   </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 opacity-50" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-48 p-2 rounded-xl">
                 {SEARCH_CATEGORIES.map(category => (

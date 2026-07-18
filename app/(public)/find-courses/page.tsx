@@ -316,9 +316,12 @@ function FindCoursesContent() {
                             <span className="text-sm font-bold text-foreground">{course.modules?.length || 10} Units</span>
                           </div>
                         </div>
-                        <Button className="w-full mt-5 rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" asChild>
-                           <Link href={`/find-courses/${course.id}`}>View Course Details</Link>
-                        </Button>
+                        <Link 
+                          href={`/find-courses/${course.id}`}
+                          className="inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 min-h-[44px] md:min-h-0 md:h-8 px-2.5 w-full mt-5 rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+                        >
+                          View Course Details
+                        </Link>
                       </CardContent>
                     </Card>
                   </motion.div>

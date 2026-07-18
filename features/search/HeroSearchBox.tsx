@@ -58,14 +58,12 @@ export function HeroSearchBox() {
         {/* Category Dropdown */}
         <div className="flex-none md:w-48">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full h-14 justify-between rounded-xl md:rounded-l-full px-6 hover:bg-muted text-base">
+            <DropdownMenuTrigger className="w-full h-14 justify-between rounded-xl md:rounded-r-none md:rounded-l-2xl px-4 flex items-center shrink-0 border border-transparent bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 hover:bg-muted text-sm font-medium">
                 <div className="flex items-center gap-2">
                   <activeCategory.icon className="h-5 w-5 text-primary" />
                   <span>{activeCategory.label}</span>
                 </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </Button>
+                <ChevronDown className="h-4 w-4 text-muted-foreground opacity-50" />
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-48 p-2 rounded-xl">
               {SEARCH_CATEGORIES.map(category => (

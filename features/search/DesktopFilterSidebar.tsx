@@ -104,7 +104,7 @@ export function DesktopFilterSidebar({
                   min={filter.min || 0}
                   max={filter.max || 100}
                   step={filter.step || 1}
-                  onValueChange={(v) => onFilterChange(filter.id, v[0])}
+                  onValueChange={(v) => onFilterChange(filter.id, Array.isArray(v) ? v[0] : v)}
                   className="py-4"
                 />
                 <div className="flex justify-between text-sm font-medium text-muted-foreground">

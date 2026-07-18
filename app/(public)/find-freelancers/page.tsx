@@ -339,12 +339,18 @@ function FindFreelancersContent() {
                           <span className="truncate">{candidate.reviewCount} Verified Reviews</span>
                         </div>
                         <div className={cn("gap-3", viewMode === "grid" ? "grid grid-cols-2 w-full mt-2" : "flex w-full")}>
-                          <Button variant="outline" className="w-full rounded-xl font-semibold border-primary/20 text-foreground hover:bg-primary/5" asChild>
-                            <Link href={`/find-freelancers/${candidate.id}`}>Profile</Link>
-                          </Button>
-                          <Button className="w-full rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-transform active:scale-95" asChild>
-                            <Link href={`/find-freelancers/${candidate.id}?action=hire`}>Hire</Link>
-                          </Button>
+                          <Link 
+                            href={`/find-freelancers/${candidate.id}`} 
+                            className="inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 min-h-[44px] md:min-h-0 md:h-8 px-2.5 w-full rounded-xl font-semibold border-primary/20 text-foreground hover:bg-primary/5 bg-background border-2"
+                          >
+                            View Profile
+                          </Link>
+                          <Link 
+                            href={`/messages/new?to=${candidate.id}`} 
+                            className="inline-flex shrink-0 items-center justify-center border border-transparent bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 min-h-[44px] md:min-h-0 md:h-8 px-2.5 w-full rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-transform active:scale-95"
+                          >
+                            Hire Now
+                          </Link>
                         </div>
                       </div>
                     </Card>

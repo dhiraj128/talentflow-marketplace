@@ -20,7 +20,7 @@ export default function MyResumePage() {
       try {
         setIsLoading(true);
         // We might not have candidateId directly on user, but the API can infer it or we pass it
-        const candidateId = user.profile?.id || user.id;
+        const candidateId = (user as any).profile?.id || user.id;
         const data = await resumeService.getResumes(candidateId);
         
         // Map the backend resume entity to the frontend format
