@@ -33,17 +33,20 @@ export class S3StorageService extends AbstractStorageService {
 
   constructor() {
     super();
-    this.region = process.env.AWS_REGION || 'eu-north-1';
+    this.region = process.env.AWS_REGION || 'ap-south-1';
     
     console.log(`[S3 Config Startup] process.env.AWS_REGION='${process.env.AWS_REGION}', actual region passed to S3Client='${this.region}'`);
 
     this.bucket = process.env.AWS_S3_BUCKET || 'talentflow-private-resumes-dk2026';
     
+    const accessKeyId = (process.env.AWS_ACCESS_KEY_ID || process.env.ACCESS_KEY_ID || '').trim();
+    const secretAccessKey = (process.env.AWS_SECRET_ACCESS_KEY || process.env.SECRET_ACCESS_KEY || '').trim();
+
     this.s3Client = new S3Client({
       region: this.region,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || process.env.ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || process.env.SECRET_ACCESS_KEY || '',
+        accessKeyId,
+        secretAccessKey,
       }
     });
   }
