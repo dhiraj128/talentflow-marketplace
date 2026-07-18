@@ -34,6 +34,9 @@ export class S3StorageService extends AbstractStorageService {
   constructor() {
     super();
     this.region = process.env.AWS_REGION || 'eu-north-1';
+    
+    console.log(`[S3 Config Startup] process.env.AWS_REGION='${process.env.AWS_REGION}', actual region passed to S3Client='${this.region}'`);
+
     this.bucket = process.env.AWS_S3_BUCKET || 'talentflow-private-resumes-dk2026';
     
     this.s3Client = new S3Client({
