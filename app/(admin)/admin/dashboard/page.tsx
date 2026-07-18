@@ -40,38 +40,22 @@ export default function AdminDashboardPage() {
     return <DashboardSkeleton />;
   }
 
-  // Combine backend data with mocked expanded metrics
-  const stats = {
-    totalUsers: data?.totalUsers || 15420,
-    activeJobSeekers: 8500,
-    activeEmployers: 4200,
-    activeFreelancers: 2100,
-    activeTrainers: 620,
-    jobsPosted: data?.totalJobs || 3450,
-    courses: data?.totalCourses || 120,
-    premiumMembers: 2450,
-    monthlyRevenue: 125400,
-    activeCoupons: 14,
-    expiringSubscriptions: 85,
+  const stats = data?.stats || {
+    totalUsers: 0,
+    activeJobSeekers: 0,
+    activeEmployers: 0,
+    activeFreelancers: 0,
+    activeTrainers: 0,
+    jobsPosted: 0,
+    courses: 0,
+    premiumMembers: 0,
+    monthlyRevenue: 0,
+    activeCoupons: 0,
+    expiringSubscriptions: 0,
   };
 
-  const userGrowthData = [
-    { name: 'Jan', users: 4000 },
-    { name: 'Feb', users: 5000 },
-    { name: 'Mar', users: 7000 },
-    { name: 'Apr', users: 8500 },
-    { name: 'May', users: 11000 },
-    { name: 'Jun', users: 15420 },
-  ];
-
-  const revenueData = [
-    { name: 'Jan', revenue: 45000 },
-    { name: 'Feb', revenue: 52000 },
-    { name: 'Mar', revenue: 78000 },
-    { name: 'Apr', revenue: 95000 },
-    { name: 'May', revenue: 110000 },
-    { name: 'Jun', revenue: 125400 },
-  ];
+  const userGrowthData = data?.charts?.userGrowthData || [];
+  const revenueData = data?.charts?.revenueData || [];
 
   const activities = [
     { id: "1", user: { name: "Alice Smith" }, action: "upgraded to", target: "Employer Enterprise", time: "10 mins ago" },

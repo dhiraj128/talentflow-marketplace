@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminService } from "@/lib/services/admin.service";
 import { DataTable, ColumnDef } from "@/features/admin/shared/DataTable";
 import { StatusBadge } from "@/features/admin/shared/StatusBadge";
 import { SearchBar } from "@/features/admin/shared/SearchBar";
@@ -21,44 +23,66 @@ import {
 interface SkillData {
   id: string;
   name: string;
-  category: string;
-  isPopular: boolean;
-  status: "ACTIVE" | "INACTIVE";
+  category?: string;
+  isPopular?: boolean;
+  isActive?: boolean;
 }
 
-const mockSkills: SkillData[] = [
-  { id: "s1", name: "React", category: "Frontend", isPopular: true, status: "ACTIVE" },
-  { id: "s2", name: "Node.js", category: "Backend", isPopular: true, status: "ACTIVE" },
-  { id: "s3", name: "Python", category: "Backend", isPopular: true, status: "ACTIVE" },
-  { id: "s4", name: "AWS", category: "Cloud", isPopular: true, status: "ACTIVE" },
-  { id: "s5", name: "Figma", category: "Design", isPopular: false, status: "ACTIVE" },
-];
-
 export function SkillsManagement() {
-  const [data, setData] = useState<SkillData[]>(mockSkills);
+  const queryClient = useQueryClient();
+  const { data: skillsData = [], isLoading } = useQuery({
+    queryKey: ['admin', 'skills'],
+    queryFn: adminService.getSkills,
+  });
+
+  const data = Array.isArray(skillsData) ? skillsData : skillsData.data || [];
   const [searchTerm, setSearchTerm] = useState("");
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", category: "", isPopular: false, status: true });
+  const [formData, setFormData] = useState({ name: "", category: "", isPopular: false, isActive: true });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const filteredData = data.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const createMutation = useMutation({
+    mutationFn: adminService.createSkill,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'skills'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => adminService.updateSkill(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'skills'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: adminService.deleteSkill,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'skills'] });
+      setIsDeleteDialogOpen(false);
+      setDeletingId(null);
+    }
+  });
+
+  const filteredData = data.filter((item: SkillData) =>
+    item.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    setFormData({ name: "", category: "", isPopular: false, status: true });
+    setFormData({ name: "", category: "", isPopular: false, isActive: true });
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (item: SkillData) => {
     setEditingId(item.id);
-    setFormData({ name: item.name, category: item.category, isPopular: item.isPopular, status: item.status === "ACTIVE" });
+    setFormData({ name: item.name, category: item.category || "", isPopular: item.isPopular || false, isActive: item.isActive !== false });
     setIsFormOpen(true);
   };
 
@@ -66,24 +90,10 @@ export function SkillsManagement() {
     if (!formData.name.trim()) return;
 
     if (editingId) {
-      setData((prev) =>
-        prev.map((item) =>
-          item.id === editingId
-            ? { ...item, name: formData.name, category: formData.category, isPopular: formData.isPopular, status: formData.status ? "ACTIVE" : "INACTIVE" }
-            : item
-        )
-      );
+      updateMutation.mutate({ id: editingId, data: { name: formData.name, category: formData.category, isPopular: formData.isPopular, isActive: formData.isActive, id: editingId } });
     } else {
-      const newItem: SkillData = {
-        id: `s${Date.now()}`,
-        name: formData.name,
-        category: formData.category || "General",
-        isPopular: formData.isPopular,
-        status: formData.status ? "ACTIVE" : "INACTIVE",
-      };
-      setData((prev) => [newItem, ...prev]);
+      createMutation.mutate({ id: `s_${Date.now()}`, name: formData.name, category: formData.category, isPopular: formData.isPopular, isActive: formData.isActive });
     }
-    setIsFormOpen(false);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -93,20 +103,18 @@ export function SkillsManagement() {
 
   const confirmDelete = () => {
     if (deletingId) {
-      setData((prev) => prev.filter((item) => item.id !== deletingId));
+      deleteMutation.mutate(deletingId);
     }
-    setIsDeleteDialogOpen(false);
-    setDeletingId(null);
   };
 
   const columns: ColumnDef<SkillData>[] = [
     { header: "Skill Name", accessorKey: "name", className: "font-medium" },
-    { header: "Category", accessorKey: "category", className: "text-muted-foreground" },
+    { header: "Category", accessorKey: "category", className: "text-muted-foreground", cell: (row) => row.category || "General" },
     { 
       header: "Popular", 
       cell: (row) => row.isPopular ? <StatusBadge status="YES" className="bg-amber-100 text-amber-800 border-amber-200" /> : <span className="text-muted-foreground">-</span>
     },
-    { header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
+    { header: "Status", cell: (row) => <StatusBadge status={row.isActive !== false ? "ACTIVE" : "INACTIVE"} /> },
     {
       header: "Actions",
       className: "text-right",
@@ -132,7 +140,7 @@ export function SkillsManagement() {
         </Button>
       </div>
 
-      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} />
+      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} isLoading={isLoading} />
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent>
@@ -170,14 +178,16 @@ export function SkillsManagement() {
               <Label htmlFor="status">Active Status</Label>
               <Switch
                 id="status"
-                checked={formData.status}
-                onCheckedChange={(checked) => setFormData({ ...formData, status: checked })}
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

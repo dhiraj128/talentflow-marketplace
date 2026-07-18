@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminService } from "@/lib/services/admin.service";
 import { DataTable, ColumnDef } from "@/features/admin/shared/DataTable";
 import { StatusBadge } from "@/features/admin/shared/StatusBadge";
 import { SearchBar } from "@/features/admin/shared/SearchBar";
@@ -24,47 +26,75 @@ interface Offer {
   title: string;
   targetAudience: "ALL" | "EMPLOYERS" | "FREELANCERS" | "JOB_SEEKERS";
   discountPercentage: number;
-  startDate: string;
-  endDate: string;
-  status: "ACTIVE" | "INACTIVE" | "EXPIRED";
+  startDate?: string;
+  endDate?: string;
+  isActive?: boolean;
 }
 
-const mockOffers: Offer[] = [
-  { id: "o1", title: "Black Friday Flash Sale", targetAudience: "ALL", discountPercentage: 50, startDate: "2026-11-20", endDate: "2026-11-30", status: "ACTIVE" },
-  { id: "o2", title: "New Employer Discount", targetAudience: "EMPLOYERS", discountPercentage: 25, startDate: "2026-01-01", endDate: "2026-12-31", status: "ACTIVE" },
-  { id: "o3", title: "Freelancer Pro Upgrade", targetAudience: "FREELANCERS", discountPercentage: 15, startDate: "2026-05-01", endDate: "2026-05-31", status: "EXPIRED" },
-];
-
 export function OfferManagement() {
-  const [data, setData] = useState<Offer[]>(mockOffers);
+  const queryClient = useQueryClient();
+  const { data: offersData = [], isLoading } = useQuery({
+    queryKey: ['admin', 'offers'],
+    queryFn: adminService.getOffers,
+  });
+
+  const data = Array.isArray(offersData) ? offersData : offersData.data || [];
   const [searchTerm, setSearchTerm] = useState("");
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ title: "", targetAudience: "ALL", discountPercentage: 0, startDate: "", endDate: "", status: true });
+  const [formData, setFormData] = useState({ title: "", targetAudience: "ALL", discountPercentage: 0, startDate: "", endDate: "", isActive: true });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const filteredData = data.filter((item) =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const createMutation = useMutation({
+    mutationFn: adminService.createOffer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'offers'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => adminService.updateOffer(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'offers'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: adminService.deleteOffer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'offers'] });
+      setIsDeleteDialogOpen(false);
+      setDeletingId(null);
+    }
+  });
+
+  const filteredData = data.filter((item: Offer) =>
+    item.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    setFormData({ title: "", targetAudience: "ALL", discountPercentage: 0, startDate: "", endDate: "", status: true });
+    setFormData({ title: "", targetAudience: "ALL", discountPercentage: 0, startDate: "", endDate: "", isActive: true });
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (item: Offer) => {
     setEditingId(item.id);
+    let startDateVal = item.startDate ? new Date(item.startDate).toISOString().split('T')[0] : "";
+    let endDateVal = item.endDate ? new Date(item.endDate).toISOString().split('T')[0] : "";
+
     setFormData({ 
       title: item.title, 
-      targetAudience: item.targetAudience, 
+      targetAudience: item.targetAudience || "ALL", 
       discountPercentage: item.discountPercentage, 
-      startDate: item.startDate, 
-      endDate: item.endDate, 
-      status: item.status === "ACTIVE" 
+      startDate: startDateVal, 
+      endDate: endDateVal, 
+      isActive: item.isActive !== false 
     });
     setIsFormOpen(true);
   };
@@ -72,27 +102,20 @@ export function OfferManagement() {
   const handleSave = () => {
     if (!formData.title.trim()) return;
 
+    const payload = {
+      title: formData.title,
+      targetAudience: formData.targetAudience,
+      discountPercentage: formData.discountPercentage,
+      startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
+      endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
+      isActive: formData.isActive,
+    };
+
     if (editingId) {
-      setData((prev) =>
-        prev.map((item) =>
-          item.id === editingId
-            ? { ...item, ...formData, targetAudience: formData.targetAudience as any, status: formData.status ? "ACTIVE" : "INACTIVE" }
-            : item
-        )
-      );
+      updateMutation.mutate({ id: editingId, data: payload });
     } else {
-      const newItem: Offer = {
-        id: `o${Date.now()}`,
-        title: formData.title,
-        targetAudience: formData.targetAudience as any,
-        discountPercentage: formData.discountPercentage,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        status: formData.status ? "ACTIVE" : "INACTIVE",
-      };
-      setData((prev) => [newItem, ...prev]);
+      createMutation.mutate({ id: `o_${Date.now()}`, ...payload });
     }
-    setIsFormOpen(false);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -102,18 +125,16 @@ export function OfferManagement() {
 
   const confirmDelete = () => {
     if (deletingId) {
-      setData((prev) => prev.filter((item) => item.id !== deletingId));
+      deleteMutation.mutate(deletingId);
     }
-    setIsDeleteDialogOpen(false);
-    setDeletingId(null);
   };
 
   const columns: ColumnDef<Offer>[] = [
     { header: "Offer Title", accessorKey: "title", className: "font-medium" },
     { header: "Audience", accessorKey: "targetAudience" },
     { header: "Discount", cell: (row) => `${row.discountPercentage}%` },
-    { header: "Duration", cell: (row) => `${row.startDate} to ${row.endDate}` },
-    { header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
+    { header: "Duration", cell: (row) => `${row.startDate ? new Date(row.startDate).toLocaleDateString() : ""} to ${row.endDate ? new Date(row.endDate).toLocaleDateString() : ""}` },
+    { header: "Status", cell: (row) => <StatusBadge status={row.isActive !== false ? "ACTIVE" : "INACTIVE"} /> },
     {
       header: "Actions",
       className: "text-right",
@@ -139,7 +160,7 @@ export function OfferManagement() {
         </Button>
       </div>
 
-      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} />
+      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} isLoading={isLoading} />
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent>
@@ -199,14 +220,16 @@ export function OfferManagement() {
               <Label htmlFor="status">Active Status</Label>
               <Switch
                 id="status"
-                checked={formData.status}
-                onCheckedChange={(checked) => setFormData({ ...formData, status: checked })}
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

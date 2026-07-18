@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { adminService } from "@/lib/services/admin.service";
 import { DataTable, ColumnDef } from "@/features/admin/shared/DataTable";
 import { StatusBadge } from "@/features/admin/shared/StatusBadge";
 import { SearchBar } from "@/features/admin/shared/SearchBar";
@@ -11,25 +13,22 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Subscription {
   id: string;
-  subscriber: string;
-  plan: string;
-  billingCycle: string;
-  startDate: string;
-  expiryDate: string;
-  daysRemaining: number;
-  autoRenewal: boolean;
-  status: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED" | "CANCELLED";
+  plan?: any;
+  user?: any;
+  status?: string;
+  billingCycle?: string;
+  startDate?: string;
+  expiryDate?: string;
 }
 
-const mockSubscriptions: Subscription[] = [
-  { id: "s1", subscriber: "Acme Corp", plan: "Employer Enterprise", billingCycle: "YEARLY", startDate: "2025-01-01", expiryDate: "2025-12-31", daysRemaining: 150, autoRenewal: true, status: "ACTIVE" },
-  { id: "s2", subscriber: "John Doe", plan: "Job Seeker Premium", billingCycle: "MONTHLY", startDate: "2026-06-15", expiryDate: "2026-07-15", daysRemaining: 3, autoRenewal: true, status: "EXPIRING_SOON" },
-  { id: "s3", subscriber: "Sarah Smith", plan: "Job Seeker Premium", billingCycle: "MONTHLY", startDate: "2026-05-01", expiryDate: "2026-06-01", daysRemaining: 0, autoRenewal: false, status: "EXPIRED" },
-  { id: "s4", subscriber: "TechFlow Ltd", plan: "Employer Starter", billingCycle: "MONTHLY", startDate: "2026-01-01", expiryDate: "2026-02-01", daysRemaining: 0, autoRenewal: false, status: "CANCELLED" },
-];
-
 export function SubscriptionTable() {
-  const [data, setData] = useState<Subscription[]>(mockSubscriptions);
+  const { data: subscriptionsData = [], isLoading } = useQuery({
+    queryKey: ['admin', 'subscriptions'],
+    queryFn: adminService.getSubscriptions,
+  });
+
+  const data = Array.isArray(subscriptionsData) ? subscriptionsData : subscriptionsData.data || [];
+
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<string>("ALL");
   
@@ -37,10 +36,12 @@ export function SubscriptionTable() {
   const [isRenewDialogOpen, setIsRenewDialogOpen] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
 
-  const filteredData = data.filter((item) =>
-    (activeTab === "ALL" || item.status === activeTab) &&
-    (item.subscriber.toLowerCase().includes(searchTerm.toLowerCase()) || item.plan.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredData = data.filter((item: Subscription) => {
+    const subscriberName = item.user?.firstName || item.user?.companyName || "Unknown";
+    const planName = item.plan?.name || "Unknown Plan";
+    return (activeTab === "ALL" || item.status === activeTab) &&
+           (subscriberName.toLowerCase().includes(searchTerm.toLowerCase()) || planName.toLowerCase().includes(searchTerm.toLowerCase()));
+  });
 
   const handleCancelClick = (id: string) => {
     setActionId(id);
@@ -53,40 +54,31 @@ export function SubscriptionTable() {
   };
 
   const confirmCancel = () => {
-    if (actionId) {
-      setData((prev) => prev.map(sub => sub.id === actionId ? { ...sub, status: "CANCELLED", autoRenewal: false } : sub));
-    }
+    // API Call to cancel
     setIsCancelDialogOpen(false);
     setActionId(null);
   };
 
   const confirmRenew = () => {
-    if (actionId) {
-      setData((prev) => prev.map(sub => sub.id === actionId ? { ...sub, status: "ACTIVE", daysRemaining: 30 } : sub));
-    }
+    // API call to renew
     setIsRenewDialogOpen(false);
     setActionId(null);
   };
 
   const columns: ColumnDef<Subscription>[] = [
-    { header: "Subscriber", accessorKey: "subscriber", className: "font-medium" },
-    { header: "Plan", accessorKey: "plan" },
+    { header: "Subscriber", cell: (row) => row.user?.firstName || row.user?.companyName || "Unknown", className: "font-medium" },
+    { header: "Plan", cell: (row) => row.plan?.name || "Unknown Plan" },
     { header: "Billing", accessorKey: "billingCycle" },
-    { header: "Start Date", accessorKey: "startDate", className: "hidden md:table-cell" },
+    { header: "Start Date", cell: (row) => row.startDate ? new Date(row.startDate).toLocaleDateString() : "", className: "hidden md:table-cell" },
     { 
       header: "Expiry", 
       cell: (row) => (
         <div>
-          <div>{row.expiryDate}</div>
-          {row.status === "ACTIVE" || row.status === "EXPIRING_SOON" ? (
-            <div className={`text-xs ${row.daysRemaining <= 7 ? 'text-amber-500 font-bold' : 'text-muted-foreground'}`}>
-              {row.daysRemaining} days left
-            </div>
-          ) : null}
+          <div>{row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : ""}</div>
         </div>
       ) 
     },
-    { header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
+    { header: "Status", cell: (row) => <StatusBadge status={row.status || "UNKNOWN"} /> },
     {
       header: "Actions",
       className: "text-right",
@@ -122,7 +114,7 @@ export function SubscriptionTable() {
         <SearchBar value={searchTerm} onChange={setSearchTerm} placeholder="Search subscriber..." />
       </div>
 
-      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} />
+      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} isLoading={isLoading} />
 
       <ConfirmationDialog
         open={isCancelDialogOpen}

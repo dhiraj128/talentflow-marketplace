@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminService } from "@/lib/services/admin.service";
 import { DataTable, ColumnDef } from "@/features/admin/shared/DataTable";
 import { StatusBadge } from "@/features/admin/shared/StatusBadge";
 import { SearchBar } from "@/features/admin/shared/SearchBar";
@@ -21,45 +23,67 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface Designation {
   id: string;
-  name: string;
-  category: string;
-  userCount: number;
-  status: "ACTIVE" | "INACTIVE";
+  name?: string;
+  category?: string;
+  description?: string;
+  isActive?: boolean;
 }
 
-const mockDesignations: Designation[] = [
-  { id: "d1", name: "Software Engineer", category: "Software Development", userCount: 1540, status: "ACTIVE" },
-  { id: "d2", name: "UI/UX Designer", category: "Design", userCount: 890, status: "ACTIVE" },
-  { id: "d3", name: "HR Manager", category: "Human Resources", userCount: 320, status: "ACTIVE" },
-  { id: "d4", name: "Data Scientist", category: "Software Development", userCount: 450, status: "ACTIVE" },
-  { id: "d5", name: "DevOps Engineer", category: "Software Development", userCount: 290, status: "ACTIVE" },
-];
-
 export function DesignationManagement() {
-  const [data, setData] = useState<Designation[]>(mockDesignations);
+  const queryClient = useQueryClient();
+  const { data: designationsData = [], isLoading } = useQuery({
+    queryKey: ['admin', 'designations'],
+    queryFn: adminService.getDesignations,
+  });
+
+  const data = Array.isArray(designationsData) ? designationsData : designationsData.data || [];
   const [searchTerm, setSearchTerm] = useState("");
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", category: "Software Development", status: true });
+  const [formData, setFormData] = useState({ name: "", category: "Software Development", isActive: true });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const filteredData = data.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const createMutation = useMutation({
+    mutationFn: adminService.createDesignation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'designations'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => adminService.updateDesignation(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'designations'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: adminService.deleteDesignation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'designations'] });
+      setIsDeleteDialogOpen(false);
+      setDeletingId(null);
+    }
+  });
+
+  const filteredData = data.filter((item: Designation) =>
+    item.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    setFormData({ name: "", category: "Software Development", status: true });
+    setFormData({ name: "", category: "Software Development", isActive: true });
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (item: Designation) => {
     setEditingId(item.id);
-    setFormData({ name: item.name, category: item.category, status: item.status === "ACTIVE" });
+    setFormData({ name: item.name || "", category: item.category || "Software Development", isActive: item.isActive !== false });
     setIsFormOpen(true);
   };
 
@@ -67,24 +91,10 @@ export function DesignationManagement() {
     if (!formData.name.trim()) return;
 
     if (editingId) {
-      setData((prev) =>
-        prev.map((item) =>
-          item.id === editingId
-            ? { ...item, name: formData.name, category: formData.category, status: formData.status ? "ACTIVE" : "INACTIVE" }
-            : item
-        )
-      );
+      updateMutation.mutate({ id: editingId, data: { name: formData.name, isActive: formData.isActive, id: editingId } });
     } else {
-      const newItem: Designation = {
-        id: `d${Date.now()}`,
-        name: formData.name,
-        category: formData.category,
-        userCount: 0,
-        status: formData.status ? "ACTIVE" : "INACTIVE",
-      };
-      setData((prev) => [newItem, ...prev]);
+      createMutation.mutate({ id: `d_${Date.now()}`, name: formData.name, isActive: formData.isActive });
     }
-    setIsFormOpen(false);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -94,17 +104,14 @@ export function DesignationManagement() {
 
   const confirmDelete = () => {
     if (deletingId) {
-      setData((prev) => prev.filter((item) => item.id !== deletingId));
+      deleteMutation.mutate(deletingId);
     }
-    setIsDeleteDialogOpen(false);
-    setDeletingId(null);
   };
 
   const columns: ColumnDef<Designation>[] = [
     { header: "Designation Name", accessorKey: "name", className: "font-medium" },
-    { header: "Category", accessorKey: "category", className: "text-muted-foreground" },
-    { header: "Users", accessorKey: "userCount" },
-    { header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
+    { header: "Users", cell: () => 0 },
+    { header: "Status", cell: (row) => <StatusBadge status={row.isActive !== false ? "ACTIVE" : "INACTIVE"} /> },
     {
       header: "Actions",
       className: "text-right",
@@ -130,7 +137,7 @@ export function DesignationManagement() {
         </Button>
       </div>
 
-      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} />
+      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} isLoading={isLoading} />
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent>
@@ -163,14 +170,16 @@ export function DesignationManagement() {
               <Label htmlFor="status">Active Status</Label>
               <Switch
                 id="status"
-                checked={formData.status}
-                onCheckedChange={(checked) => setFormData({ ...formData, status: checked })}
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

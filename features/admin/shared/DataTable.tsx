@@ -28,6 +28,7 @@ interface DataTableProps<T> {
   emptyDescription?: string;
   onEmptyAction?: () => void;
   emptyActionLabel?: string;
+  isLoading?: boolean;
 }
 
 export function DataTable<T>({
@@ -41,7 +42,12 @@ export function DataTable<T>({
   emptyDescription = "There are no records to display at this time.",
   onEmptyAction,
   emptyActionLabel,
+  isLoading = false,
 }: DataTableProps<T>) {
+  if (isLoading) {
+    return <div className="p-8 text-center text-muted-foreground">Loading...</div>;
+  }
+
   if (data.length === 0) {
     return (
       <EmptyState

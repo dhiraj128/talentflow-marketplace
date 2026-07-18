@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminService } from "@/lib/services/admin.service";
 import { DataTable, ColumnDef } from "@/features/admin/shared/DataTable";
 import { StatusBadge } from "@/features/admin/shared/StatusBadge";
 import { SearchBar } from "@/features/admin/shared/SearchBar";
@@ -21,21 +23,19 @@ import {
 interface Category {
   id: string;
   name: string;
-  slug: string;
-  itemCount: number;
-  status: "ACTIVE" | "INACTIVE";
+  itemCount?: number;
+  isActive?: boolean;
 }
 
-const mockCategories: Category[] = [
-  { id: "c1", name: "Software Development", slug: "software-development", itemCount: 1250, status: "ACTIVE" },
-  { id: "c2", name: "Marketing", slug: "marketing", itemCount: 840, status: "ACTIVE" },
-  { id: "c3", name: "Design", slug: "design", itemCount: 630, status: "ACTIVE" },
-  { id: "c4", name: "Finance", slug: "finance", itemCount: 420, status: "INACTIVE" },
-  { id: "c5", name: "Healthcare", slug: "healthcare", itemCount: 310, status: "ACTIVE" },
-];
-
 export function CategoryManagement() {
-  const [data, setData] = useState<Category[]>(mockCategories);
+  const queryClient = useQueryClient();
+  const { data: categoriesData = [], isLoading } = useQuery({
+    queryKey: ['admin', 'categories'],
+    queryFn: adminService.getCategories,
+  });
+
+  // Extract data if response is nested or array directly
+  const data = Array.isArray(categoriesData) ? categoriesData : categoriesData.data || [];
   const [searchTerm, setSearchTerm] = useState("");
   
   // Dialog states
@@ -44,22 +44,47 @@ export function CategoryManagement() {
   
   // Form states
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", status: true });
+  const [formData, setFormData] = useState({ name: "", isActive: true, description: "" });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const filteredData = data.filter((cat) =>
-    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const createMutation = useMutation({
+    mutationFn: adminService.createCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => adminService.updateCategory(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: adminService.deleteCategory,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      setIsDeleteDialogOpen(false);
+      setDeletingId(null);
+    }
+  });
+
+  const filteredData = data.filter((cat: Category) =>
+    cat.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    setFormData({ name: "", status: true });
+    setFormData({ name: "", isActive: true, description: "" });
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (cat: Category) => {
     setEditingId(cat.id);
-    setFormData({ name: cat.name, status: cat.status === "ACTIVE" });
+    setFormData({ name: cat.name, isActive: cat.isActive !== false, description: "" });
     setIsFormOpen(true);
   };
 
@@ -67,24 +92,10 @@ export function CategoryManagement() {
     if (!formData.name.trim()) return;
 
     if (editingId) {
-      setData((prev) =>
-        prev.map((cat) =>
-          cat.id === editingId
-            ? { ...cat, name: formData.name, status: formData.status ? "ACTIVE" : "INACTIVE" }
-            : cat
-        )
-      );
+      updateMutation.mutate({ id: editingId, data: { name: formData.name, isActive: formData.isActive, id: editingId } });
     } else {
-      const newCat: Category = {
-        id: `c${Date.now()}`,
-        name: formData.name,
-        slug: formData.name.toLowerCase().replace(/\s+/g, "-"),
-        itemCount: 0,
-        status: formData.status ? "ACTIVE" : "INACTIVE",
-      };
-      setData((prev) => [newCat, ...prev]);
+      createMutation.mutate({ id: `c_${Date.now()}`, name: formData.name, isActive: formData.isActive, description: formData.description });
     }
-    setIsFormOpen(false);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -94,10 +105,8 @@ export function CategoryManagement() {
 
   const confirmDelete = () => {
     if (deletingId) {
-      setData((prev) => prev.filter((cat) => cat.id !== deletingId));
+      deleteMutation.mutate(deletingId);
     }
-    setIsDeleteDialogOpen(false);
-    setDeletingId(null);
   };
 
   const columns: ColumnDef<Category>[] = [
@@ -107,17 +116,13 @@ export function CategoryManagement() {
       className: "font-medium",
     },
     {
-      header: "Slug",
-      accessorKey: "slug",
-      className: "text-muted-foreground",
-    },
-    {
       header: "Items",
       accessorKey: "itemCount",
+      cell: (row) => row.itemCount || 0
     },
     {
       header: "Status",
-      cell: (row) => <StatusBadge status={row.status} />,
+      cell: (row) => <StatusBadge status={row.isActive !== false ? "ACTIVE" : "INACTIVE"} />,
     },
     {
       header: "Actions",
@@ -148,6 +153,7 @@ export function CategoryManagement() {
         data={filteredData}
         columns={columns}
         keyExtractor={(row) => row.id}
+        isLoading={isLoading}
       />
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
@@ -169,14 +175,16 @@ export function CategoryManagement() {
               <Label htmlFor="status">Active Status</Label>
               <Switch
                 id="status"
-                checked={formData.status}
-                onCheckedChange={(checked) => setFormData({ ...formData, status: checked })}
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

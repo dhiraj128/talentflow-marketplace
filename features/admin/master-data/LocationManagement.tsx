@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminService } from "@/lib/services/admin.service";
 import { DataTable, ColumnDef } from "@/features/admin/shared/DataTable";
 import { StatusBadge } from "@/features/admin/shared/StatusBadge";
 import { SearchBar } from "@/features/admin/shared/SearchBar";
@@ -20,71 +22,79 @@ import {
 
 interface LocationData {
   id: string;
-  country: string;
-  state: string;
-  city: string;
-  status: "ACTIVE" | "INACTIVE";
+  name?: string;
+  city?: string;
+  country?: string;
+  isActive?: boolean;
 }
 
-const mockLocations: LocationData[] = [
-  { id: "l1", country: "United States", state: "California", city: "San Francisco", status: "ACTIVE" },
-  { id: "l2", country: "United States", state: "New York", city: "New York City", status: "ACTIVE" },
-  { id: "l3", country: "United Kingdom", state: "England", city: "London", status: "ACTIVE" },
-  { id: "l4", country: "Canada", state: "Ontario", city: "Toronto", status: "ACTIVE" },
-  { id: "l5", country: "Australia", state: "New South Wales", city: "Sydney", status: "INACTIVE" },
-];
-
 export function LocationManagement() {
-  const [data, setData] = useState<LocationData[]>(mockLocations);
+  const queryClient = useQueryClient();
+  const { data: locationsData = [], isLoading } = useQuery({
+    queryKey: ['admin', 'locations'],
+    queryFn: adminService.getLocations,
+  });
+
+  const data = Array.isArray(locationsData) ? locationsData : locationsData.data || [];
   const [searchTerm, setSearchTerm] = useState("");
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ country: "", state: "", city: "", status: true });
+  const [formData, setFormData] = useState({ name: "", country: "", isActive: true });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const filteredData = data.filter((item) =>
-    item.country.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.state.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.city.toLowerCase().includes(searchTerm.toLowerCase())
+  const createMutation = useMutation({
+    mutationFn: adminService.createLocation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'locations'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => adminService.updateLocation(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'locations'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: adminService.deleteLocation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'locations'] });
+      setIsDeleteDialogOpen(false);
+      setDeletingId(null);
+    }
+  });
+
+  const filteredData = data.filter((item: LocationData) =>
+    item.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    item.country?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    setFormData({ country: "", state: "", city: "", status: true });
+    setFormData({ name: "", country: "", isActive: true });
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (item: LocationData) => {
     setEditingId(item.id);
-    setFormData({ country: item.country, state: item.state, city: item.city, status: item.status === "ACTIVE" });
+    setFormData({ name: item.name || item.city || "", country: item.country || "", isActive: item.isActive !== false });
     setIsFormOpen(true);
   };
 
   const handleSave = () => {
-    if (!formData.country.trim() || !formData.city.trim()) return;
+    if (!formData.name.trim()) return;
 
     if (editingId) {
-      setData((prev) =>
-        prev.map((item) =>
-          item.id === editingId
-            ? { ...item, country: formData.country, state: formData.state, city: formData.city, status: formData.status ? "ACTIVE" : "INACTIVE" }
-            : item
-        )
-      );
+      updateMutation.mutate({ id: editingId, data: { name: formData.name, country: formData.country, isActive: formData.isActive, id: editingId } });
     } else {
-      const newItem: LocationData = {
-        id: `l${Date.now()}`,
-        country: formData.country,
-        state: formData.state,
-        city: formData.city,
-        status: formData.status ? "ACTIVE" : "INACTIVE",
-      };
-      setData((prev) => [newItem, ...prev]);
+      createMutation.mutate({ id: `l_${Date.now()}`, name: formData.name, country: formData.country, isActive: formData.isActive });
     }
-    setIsFormOpen(false);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -94,17 +104,14 @@ export function LocationManagement() {
 
   const confirmDelete = () => {
     if (deletingId) {
-      setData((prev) => prev.filter((item) => item.id !== deletingId));
+      deleteMutation.mutate(deletingId);
     }
-    setIsDeleteDialogOpen(false);
-    setDeletingId(null);
   };
 
   const columns: ColumnDef<LocationData>[] = [
-    { header: "City", accessorKey: "city", className: "font-medium" },
-    { header: "State/Province", accessorKey: "state", className: "text-muted-foreground" },
+    { header: "City/Region", accessorKey: "name", className: "font-medium", cell: (row) => row.name || row.city },
     { header: "Country", accessorKey: "country", className: "text-muted-foreground" },
-    { header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
+    { header: "Status", cell: (row) => <StatusBadge status={row.isActive !== false ? "ACTIVE" : "INACTIVE"} /> },
     {
       header: "Actions",
       className: "text-right",
@@ -135,7 +142,7 @@ export function LocationManagement() {
         </div>
       </div>
 
-      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} />
+      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} isLoading={isLoading} />
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent>
@@ -143,6 +150,15 @@ export function LocationManagement() {
             <DialogTitle>{editingId ? "Edit Location" : "Add Location"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">City / Region Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g. San Francisco"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="country">Country</Label>
               <Input
@@ -152,36 +168,20 @@ export function LocationManagement() {
                 placeholder="e.g. United States"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="state">State / Province</Label>
-              <Input
-                id="state"
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                placeholder="e.g. California"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                placeholder="e.g. San Francisco"
-              />
-            </div>
             <div className="flex items-center justify-between pt-2">
               <Label htmlFor="status">Active Status</Label>
               <Switch
                 id="status"
-                checked={formData.status}
-                onCheckedChange={(checked) => setFormData({ ...formData, status: checked })}
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminService } from "@/lib/services/admin.service";
 import { DataTable, ColumnDef } from "@/features/admin/shared/DataTable";
 import { StatusBadge } from "@/features/admin/shared/StatusBadge";
 import { SearchBar } from "@/features/admin/shared/SearchBar";
@@ -24,77 +26,96 @@ interface Coupon {
   code: string;
   discountType: "PERCENTAGE" | "FIXED";
   discountValue: number;
-  validUntil: string;
-  usageLimit: number;
-  timesUsed: number;
-  status: "ACTIVE" | "INACTIVE" | "EXPIRED";
+  validUntil?: string;
+  usageLimit?: number;
+  timesUsed?: number;
+  isActive?: boolean;
 }
 
-const mockCoupons: Coupon[] = [
-  { id: "cp1", code: "SUMMER20", discountType: "PERCENTAGE", discountValue: 20, validUntil: "2026-08-31", usageLimit: 100, timesUsed: 45, status: "ACTIVE" },
-  { id: "cp2", code: "WELCOME10", discountType: "FIXED", discountValue: 10, validUntil: "2026-12-31", usageLimit: 500, timesUsed: 312, status: "ACTIVE" },
-  { id: "cp3", code: "FLASH50", discountType: "PERCENTAGE", discountValue: 50, validUntil: "2026-06-30", usageLimit: 50, timesUsed: 50, status: "EXPIRED" },
-];
-
 export function CouponManagement() {
-  const [data, setData] = useState<Coupon[]>(mockCoupons);
+  const queryClient = useQueryClient();
+  const { data: couponsData = [], isLoading } = useQuery({
+    queryKey: ['admin', 'coupons'],
+    queryFn: adminService.getCoupons,
+  });
+
+  const data = Array.isArray(couponsData) ? couponsData : couponsData.data || [];
   const [searchTerm, setSearchTerm] = useState("");
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ code: "", discountType: "PERCENTAGE", discountValue: 0, validUntil: "", usageLimit: 100, status: true });
+  const [formData, setFormData] = useState({ code: "", discountType: "PERCENTAGE", discountValue: 0, validUntil: "", usageLimit: 100, isActive: true });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const filteredData = data.filter((item) =>
-    item.code.toLowerCase().includes(searchTerm.toLowerCase())
+  const createMutation = useMutation({
+    mutationFn: adminService.createCoupon,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'coupons'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => adminService.updateCoupon(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'coupons'] });
+      setIsFormOpen(false);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: adminService.deleteCoupon,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'coupons'] });
+      setIsDeleteDialogOpen(false);
+      setDeletingId(null);
+    }
+  });
+
+  const filteredData = data.filter((item: Coupon) =>
+    item.code?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    setFormData({ code: "", discountType: "PERCENTAGE", discountValue: 0, validUntil: "", usageLimit: 100, status: true });
+    setFormData({ code: "", discountType: "PERCENTAGE", discountValue: 0, validUntil: "", usageLimit: 100, isActive: true });
     setIsFormOpen(true);
   };
 
   const handleOpenEdit = (item: Coupon) => {
     setEditingId(item.id);
+    let validUntilDate = item.validUntil ? new Date(item.validUntil).toISOString().split('T')[0] : "";
+    
     setFormData({ 
       code: item.code, 
       discountType: item.discountType, 
       discountValue: item.discountValue, 
-      validUntil: item.validUntil, 
-      usageLimit: item.usageLimit, 
-      status: item.status === "ACTIVE" 
+      validUntil: validUntilDate, 
+      usageLimit: item.usageLimit || 100, 
+      isActive: item.isActive !== false 
     });
     setIsFormOpen(true);
   };
 
   const handleSave = () => {
     if (!formData.code.trim()) return;
+    
+    const payload = {
+        code: formData.code.toUpperCase(),
+        discountType: formData.discountType,
+        discountValue: formData.discountValue,
+        validUntil: formData.validUntil ? new Date(formData.validUntil).toISOString() : null,
+        usageLimit: formData.usageLimit,
+        isActive: formData.isActive
+    };
 
     if (editingId) {
-      setData((prev) =>
-        prev.map((item) =>
-          item.id === editingId
-            ? { ...item, ...formData, discountType: formData.discountType as any, status: formData.status ? "ACTIVE" : "INACTIVE" }
-            : item
-        )
-      );
+      updateMutation.mutate({ id: editingId, data: payload });
     } else {
-      const newItem: Coupon = {
-        id: `cp${Date.now()}`,
-        code: formData.code.toUpperCase(),
-        discountType: formData.discountType as any,
-        discountValue: formData.discountValue,
-        validUntil: formData.validUntil,
-        usageLimit: formData.usageLimit,
-        timesUsed: 0,
-        status: formData.status ? "ACTIVE" : "INACTIVE",
-      };
-      setData((prev) => [newItem, ...prev]);
+      createMutation.mutate({ id: `cp_${Date.now()}`, ...payload });
     }
-    setIsFormOpen(false);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -104,10 +125,8 @@ export function CouponManagement() {
 
   const confirmDelete = () => {
     if (deletingId) {
-      setData((prev) => prev.filter((item) => item.id !== deletingId));
+      deleteMutation.mutate(deletingId);
     }
-    setIsDeleteDialogOpen(false);
-    setDeletingId(null);
   };
 
   const columns: ColumnDef<Coupon>[] = [
@@ -116,9 +135,9 @@ export function CouponManagement() {
       header: "Discount", 
       cell: (row) => row.discountType === "PERCENTAGE" ? `${row.discountValue}%` : `$${row.discountValue}` 
     },
-    { header: "Usage", cell: (row) => `${row.timesUsed} / ${row.usageLimit}` },
-    { header: "Valid Until", accessorKey: "validUntil" },
-    { header: "Status", cell: (row) => <StatusBadge status={row.status} /> },
+    { header: "Usage", cell: (row) => `${row.timesUsed || 0} / ${row.usageLimit || 0}` },
+    { header: "Valid Until", cell: (row) => row.validUntil ? new Date(row.validUntil).toLocaleDateString() : "Never" },
+    { header: "Status", cell: (row) => <StatusBadge status={row.isActive !== false ? "ACTIVE" : "INACTIVE"} /> },
     {
       header: "Actions",
       className: "text-right",
@@ -144,7 +163,7 @@ export function CouponManagement() {
         </Button>
       </div>
 
-      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} />
+      <DataTable data={filteredData} columns={columns} keyExtractor={(row) => row.id} isLoading={isLoading} />
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent>
@@ -202,14 +221,16 @@ export function CouponManagement() {
               <Label htmlFor="status">Active Status</Label>
               <Switch
                 id="status"
-                checked={formData.status}
-                onCheckedChange={(checked) => setFormData({ ...formData, status: checked })}
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
