@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { PageContainer } from "@/components/shared/PageContainer";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { StatsGrid } from "@/components/shared/StatsGrid";
 import { Users, Briefcase, GraduationCap, Activity } from "lucide-react";
@@ -32,7 +33,7 @@ export default function AdminDashboardPage() {
   if (loading || !user || isLoading) return null;
 
   return (
-    <div className="max-w-7xl mx-auto p-8 space-y-8">
+    <PageContainer>
       <PageHeader 
         title="Admin Dashboard" 
         description="System overview and key metrics"
@@ -43,6 +44,6 @@ export default function AdminDashboardPage() {
         <MetricCard title="Courses" value={data?.totalCourses?.toLocaleString() || "0"} icon={<GraduationCap className="w-4 h-4" />} trend="up" trendValue="Live" />
         <MetricCard title="Total Applications" value={data?.totalApplications?.toLocaleString() || "0"} icon={<Activity className="w-4 h-4" />} trend="neutral" trendValue="Live" />
       </StatsGrid>
-    </div>
+    </PageContainer>
   );
 }

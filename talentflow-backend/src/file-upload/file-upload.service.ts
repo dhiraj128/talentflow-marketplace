@@ -68,7 +68,8 @@ export class FileUploadService {
       originalName: file.originalname,
       mimeType: file.mimetype,
       size: file.size,
-      resumeId: resume.id
+      resumeId: resume.id,
+      data: resume
     };
   }
 

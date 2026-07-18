@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { TopNavBar } from "@/components/shared/TopNavBar";
 import { SideNavBar, SidebarRoute } from "@/components/shared/SideNavBar";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { 
   LayoutDashboard, 
@@ -31,6 +32,22 @@ const adminRoutes: SidebarRoute[] = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  React.useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  React.useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isSidebarOpen]);
 
   return (
     <div className="flex min-h-screen flex-col">

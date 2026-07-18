@@ -13,6 +13,8 @@ import {
   TrendingUp,
   Download
 } from "lucide-react";
+import { PageContainer } from "@/components/shared/PageContainer";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -28,22 +30,22 @@ export default function TrainerDashboard() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <PageContainer>
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-        <div>
-          <h2 className="text-3xl font-bold text-foreground">Trainer Dashboard</h2>
-          <p className="text-muted-foreground mt-2">Manage your courses, live classes, and students.</p>
-        </div>
-        <div className="flex gap-3 flex-wrap">
-          <Button variant="outline" className="gap-2 shadow-sm" nativeButton={false} render={<Link href="/trainer/live/new" />}>
-            <Video className="h-4 w-4" /> Schedule Live Class
-          </Button>
-          <Button variant="default" className="gap-2 shadow-sm" nativeButton={false} render={<Link href="/trainer/courses/new" />}>
-            <PlusCircle className="h-4 w-4" /> Create Course
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Trainer Dashboard"
+        description="Manage your courses, live classes, and students."
+        action={
+          <div className="flex gap-3 flex-wrap">
+            <Button variant="outline" className="gap-2 shadow-sm" nativeButton={false} render={<Link href="/trainer/live/new" />}>
+              <Video className="h-4 w-4" /> Schedule Live Class
+            </Button>
+            <Button variant="default" className="gap-2 shadow-sm" nativeButton={false} render={<Link href="/trainer/courses/new" />}>
+              <PlusCircle className="h-4 w-4" /> Create Course
+            </Button>
+          </div>
+        }
+      />
 
       {/* Key Metrics Widgets */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -80,7 +82,7 @@ export default function TrainerDashboard() {
           )}
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

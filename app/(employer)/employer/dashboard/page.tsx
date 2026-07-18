@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { PageContainer } from "@/components/shared/PageContainer";
 import { StatsGrid } from "@/components/shared/StatsGrid";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { DataTable } from "@/components/shared/DataTable";
@@ -88,7 +89,7 @@ export default function EmployerDashboard() {
   })) || [];
 
   return (
-    <div className="max-w-7xl mx-auto p-8 space-y-8">
+    <PageContainer>
       <PageHeader title="Dashboard" description="Overview of your recruitment activity" actionLabel="Post Job" />
       <StatsGrid>
         <MetricCard title="Total Jobs" value={data?.stats?.totalJobs?.toString() || "0"} icon={<Briefcase />} />
@@ -164,6 +165,6 @@ export default function EmployerDashboard() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

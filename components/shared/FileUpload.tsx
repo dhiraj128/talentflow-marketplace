@@ -19,7 +19,7 @@ import { toast } from "sonner";
 
 export interface FileUploadProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange'> {
   onFileSelect: (file: File | null) => void;
-  onUpload?: (file: File, onProgress: (progress: number) => void) => Promise<void>;
+  onUpload?: (file: File, onProgress: (progress: number) => void) => Promise<any>;
   accept?: string;
   maxSizeMB?: number;
   maxSize?: number;
@@ -108,10 +108,10 @@ export function FileUpload({
     setProgress(0);
     
     try {
-      await props.onUpload(file, (p) => setProgress(p));
+      const response = await props.onUpload(file, (p) => setProgress(p));
       setProgress(100);
       toast.success("File uploaded successfully");
-      onFileSelect(file);
+      onFileSelect(response || file);
     } catch (error: any) {
       toast.error(error.response?.data?.message || error.message || "Failed to upload file");
       clearFile();

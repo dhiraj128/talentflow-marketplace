@@ -171,22 +171,24 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
             </>
           )}
 
-          {/* Mobile Menu */}
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "md:hidden focus:outline-none")}>
-              <Menu className="h-5 w-5" />
-            </SheetTrigger>
-            <SheetContent side="right">
-              <div className="flex flex-col gap-4 mt-8">
-                <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">🏠 Home</Link>
-                <Link href="/find-jobs" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">💼 Job Seeker</Link>
-                <Link href="/find-talent" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">🏢 Employer</Link>
-                <Link href="/find-freelancers" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">⚡ Freelance</Link>
-                <Link href="/find-courses" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">🎓 Training</Link>
-                {!user && <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">📝 Register</Link>}
-              </div>
-            </SheetContent>
-          </Sheet>
+          {/* Mobile Menu (Only if no sidebar) */}
+          {!showSidebarToggle && (
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "md:hidden focus:outline-none")}>
+                <Menu className="h-5 w-5" />
+              </SheetTrigger>
+              <SheetContent side="right">
+                <div className="flex flex-col gap-4 mt-8">
+                  <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">🏠 Home</Link>
+                  <Link href="/find-jobs" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">💼 Job Seeker</Link>
+                  <Link href="/find-talent" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">🏢 Employer</Link>
+                  <Link href="/find-freelancers" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">⚡ Freelance</Link>
+                  <Link href="/find-courses" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">🎓 Training</Link>
+                  {!user && <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium flex items-center gap-2">📝 Register</Link>}
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
     </header>

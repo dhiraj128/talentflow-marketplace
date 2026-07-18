@@ -1,300 +1,382 @@
 "use client";
 
-import React from "react";
-import { PageContainer } from "@/components/shared/PageContainer";
-import { 
-  ArrowRight, 
-  Code, 
-  BrainCircuit, 
-  Cloud, 
-  TrendingUp, 
-  Landmark, 
-  Palette, 
-  Star, 
-  Verified,
-  RefreshCcw
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { searchService } from "@/lib/services/search.service";
-import { Suspense, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { 
+  Code, BrainCircuit, Cloud, TrendingUp, Landmark, Palette, Star, 
+  ChevronLeft, ChevronRight, Play, BookOpen
+} from "lucide-react";
+
+import { PageContainer } from "@/components/shared/PageContainer";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
-import { EnterpriseHero } from "@/components/shared/EnterpriseHero";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AdvancedSearchBox } from "@/features/search/AdvancedSearchBox";
+import { DesktopFilterSidebar, FilterGroup } from "@/features/search/DesktopFilterSidebar";
+import { MobileFilterDrawer } from "@/features/search/MobileFilterDrawer";
+import { ActiveFilterChips } from "@/features/search/ActiveFilterChips";
+import { EmptySearchState } from "@/components/shared/EmptySearchState";
+
+import { searchService } from "@/lib/services/search.service";
 import { useAuth } from "@/lib/auth-context";
 import { courseService } from "@/lib/services/course.service";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
-function AcademyDashboardContent() {
+const COURSE_FILTERS: FilterGroup[] = [
+  {
+    id: "category",
+    label: "Category",
+    type: "checkbox",
+    options: [
+      { label: "Programming", value: "Programming" },
+      { label: "AI & ML", value: "AI & ML" },
+      { label: "Cloud", value: "Cloud" },
+      { label: "Marketing", value: "Marketing" },
+      { label: "Finance", value: "Finance" },
+      { label: "Design", value: "Design" }
+    ]
+  },
+  {
+    id: "level",
+    label: "Level",
+    type: "checkbox",
+    options: [
+      { label: "Beginner", value: "Beginner" },
+      { label: "Intermediate", value: "Intermediate" },
+      { label: "Advanced", value: "Advanced" }
+    ]
+  },
+  {
+    id: "price",
+    label: "Price Type",
+    type: "checkbox",
+    options: [
+      { label: "Free", value: "free" },
+      { label: "Paid", value: "paid" }
+    ]
+  },
+  {
+    id: "duration",
+    label: "Max Duration (Hours)",
+    type: "slider",
+    min: 1,
+    max: 100,
+    step: 1,
+    formatValue: (val) => `${val}h`
+  }
+];
+
+function FindCoursesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
   const query = searchParams.get("q") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const totalPages = 42;
+  
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const currentFilters: Record<string, any> = {};
+    COURSE_FILTERS.forEach(f => {
+      const val = searchParams.get(f.id);
+      if (val) {
+        currentFilters[f.id] = f.type === "checkbox" ? val.split(",") : (f.type === "slider" ? parseInt(val, 10) : val);
+      }
+    });
+    setSelectedFilters(currentFilters);
+  }, [searchParams]);
+
+  const updateFiltersInUrl = (filters: Record<string, any>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    
+    COURSE_FILTERS.forEach(f => {
+      if (filters[f.id] && (!Array.isArray(filters[f.id]) || filters[f.id].length > 0) && filters[f.id] !== "any") {
+        current.set(f.id, Array.isArray(filters[f.id]) ? filters[f.id].join(",") : filters[f.id].toString());
+      } else {
+        current.delete(f.id);
+      }
+    });
+    
+    current.set("page", "1");
+    const search = current.toString();
+    router.push(`${pathname}${search ? `?${search}` : ""}`, { scroll: false });
+  };
+
+  const handleFilterChange = (id: string, value: any) => {
+    const newFilters = { ...selectedFilters, [id]: value };
+    setSelectedFilters(newFilters);
+    updateFiltersInUrl(newFilters);
+  };
+
+  const handleRemoveFilter = (id: string, value: any) => {
+    const current = selectedFilters[id];
+    let newFilters = { ...selectedFilters };
+    
+    if (Array.isArray(current)) {
+      newFilters[id] = current.filter(v => v !== value);
+      if (newFilters[id].length === 0) delete newFilters[id];
+    } else {
+      delete newFilters[id];
+    }
+    
+    setSelectedFilters(newFilters);
+    updateFiltersInUrl(newFilters);
+  };
+
+  const handleClearAllFilters = () => {
+    setSelectedFilters({});
+    updateFiltersInUrl({});
+  };
 
   const handlePageChange = (newPage: number) => {
+    const totalPages = 42;
     if (newPage < 1 || newPage > totalPages) return;
     const current = new URLSearchParams(Array.from(searchParams.entries()));
     current.set("page", newPage.toString());
-    const search = current.toString();
-    const newQuery = search ? `?${search}` : "";
-    router.push(`${pathname}${newQuery}`, { scroll: false });
+    router.push(`${pathname}?${current.toString()}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const getVisiblePages = () => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    if (page <= 3) return [1, 2, 3, 4, "...", totalPages];
-    if (page >= totalPages - 2) return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    return [1, "...", page - 1, page, page + 1, "...", totalPages];
+  const getVisiblePages = (total: number) => {
+    if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+    if (page <= 3) return [1, 2, 3, 4, "...", total];
+    if (page >= total - 2) return [1, "...", total - 3, total - 2, total - 1, total];
+    return [1, "...", page - 1, page, page + 1, "...", total];
   };
 
-  const categories = [
-    { name: "Programming", icon: Code, color: "text-primary", bg: "bg-primary/10", border: "hover:border-primary/30" },
-    { name: "AI & ML", icon: BrainCircuit, color: "text-secondary", bg: "bg-secondary/10", border: "hover:border-secondary/30" },
-    { name: "Cloud", icon: Cloud, color: "text-primary", bg: "bg-primary/10", border: "hover:border-primary/30" },
-    { name: "Marketing", icon: TrendingUp, color: "text-orange-500", bg: "bg-orange-500/10", border: "hover:border-orange-500/30" },
-    { name: "Finance", icon: Landmark, color: "text-secondary", bg: "bg-secondary/10", border: "hover:border-secondary/30" },
-    { name: "Design", icon: Palette, color: "text-orange-500", bg: "bg-orange-500/10", border: "hover:border-orange-500/30" },
-  ];
-
   const { data: coursesData, isLoading } = useQuery({
-    queryKey: ['find-courses', query, page],
+    queryKey: ['find-courses', query, page, selectedFilters],
     queryFn: async () => {
-      const results = await searchService.searchCourses(query, "");
-      const limit = 6;
+      // Mock filter application since API doesn't fully support all filters yet
+      // Passing categories as filters where possible
+      const categoryFilter = Array.isArray(selectedFilters.category) ? selectedFilters.category[0] : "";
+      
+      const results = await searchService.searchCourses(query, categoryFilter || "");
+      
+      const limit = 9;
       const offset = (page - 1) * limit;
       return results.slice(offset, offset + limit);
     }
   });
 
-  const { user } = useAuth();
-  
-  const { data: myLearningData } = useQuery({
-    queryKey: ['my-learning', user?.id],
-    queryFn: async () => {
-      if (user?.role !== 'job-seeker') return [];
-      return await courseService.getMyLearning();
-    },
-    enabled: user?.role === 'job-seeker'
-  });
-
   const courses = coursesData || [];
-  const inProgressCourses = myLearningData?.filter((e: any) => e.progress < 100) || [];
-  const activeCourse = inProgressCourses[0]?.course;
-  const activeProgress = inProgressCourses[0]?.progress || 0;
+  const totalPages = 42; 
+
+  const activeFilterCount = Object.keys(selectedFilters).reduce((acc, key) => {
+    const val = selectedFilters[key];
+    if (Array.isArray(val)) return acc + val.length;
+    if (val && val !== "any" && val !== 0) return acc + 1;
+    return acc;
+  }, 0);
 
   return (
-    <PageContainer>
+    <div className="flex flex-col min-h-screen bg-background">
+      <AdvancedSearchBox />
       
-      {/* Hero Section */}
-      <section className="relative rounded-[2rem] overflow-hidden mb-16 aspect-[21/9] min-h-[400px] flex items-center group bg-slate-900 border">
-        <div className="absolute inset-0 z-0">
-          <div className="w-full h-full bg-gradient-to-r from-background/90 via-background/40 to-transparent absolute inset-0 z-10 dark:from-background/90 dark:via-background/60"></div>
-          {/* Using a placeholder gradient pattern since we don't have the original image */}
-          <div className="w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-slate-900 to-slate-900 transition-transform duration-700 group-hover:scale-105"></div>
+      <PageContainer className="flex-1 py-8">
+        <div className="flex flex-col gap-4 mb-8">
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Master High-Demand Tech Skills</h1>
+          <p className="text-muted-foreground text-lg max-w-2xl leading-relaxed">
+            Access exclusive training modules curated by industry giants. From AI ethics to advanced cloud architecture.
+          </p>
         </div>
-        <div className="relative z-20 px-8 md:px-16 max-w-2xl">
-          <Badge className="bg-secondary/20 text-secondary hover:bg-secondary/30 mb-6 py-1 px-3">PREMIUM LEARNING</Badge>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">Master High-Demand Tech Skills</h1>
-          <p className="text-lg md:text-xl text-white/80 mb-8 font-medium">Access exclusive training modules curated by industry giants. From AI ethics to advanced cloud architecture.</p>
-          <div className="flex flex-wrap gap-4">
-            <Button size="lg" className="h-12 px-6 rounded-xl gap-2">
-              Browse Modules <ArrowRight className="w-4 h-4" />
-            </Button>
-            <Button size="lg" variant="outline" className="h-12 px-6 rounded-xl bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/20 hover:text-white">
-              Learning Paths
-            </Button>
-          </div>
-        </div>
-      </section>
 
-      {/* Categories */}
-      <section className="mb-16">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-foreground">Popular Categories</h2>
-          <Button variant="link" className="text-primary font-semibold p-0 h-auto gap-1">
-            View all categories <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          {categories.map((cat, idx) => {
-            const Icon = cat.icon;
-            return (
-              <Card key={idx} className={`flex flex-col items-center p-6 rounded-2xl cursor-pointer hover:shadow-lg transition-all group ${cat.border}`}>
-                <div className={`w-14 h-14 rounded-xl ${cat.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <Icon className={`w-7 h-7 ${cat.color}`} />
-                </div>
-                <span className="font-semibold text-foreground">{cat.name}</span>
-              </Card>
-            );
-          })}
-        </div>
-      </section>
+        <div className="flex flex-col md:flex-row gap-8 items-start relative">
+          
+          <DesktopFilterSidebar 
+            filters={COURSE_FILTERS}
+            selectedFilters={selectedFilters}
+            onFilterChange={handleFilterChange}
+            onClearAll={handleClearAllFilters}
+          />
 
-      {/* Continue Learning Banner */}
-      {activeCourse && (
-        <section className="mb-16">
-          <Card className="overflow-hidden border-primary/20 shadow-lg bg-primary/5 rounded-3xl cursor-pointer hover:shadow-xl transition-all" onClick={() => router.push(`/job-seeker/learning/${activeCourse.id}`)}>
-            <CardContent className="p-0 flex flex-col md:flex-row items-center">
-              <div className="w-full md:w-1/3 aspect-video bg-muted relative">
-                {activeCourse.thumbnailUrl ? (
-                  <img src={activeCourse.thumbnailUrl} alt={activeCourse.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-900">
-                    <Play className="w-12 h-12 text-primary" />
-                  </div>
-                )}
+          <main className="flex-1 w-full flex flex-col gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <MobileFilterDrawer 
+                  filters={COURSE_FILTERS}
+                  selectedFilters={selectedFilters}
+                  onFilterChange={handleFilterChange}
+                  onClearAll={handleClearAllFilters}
+                  activeFilterCount={activeFilterCount}
+                />
+                <p className="text-muted-foreground text-sm font-medium hidden sm:block">
+                  Showing premium courses
+                </p>
               </div>
-              <div className="p-6 md:p-8 flex-1 w-full">
-                <Badge className="mb-3 bg-primary/10 text-primary hover:bg-primary/20 border-none">Continue Learning</Badge>
-                <h3 className="text-2xl font-bold mb-2 text-foreground">{activeCourse.title}</h3>
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="text-sm font-medium text-muted-foreground">{activeCourse.trainer?.fullName}</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary" style={{ width: `${activeProgress}%` }}></div>
-                  </div>
-                  <span className="font-bold text-primary">{activeProgress}%</span>
-                </div>
+              <div className="flex items-center gap-3 w-full sm:w-auto self-end sm:self-auto">
+                <span className="text-sm text-muted-foreground hidden sm:block">Sort by:</span>
+                <Select defaultValue="popular">
+                  <SelectTrigger className="w-full sm:w-[160px] h-10 rounded-xl bg-card">
+                    <SelectValue placeholder="Sort courses" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="popular">Most Popular</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </CardContent>
-          </Card>
-        </section>
-      )}
+            </div>
 
-      {/* Course Grid */}
-      <section>
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Featured Courses</h2>
-            <p className="text-muted-foreground mt-1">Hand-picked excellence for your professional growth.</p>
-          </div>
-          <div className="flex items-center gap-2 bg-muted p-1 rounded-xl border">
-            <Button variant="ghost" className="bg-background shadow-sm text-primary font-semibold h-9 rounded-lg">All Courses</Button>
-            <Button variant="ghost" className="text-muted-foreground hover:bg-background/50 h-9 rounded-lg">Newest</Button>
-            <Button variant="ghost" className="text-muted-foreground hover:bg-background/50 h-9 rounded-lg">Top Rated</Button>
-          </div>
-        </div>
+            <ActiveFilterChips 
+              filters={COURSE_FILTERS}
+              selectedFilters={selectedFilters}
+              onRemoveFilter={handleRemoveFilter}
+              onClearAll={handleClearAllFilters}
+            />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {isLoading ? (
-              Array(6).fill(0).map((_, i) => (
-                <Skeleton key={`sk-${i}`} className="h-64 w-full rounded-xl" />
-              ))
-            ) : courses?.map((course: any) => (
-              <Card key={course.id} className="group overflow-hidden rounded-3xl border-border hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 flex flex-col h-full bg-card">
-                <div className="relative h-48 w-full bg-muted overflow-hidden flex items-center justify-center p-6">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-background/80 to-transparent z-10"></div>
-                  {course.thumbnailUrl ? (
-                    <img src={course.thumbnailUrl} alt={course.title} className="absolute inset-0 w-full h-full object-cover opacity-80" />
-                  ) : (
-                    <BrainCircuit className="w-16 h-16 text-primary opacity-50 transform group-hover:scale-110 transition-transform duration-500 z-0" />
-                  )}
-                  <div className="absolute top-4 right-4 z-20 flex gap-2">
-                    {course.level && (
-                      <Badge className="bg-primary text-primary-foreground border-none">{course.level}</Badge>
-                    )}
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {isLoading ? (
+                Array(6).fill(0).map((_, i) => (
+                  <Skeleton key={`sk-${i}`} className="h-[420px] w-full rounded-2xl" />
+                ))
+              ) : courses.length === 0 ? (
+                <div className="col-span-full">
+                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <EmptySearchState 
+                      title="No courses found"
+                      description="We couldn't find any courses matching your criteria. Try adjusting your filters or searching for a different topic."
+                      onClearFilters={activeFilterCount > 0 ? handleClearAllFilters : undefined}
+                      onBrowseAll={() => {
+                        handleClearAllFilters();
+                        router.push(pathname);
+                      }}
+                    />
+                   </motion.div>
                 </div>
-                <CardContent className="p-6 flex flex-col flex-grow">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-primary">{course.category || 'General'}</span>
-                    {course.rating > 0 && (
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-orange-400 fill-orange-400" />
-                        <span className="font-semibold text-foreground text-sm">{course.rating.toFixed(1)}</span>
-                        <span className="text-sm text-muted-foreground">({course.studentCount})</span>
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-xl font-bold text-foreground mb-4 leading-tight group-hover:text-primary transition-colors">
-                    {course.title}
-                  </h3>
-                  <div className="flex items-center gap-3 mb-6 mt-auto">
-                    <div className="w-8 h-8 rounded-full bg-muted border flex items-center justify-center overflow-hidden">
-                      {course.trainer?.avatarUrl ? (
-                        <img src={course.trainer.avatarUrl} alt={course.trainer.fullName} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="font-bold text-xs text-muted-foreground">{(course.trainer?.fullName || 'T').charAt(0)}</span>
-                      )}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium text-foreground text-sm">{course.trainer?.fullName || 'Trainer Name'}</span>
-                      {course.trainer?.expertise && <span className="text-xs text-muted-foreground">{course.trainer.expertise}</span>}
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground font-medium">{course.duration || 'Self-paced'}</span>
-                      <span className="text-xl font-bold text-primary">
-                        {course.price === 0 ? 'FREE' : `$${course.price}`}
-                      </span>
-                    </div>
-                    <Button className="rounded-lg font-semibold" onClick={() => router.push(`/find-courses/${course.id}`)}>View Details</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-        </div>
-        
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-12 pb-4">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="w-10 h-10" 
-              onClick={() => handlePageChange(page - 1)} 
-              disabled={page === 1 || isLoading}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            {getVisiblePages().map((p, idx) => (
-              p === "..." ? (
-                <span key={`dots-${idx}`} className="px-2 text-muted-foreground">...</span>
               ) : (
+                courses.map((course: any, index: number) => (
+                  <motion.div
+                    key={course.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="h-full"
+                  >
+                    <Card className="group overflow-hidden rounded-2xl border-border hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col h-full bg-card">
+                      <div className="relative h-48 w-full bg-muted overflow-hidden flex items-center justify-center p-6">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-background/80 to-transparent z-10"></div>
+                        {course.thumbnailUrl ? (
+                          <img src={course.thumbnailUrl} alt={course.title} className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <BookOpen className="w-16 h-16 text-primary opacity-30 transform group-hover:scale-110 transition-transform duration-500 z-0" />
+                        )}
+                        <div className="absolute top-4 left-4 z-20">
+                          {course.level && (
+                            <Badge className="bg-background/90 text-foreground backdrop-blur-sm shadow-sm border-none font-semibold px-2.5">{course.level}</Badge>
+                          )}
+                        </div>
+                        <div className="absolute top-4 right-4 z-20">
+                          {course.price === 0 && (
+                            <Badge className="bg-emerald-500/90 text-emerald-50 backdrop-blur-sm shadow-sm border-none font-bold tracking-wide">FREE</Badge>
+                          )}
+                        </div>
+                      </div>
+                      <CardContent className="p-5 flex flex-col flex-grow">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold uppercase tracking-wider text-primary">{course.category || 'General'}</span>
+                          {course.rating > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Star className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
+                              <span className="font-bold text-foreground text-sm">{course.rating.toFixed(1)}</span>
+                              <span className="text-xs text-muted-foreground font-medium">({course.studentCount})</span>
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="text-lg font-bold text-foreground mb-3 leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                          {course.title}
+                        </h3>
+                        <div className="flex items-center gap-3 mb-5 mt-auto bg-muted/30 p-2 rounded-lg">
+                          <div className="w-8 h-8 rounded-full bg-muted border flex items-center justify-center overflow-hidden shrink-0">
+                            {course.trainer?.avatarUrl ? (
+                              <img src={course.trainer.avatarUrl} alt={course.trainer.fullName} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="font-bold text-xs text-muted-foreground">{(course.trainer?.fullName || 'T').charAt(0)}</span>
+                            )}
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-semibold text-foreground text-sm truncate">{course.trainer?.fullName || 'Expert Instructor'}</span>
+                            <span className="text-xs text-muted-foreground truncate">{course.trainer?.expertise || 'Certified Trainer'}</span>
+                          </div>
+                        </div>
+                        <div className="pt-4 border-t flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">Duration</span>
+                            <span className="text-sm font-bold text-foreground">{course.duration || 'Self-paced'}</span>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">Modules</span>
+                            <span className="text-sm font-bold text-foreground">{course.modules?.length || 10} Units</span>
+                          </div>
+                        </div>
+                        <Button className="w-full mt-5 rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm" asChild>
+                           <Link href={`/find-courses/${course.id}`}>View Course Details</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
+            </div>
+            
+            {totalPages > 1 && courses.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-8 pb-4">
                 <Button 
-                  key={`p-${p}`} 
-                  variant={page === p ? "default" : "outline"} 
-                  className="w-10 h-10"
-                  onClick={() => handlePageChange(p as number)}
-                  disabled={isLoading}
+                  variant="outline" 
+                  size="icon" 
+                  className="w-10 h-10 rounded-xl"
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1 || isLoading}
                 >
-                  {p}
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
-              )
-            ))}
+                
+                {getVisiblePages(totalPages).map((p, idx) => (
+                  p === "..." ? (
+                    <span key={`dots-${idx}`} className="px-2 text-muted-foreground font-bold">...</span>
+                  ) : (
+                    <Button 
+                      key={`p-${p}`}
+                      variant={page === p ? "default" : "outline"} 
+                      size="sm" 
+                      className={page === p ? "h-10 w-10 p-0 rounded-xl font-bold bg-primary text-primary-foreground" : "h-10 w-10 p-0 rounded-xl font-semibold"}
+                      onClick={() => handlePageChange(p as number)}
+                      disabled={isLoading}
+                    >
+                      {p}
+                    </Button>
+                  )
+                ))}
 
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="w-10 h-10" 
-              onClick={() => handlePageChange(page + 1)} 
-              disabled={page === totalPages || isLoading}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </section>
-
-      {/* CTA Section */}
-      <EnterpriseHero />
-
-    </PageContainer>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="w-10 h-10 rounded-xl"
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages || isLoading}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </main>
+        </div>
+      </PageContainer>
+    </div>
   );
 }
 
-export default function AcademyDashboardPage() {
+export default function FindCoursesPage() {
   return (
-    <Suspense fallback={<PageContainer><div>Loading courses...</div></PageContainer>}>
-      <AcademyDashboardContent />
+    <Suspense fallback={<PageContainer><div className="flex items-center justify-center h-[50vh]"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div></PageContainer>}>
+      <FindCoursesContent />
     </Suspense>
   );
 }

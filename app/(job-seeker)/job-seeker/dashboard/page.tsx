@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { PageContainer } from "@/components/shared/PageContainer";
 import { StatsGrid } from "@/components/shared/StatsGrid";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { JobCard } from "@/components/shared/JobCard";
@@ -44,7 +45,7 @@ export default function CandidateDashboard() {
   if (loading || !user || isLoadingData) return null;
 
   return (
-    <div className="max-w-7xl mx-auto p-8 space-y-8">
+    <PageContainer>
       <PageHeader 
         title={`Welcome back, ${user?.name || user?.email?.split("@")[0]}! 👋`}
         description="Here's your career dashboard and job search overview."
@@ -174,6 +175,6 @@ export default function CandidateDashboard() {
           </Card>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

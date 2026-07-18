@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Edit, Trash2, Eye, History, CheckCircle, AlertCircle } from "lucide-react";
@@ -10,23 +10,51 @@ import { useAuth } from "@/lib/auth-context";
 
 export default function MyResumePage() {
   const { user } = useAuth();
-  const [resumes, setResumes] = useState([
-    { id: 1, name: "Software Engineer Resume.pdf", date: "Oct 12, 2023", default: true, published: true, isPublic: true, atsScore: 85 },
-    { id: 2, name: "Frontend Developer Tailored.pdf", date: "Nov 05, 2023", default: false, published: false, isPublic: false, atsScore: 72 },
-  ]);
+  const [resumes, setResumes] = useState<any[]>([]);
+  const [versionHistory, setVersionHistory] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [versionHistory, setVersionHistory] = useState([
-    { version: "v2.0", date: "Nov 05, 2023", changes: "Updated Next.js experience" },
-    { version: "v1.0", date: "Oct 12, 2023", changes: "Initial upload" }
-  ]);
+  useEffect(() => {
+    async function loadResumes() {
+      if (!user) return;
+      try {
+        setIsLoading(true);
+        // We might not have candidateId directly on user, but the API can infer it or we pass it
+        const candidateId = user.profile?.id || user.id;
+        const data = await resumeService.getResumes(candidateId);
+        
+        // Map the backend resume entity to the frontend format
+        const formatted = (Array.isArray(data) ? data : data?.data || []).map((r: any) => ({
+          id: r.id,
+          name: r.fileName || r.title || "Uploaded Resume",
+          date: new Date(r.createdAt).toLocaleDateString(),
+          default: r.isDefault || false,
+          published: r.isPublished || false,
+          isPublic: r.isPublic || false,
+          atsScore: r.atsScore || 0,
+          ...r
+        }));
+        
+        setResumes(formatted);
+      } catch (error) {
+        console.error("Failed to load resumes:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadResumes();
+  }, [user]);
 
   const [uploading, setUploading] = useState(false);
 
-  const handleFileSelect = (file: File | null) => {
-    if (file) {
+  const handleFileSelect = (fileOrResume: any) => {
+    if (!fileOrResume) return;
+    
+    if (fileOrResume instanceof File) {
+      // Just for UX if no API response was returned (fallback)
       const newResume = {
         id: Date.now(),
-        name: file.name,
+        name: fileOrResume.name,
         date: new Date().toLocaleDateString(),
         default: resumes.length === 0,
         published: false,
@@ -34,7 +62,22 @@ export default function MyResumePage() {
         atsScore: Math.floor(Math.random() * 30) + 60,
       };
       setResumes([newResume, ...resumes]);
-      setVersionHistory([{ version: `v${versionHistory.length + 1}.0`, date: new Date().toLocaleDateString(), changes: `Uploaded ${file.name}` }, ...versionHistory]);
+      setVersionHistory([{ version: `v${versionHistory.length + 1}.0`, date: new Date().toLocaleDateString(), changes: `Uploaded ${fileOrResume.name}` }, ...versionHistory]);
+    } else {
+      // Real API response!
+      const resumeData = fileOrResume.data || fileOrResume;
+      const formattedResume = {
+        id: resumeData.id || fileOrResume.resumeId,
+        name: resumeData.title || resumeData.fileName || fileOrResume.originalName || "Uploaded Resume",
+        date: resumeData.createdAt ? new Date(resumeData.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+        default: resumes.length === 0,
+        published: false,
+        isPublic: false,
+        atsScore: 0, // Should come from API eventually
+        ...resumeData
+      };
+      setResumes([formattedResume, ...resumes]);
+      setVersionHistory([{ version: `v${versionHistory.length + 1}.0`, date: new Date().toLocaleDateString(), changes: `Uploaded ${formattedResume.name}` }, ...versionHistory]);
     }
   };
 
