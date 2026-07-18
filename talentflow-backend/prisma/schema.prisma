@@ -50,6 +50,7 @@ model EmployerProfile {
   jobs           Job[]
   projectRequests ProjectRequest[]
   reviews Review[]
+  interviews     Interview[]
 }
 
 model CandidateProfile {
@@ -76,6 +77,7 @@ model CandidateProfile {
   coverLetters CoverLetter[]
   enrollments  Enrollment[]
   resumes      Resume[]
+  interviews   Interview[]
 }
 
 model TrainerProfile {
@@ -86,7 +88,6 @@ model TrainerProfile {
   expertise String?
   avatarUrl String?
   rating    Float?   @default(0.0)
-  isVerified Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   courses   Course[]
@@ -145,6 +146,7 @@ model Application {
   candidate   CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
   resume      Resume?           @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  interviews  Interview[]
 
   @@unique([candidateId, jobId])
 }
@@ -565,8 +567,10 @@ enum JobStatus {
 enum ApplicationStatus {
   PENDING
   REVIEWING
+  SHORTLISTED
   INTERVIEWING
   OFFERED
+  HIRED
   REJECTED
 }
 
@@ -578,9 +582,7 @@ enum SubscriptionTier {
 
 enum CourseStatus {
   DRAFT
-  PENDING
   PUBLISHED
-  REJECTED
 }
 
 enum ProjectRequestStatus {
@@ -593,9 +595,31 @@ enum ProjectRequestStatus {
 enum UserStatus {
   ACTIVE
   SUSPENDED
+}enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
 }
 
+model Interview {
+  id              String          @id @default(uuid())
+  applicationId   String
+  employerId      String
+  candidateId     String
+  scheduledAt     DateTime
+  duration        Int             @default(60) // Duration in minutes
+  timezone        String          @default("UTC")
+  meetingProvider String?         // e.g., 'Zoom', 'Google Meet', 'Teams'
+  meetingUrl      String?
+  notes           String?
+  feedback        String?
+  status          InterviewStatus @default(SCHEDULED)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
-
-
+  application     Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  employer        EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+}
 

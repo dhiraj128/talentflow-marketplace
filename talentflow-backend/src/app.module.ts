@@ -16,6 +16,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { MatchingEngineModule } from './matching-engine/matching-engine.module';
+import { InterviewsModule } from './interviews/interviews.module';
 import { BillingModule } from './billing/billing.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
@@ -45,7 +46,7 @@ import { StorageModule } from './storage/storage.module';
       ttl: 60000,
       limit: 100,
     }]),
-    PrismaModule, AuthModule, UsersModule, EmployersModule, CandidatesModule, JobsModule, ApplicationsModule, CoursesModule, EnrollmentsModule, CertificatesModule, SkillsModule, NotificationsModule, AuditLogsModule, AnalyticsModule, MatchingEngineModule, BillingModule, SubscriptionModule, FileUploadModule, ResumeCenterModule, MessagesModule, SearchModule, ProgressModule, AssessmentsModule, FreelancersModule, ProjectRequestsModule, CategoriesModule, DesignationsModule, LocationsModule, CouponsModule, OffersModule, PlansModule, SubscriptionsModule, TrainersModule, StorageModule
+    PrismaModule, AuthModule, UsersModule, EmployersModule, CandidatesModule, JobsModule, ApplicationsModule, CoursesModule, EnrollmentsModule, CertificatesModule, SkillsModule, NotificationsModule, AuditLogsModule, AnalyticsModule, MatchingEngineModule, InterviewsModule, BillingModule, SubscriptionModule, FileUploadModule, ResumeCenterModule, MessagesModule, SearchModule, ProgressModule, AssessmentsModule, FreelancersModule, ProjectRequestsModule, CategoriesModule, DesignationsModule, LocationsModule, CouponsModule, OffersModule, PlansModule, SubscriptionsModule, TrainersModule, StorageModule
   ],
   controllers: [AppController],
   providers: [
