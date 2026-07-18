@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 export interface FileUploadProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange'> {
   onFileSelect: (file: File | null) => void;
+  onUpload?: (file: File, onProgress: (progress: number) => void) => Promise<void>;
   accept?: string;
   maxSizeMB?: number;
   maxSize?: number;
@@ -93,29 +94,30 @@ export function FileUpload({
     }
 
     setSelectedFile(file);
-    simulateUpload(file);
+    executeUpload(file);
   };
 
-  const simulateUpload = (file: File) => {
+  const executeUpload = async (file: File) => {
+    if (!props.onUpload) {
+      // If no upload handler provided, just select the file
+      onFileSelect(file);
+      return;
+    }
+
     setIsUploading(true);
     setProgress(0);
     
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+    try {
+      await props.onUpload(file, (p) => setProgress(p));
+      setProgress(100);
+      toast.success("File uploaded successfully");
+      onFileSelect(file);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || error.message || "Failed to upload file");
+      clearFile();
+    } finally {
+      setIsUploading(false);
     }
-    
-    intervalRef.current = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          setIsUploading(false);
-          toast.success("File uploaded successfully");
-          onFileSelect(file);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 200);
   };
 
   const clearFile = () => {

@@ -1,9 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AbstractStorageService } from '../storage/storage.service';
 
 @Injectable()
 export class ResumeCenterService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private storage: AbstractStorageService
+  ) {}
 
   create(data: any) {
     return this.prisma.resume.create({ data });
@@ -23,7 +27,22 @@ export class ResumeCenterService {
     return this.prisma.resume.update({ where: { id }, data });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    const resume = await this.prisma.resume.findUnique({ 
+      where: { id },
+      include: { applications: true } 
+    });
+    if (!resume) throw new NotFoundException('Resume not found');
+
+    if (resume.applications && resume.applications.length > 0) {
+      // Keep historical resume versions used by applications by preventing physical deletion
+      throw new BadRequestException('Cannot delete a resume that has been used in job applications');
+    }
+
+    if (resume.storageKey) {
+      await this.storage.deleteFile(resume.storageKey);
+    }
+    
     return this.prisma.resume.delete({ where: { id } });
   }
 

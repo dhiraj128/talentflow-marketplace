@@ -7,114 +7,75 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==========================================
-// ENUMS
-// ==========================================
-
-enum Role {
-  ADMIN
-  EMPLOYER
-  CANDIDATE
-  FREELANCER
-  TRAINER
-}
-
-enum JobStatus {
-  DRAFT
-  PUBLISHED
-  CLOSED
-}
-
-enum ApplicationStatus {
-  PENDING
-  REVIEWING
-  INTERVIEWING
-  OFFERED
-  REJECTED
-}
-
-enum SubscriptionTier {
-  FREE
-  PRO
-  ENTERPRISE
-}
-
-// ==========================================
-// CORE IDENTITY
-// ==========================================
-
 model User {
-  id              String    @id @default(uuid())
-  email           String    @unique
-  passwordHash    String?   // Optional because OAuth users might not have a password
-  provider        String?   // 'local', 'google', 'github'
-  googleId        String?   @unique
-  githubId        String?   @unique
-  avatarUrl       String?
-  role            Role
-  isEmailVerified Boolean   @default(false)
-  refreshToken    String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  deletedAt       DateTime? // Soft delete
-
-  employerProfile  EmployerProfile?
-  candidateProfile CandidateProfile?
-  trainerProfile   TrainerProfile?
+  id                String             @id @default(uuid())
+  email             String             @unique
+  passwordHash      String?
+  role              Role               @default(CANDIDATE)
+  isEmailVerified   Boolean            @default(false)
+  refreshToken      String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  avatarUrl         String?
+  githubId          String?            @unique
+  googleId          String?            @unique
+  provider          String?
+  status            UserStatus         @default(ACTIVE)
+  auditLogs         AuditLog[]         @relation("ActionBy")
+  candidateProfile  CandidateProfile?
+  employerProfile   EmployerProfile?
   freelancerProfile FreelancerProfile?
-  auditLogs        AuditLog[]        @relation("ActionBy")
-  notifications    Notification[]
-  sentMessages     Message[]
+  sentMessages      Message[]
+  notifications     Notification[]
+  subscriptions Subscription[]
+  trainerProfile    TrainerProfile?
 }
-
-// ==========================================
-// PROFILES
-// ==========================================
 
 model EmployerProfile {
-  id           String           @id @default(uuid())
-  userId       String           @unique
-  companyName  String
-  industry     String?
-  logoUrl      String?
-  bio          String?
-  phone        String?
-  websiteUrl   String?
-  location     String?
-  subscription SubscriptionTier @default(FREE)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-
-  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobs    Job[]
-  billing Billing[]
+  id             String           @id @default(uuid())
+  userId         String           @unique
+  companyName    String
+  industry       String?
+  logoUrl        String?
+  subscription   SubscriptionTier @default(FREE)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  bio            String?
+  location       String?
+  phone          String?
+  websiteUrl     String?
+  billing        Billing[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs           Job[]
+  projectRequests ProjectRequest[]
+  reviews Review[]
 }
 
 model CandidateProfile {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  fullName  String
-  title     String?
+  id           String           @id @default(uuid())
+  userId       String           @unique
+  fullName     String
+  title        String?
   location     String?
   avatarUrl    String?
   resumeUrl    String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   bio          String?
-  phone        String?
-  portfolioUrl String?
+  education    Json?
+  experience   Json?
   githubUrl    String?
   linkedinUrl  String?
-  experience   Json?
-  education    Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skills       CandidateSkill[]
+  phone        String?
+  portfolioUrl String?
   applications Application[]
-  enrollments  Enrollment[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills       CandidateSkill[]
   certificates Certificate[]
-  resumes      Resume[]
   coverLetters CoverLetter[]
+  enrollments  Enrollment[]
+  resumes      Resume[]
 }
 
 model TrainerProfile {
@@ -125,48 +86,50 @@ model TrainerProfile {
   expertise String?
   avatarUrl String?
   rating    Float?   @default(0.0)
+  isVerified Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courses Course[]
-}
-
-model FreelancerProfile {
-  id           String   @id @default(uuid())
-  userId       String   @unique
-  fullName     String
-  title        String?
-  bio          String?
-  hourlyRate   Float?
-  portfolioUrl String?
-  githubUrl    String?
-  avatarUrl    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
+  courses   Course[]
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ==========================================
-// JOBS & MATCHING
-// ==========================================
+model FreelancerProfile {
+  id              String            @id @default(uuid())
+  userId          String            @unique
+  fullName        String
+  title           String?
+  bio             String?
+  hourlyRate      Float?
+  portfolioUrl    String?
+  githubUrl       String?
+  avatarUrl       String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  availability    String?
+  isVerified      Boolean           @default(false)
+  location        String?
+  rating          Float             @default(0.0)
+  reviewCount     Int               @default(0)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills FreelancerSkill[]
+  projectRequests ProjectRequest[]
+  reviews Review[]
+}
 
 model Job {
-  id          String    @id @default(uuid())
-  employerId  String
-  title       String
-  location    String?
-  type        String? // Full-time, Contract
-  salaryRange String?
-  description String
-  status      JobStatus @default(DRAFT)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime?
-
-  employer       EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  id             String          @id @default(uuid())
+  employerId     String
+  title          String
+  location       String?
+  type           String?
+  salaryRange    String?
+  description    String
+  status         JobStatus       @default(DRAFT)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
   applications   Application[]
+  employer       EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
   requiredSkills JobSkill[]
 }
 
@@ -174,38 +137,34 @@ model Application {
   id          String            @id @default(uuid())
   candidateId String
   jobId       String
+  resumeId    String?
   status      ApplicationStatus @default(PENDING)
-  matchScore  Int?              @default(0) // Analytics & Matching Engine
+  matchScore  Int               @default(0)
   appliedAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+  candidate   CandidateProfile  @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume      Resume?           @relation(fields: [resumeId], references: [id], onDelete: SetNull)
 
-  candidate CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  job       Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
-
-  @@unique([candidateId, jobId]) // Prevent duplicate applications
+  @@unique([candidateId, jobId])
 }
 
-// ==========================================
-// SKILLS
-// ==========================================
-
 model Skill {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  category  String?
-  createdAt DateTime @default(now())
-
-  candidates CandidateSkill[]
-  jobs       JobSkill[]
+  id              String            @id @default(uuid())
+  name            String            @unique
+  category        String?
+  createdAt       DateTime          @default(now())
+  candidates      CandidateSkill[]
+  skills FreelancerSkill[]
+  jobs            JobSkill[]
 }
 
 model CandidateSkill {
   candidateId String
   skillId     String
-  proficiency Int? // 1-5
-
-  candidate CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  skill     Skill            @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  proficiency Int?
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@id([candidateId, skillId])
 }
@@ -214,64 +173,60 @@ model JobSkill {
   jobId       String
   skillId     String
   isMandatory Boolean @default(true)
-
-  job   Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  job         Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
   skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@id([jobId, skillId])
 }
 
-// ==========================================
-// COURSES & ACADEMY
-// ==========================================
-
 model Course {
-  id           String   @id @default(uuid())
+  id           String         @id @default(uuid())
   title        String
   category     String
   description  String
   thumbnailUrl String?
-  rating       Float?   @default(0.0)
-  studentCount Int      @default(0)
+  rating       Float?         @default(0.0)
+  studentCount Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   trainerId    String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  trainer      TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Cascade)
-  enrollments  Enrollment[]
+  duration     String?
+  level        String?
+  price        Float          @default(0.0)
+  status       CourseStatus   @default(DRAFT)
+  assessment Assessment?
   certificates Certificate[]
+  trainer      TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  modules CourseModule[]
+  enrollments  Enrollment[]
 }
 
 model Enrollment {
-  id          String    @id @default(uuid())
-  candidateId String
-  courseId    String
-  progress    Int       @default(0)
-  enrolledAt  DateTime  @default(now())
-  completedAt DateTime?
-
-  candidate CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  course    Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id                String              @id @default(uuid())
+  candidateId       String
+  courseId          String
+  progress          Int                 @default(0)
+  enrolledAt        DateTime            @default(now())
+  completedAt       DateTime?
+  assessmentAttempts AssessmentAttempt[]
+  candidate         CandidateProfile    @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessonProgress LessonProgress[]
 
   @@unique([candidateId, courseId])
 }
 
 model Certificate {
-  id             String   @id @default(uuid())
+  id             String           @id @default(uuid())
   candidateId    String
   courseId       String
-  issuedAt       DateTime @default(now())
+  issuedAt       DateTime         @default(now())
   certificateUrl String?
-
-  candidate CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  course    Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  candidate      CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([candidateId, courseId])
 }
-
-// ==========================================
-// SYSTEM & ANALYTICS
-// ==========================================
 
 model Notification {
   id        String   @id @default(uuid())
@@ -280,75 +235,69 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Conversation {
-  id        String   @id @default(uuid())
+  id             String    @id @default(uuid())
   participant1Id String
   participant2Id String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  messages Message[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  messages       Message[]
 
   @@unique([participant1Id, participant2Id])
 }
 
 model Message {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   conversationId String
   senderId       String
   content        String
-  isRead         Boolean  @default(false)
-  createdAt      DateTime @default(now())
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
   id        String   @id @default(uuid())
-  actionBy  String // User ID
+  actionBy  String
   action    String
   resource  String
   details   Json?
   createdAt DateTime @default(now())
-
   user User @relation("ActionBy", fields: [actionBy], references: [id], onDelete: Cascade)
 }
 
-// ==========================================
-// BILLING & SUBSCRIPTION
-// ==========================================
-
 model Billing {
-  id         String   @id @default(uuid())
+  id         String          @id @default(uuid())
   employerId String
-  invoiceId  String   @unique
+  invoiceId  String          @unique
   amount     Float
-  status     String // Paid, Pending, Failed
-  issuedAt   DateTime @default(now())
-
-  employer EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  status     String
+  issuedAt   DateTime        @default(now())
+  employer   EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
 }
 
-// ==========================================
-// RESUME CENTER (Placeholders)
-// ==========================================
-
 model Resume {
-  id          String   @id @default(uuid())
-  candidateId String
+  id          String           @id @default(uuid())
   title       String?
+  type        String           @default("ORIGINAL") // ORIGINAL or ATS
+  fileName    String?
+  storageKey  String?
+  bucket      String?
+  mimeType    String?
+  size        Int?
+  version     Int              @default(1)
+  createdAt   DateTime         @default(now())
+  candidateId String
   content     Json?
   fileUrl     String?
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  candidate CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  isDefault   Boolean          @default(false)
+  updatedAt   DateTime         @updatedAt
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  applications Application[]
 }
 
 model ResumeTemplate {
@@ -388,14 +337,13 @@ model ResumeWriter {
 }
 
 model CoverLetter {
-  id          String   @id @default(uuid())
+  id          String           @id @default(uuid())
+  content     String
+  createdAt   DateTime         @default(now())
   candidateId String
   title       String?
-  content     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  candidate CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime         @updatedAt
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 }
 
 model ResumeVerification {
@@ -405,12 +353,249 @@ model ResumeVerification {
 }
 
 model EmployerResumeView {
-  id        String   @id @default(uuid())
-  viewedAt  DateTime @default(now())
+  id       String   @id @default(uuid())
+  viewedAt DateTime @default(now())
 }
 
 model IdentityVerificationDocument {
-  id        String   @id @default(uuid())
+  id          String   @id @default(uuid())
   documentUrl String
-  createdAt DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
+
+model Assessment {
+  id                String              @id
+  courseId          String              @unique
+  title             String
+  passingScore      Int                 @default(70)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  assessmentAttempts AssessmentAttempt[]
+  questions Question[]
+}
+
+model AssessmentAttempt {
+  id           String     @id @default(uuid())
+  enrollmentId String
+  assessmentId String
+  score        Int
+  passed       Boolean
+  attemptedAt  DateTime   @default(now())
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id          String   @id
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Coupon {
+  id            String    @id
+  code          String    @unique
+  discountType  String
+  discountValue Float
+  maxUses       Int?
+  usedCount     Int       @default(0)
+  expiryDate    DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CourseModule {
+  id          String   @id
+  courseId    String
+  title       String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+}
+
+model Designation {
+  id          String   @id
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FreelancerSkill {
+  freelancerId      String
+  skillId           String
+  proficiency       Int?
+  freelancer FreelancerProfile @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([freelancerId, skillId])
+}
+
+model Lesson {
+  id             String           @id
+  moduleId       String
+  title          String
+  content        String?
+  videoUrl       String?
+  duration       Int?
+  order          Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt DateTime @updatedAt
+  module CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  lessonProgress LessonProgress[]
+}
+
+model LessonProgress {
+  enrollmentId String
+  lessonId     String
+  isCompleted  Boolean    @default(false)
+  completedAt  DateTime?
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@id([enrollmentId, lessonId])
+}
+
+model Location {
+  id        String   @id
+  name      String   @unique
+  country   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Offer {
+  id          String    @id
+  title       String
+  description String?
+  discount    Float
+  bannerUrl   String?
+  isActive    Boolean   @default(true)
+  validUntil  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Plan {
+  id           String         @id
+  name         String         @unique
+  description  String?
+  price        Float
+  billingCycle String         @default("MONTHLY")
+  features     Json
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt DateTime @updatedAt
+  subscriptions Subscription[]
+}
+
+model ProjectRequest {
+  id                String               @id @default(uuid())
+  employerId        String
+  freelancerId      String
+  title             String
+  description       String
+  budget            Float
+  status            ProjectRequestStatus @default(PENDING)
+  createdAt         DateTime             @default(now())
+  updatedAt DateTime @updatedAt
+  employer EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  freelancer FreelancerProfile @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  reviews Review[]
+}
+
+model Question {
+  id           String     @id
+  assessmentId String
+  text         String
+  options      Json
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id                String            @id @default(uuid())
+  employerId        String
+  freelancerId      String
+  projectRequestId  String
+  rating            Int
+  text              String?
+  createdAt         DateTime          @default(now())
+  employer EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  freelancer FreelancerProfile @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  ProjectRequest    ProjectRequest    @relation(fields: [projectRequestId], references: [id], onDelete: Cascade)
+
+  @@unique([employerId, projectRequestId])
+}
+
+model Subscription {
+  id        String   @id
+  userId    String
+  planId    String
+  status    String   @default("ACTIVE")
+  startDate DateTime @default(now())
+  endDate   DateTime
+  autoRenew Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  plan Plan @relation(fields: [planId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  ADMIN
+  EMPLOYER
+  CANDIDATE
+  FREELANCER
+  TRAINER
+}
+
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  INTERVIEWING
+  OFFERED
+  REJECTED
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum CourseStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  REJECTED
+}
+
+enum ProjectRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+
+
+
+

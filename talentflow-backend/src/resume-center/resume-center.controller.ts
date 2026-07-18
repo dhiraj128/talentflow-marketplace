@@ -1,3 +1,5 @@
+import { CreateResumeCenterDto } from './dto/create.dto';
+import { UpdateResumeCenterDto } from './dto/update.dto';
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { ResumeCenterService } from './resume-center.service';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
@@ -11,8 +13,8 @@ export class ResumeCenterController {
   constructor(private readonly resumeService: ResumeCenterService) {}
 
   @Post()
-  create(@Body() data: any) {
-    return this.resumeService.create(data);
+  create(@Body() createDto: CreateResumeCenterDto) {
+    return this.resumeService.create(createDto);
   }
 
   @Get()
@@ -26,8 +28,8 @@ export class ResumeCenterController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() data: any) {
-    return this.resumeService.update(id, data);
+  update(@Param('id') id: string, @Body() updateDto: UpdateResumeCenterDto) {
+    return this.resumeService.update(id, updateDto);
   }
 
   @Delete(':id')

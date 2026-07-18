@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Save } from "lucide-react";
+import { resumeService } from "@/lib/services/resume.service";
 
 export default function ResumeBuilderPage() {
   return (
@@ -21,7 +22,7 @@ export default function ResumeBuilderPage() {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="flex flex-wrap w-full md:grid md:grid-cols-5 h-auto">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="education">Education</TabsTrigger>
           <TabsTrigger value="experience">Experience</TabsTrigger>
@@ -153,7 +154,12 @@ export default function ResumeBuilderPage() {
               <CardDescription>Upload your existing resume in PDF format.</CardDescription>
             </CardHeader>
             <CardContent>
-              <FileUpload onFileSelect={() => {}} accept=".pdf,.doc,.docx" maxSize={5} />
+              <FileUpload 
+                onFileSelect={() => {}} 
+                onUpload={(file, onProgress) => resumeService.uploadResumeFile(file, onProgress)}
+                accept=".pdf,.doc,.docx" 
+                maxSize={5} 
+              />
             </CardContent>
           </Card>
         </TabsContent>

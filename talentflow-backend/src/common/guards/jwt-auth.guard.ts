@@ -11,6 +11,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (err || !user) {
       throw err || new UnauthorizedException();
     }
+    if (user.status === 'SUSPENDED') {
+      throw new UnauthorizedException('Your account has been suspended.');
+    }
     return user;
   }
 }

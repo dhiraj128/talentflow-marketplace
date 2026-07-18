@@ -25,6 +25,19 @@ import { MessagesModule } from './messages/messages.module';
 import { SearchModule } from './search/search.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ProgressModule } from './progress/progress.module';
+import { AssessmentsModule } from './assessments/assessments.module';
+import { FreelancersModule } from './freelancers/freelancers.module';
+import { ProjectRequestsModule } from './project-requests/project-requests.module';
+import { CategoriesModule } from './categories/categories.module';
+import { DesignationsModule } from './designations/designations.module';
+import { LocationsModule } from './locations/locations.module';
+import { CouponsModule } from './coupons/coupons.module';
+import { OffersModule } from './offers/offers.module';
+import { PlansModule } from './plans/plans.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { TrainersModule } from './trainers/trainers.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -32,7 +45,7 @@ import { APP_GUARD } from '@nestjs/core';
       ttl: 60000,
       limit: 100,
     }]),
-    PrismaModule, AuthModule, UsersModule, EmployersModule, CandidatesModule, JobsModule, ApplicationsModule, CoursesModule, EnrollmentsModule, CertificatesModule, SkillsModule, NotificationsModule, AuditLogsModule, AnalyticsModule, MatchingEngineModule, BillingModule, SubscriptionModule, FileUploadModule, ResumeCenterModule, MessagesModule, SearchModule
+    PrismaModule, AuthModule, UsersModule, EmployersModule, CandidatesModule, JobsModule, ApplicationsModule, CoursesModule, EnrollmentsModule, CertificatesModule, SkillsModule, NotificationsModule, AuditLogsModule, AnalyticsModule, MatchingEngineModule, BillingModule, SubscriptionModule, FileUploadModule, ResumeCenterModule, MessagesModule, SearchModule, ProgressModule, AssessmentsModule, FreelancersModule, ProjectRequestsModule, CategoriesModule, DesignationsModule, LocationsModule, CouponsModule, OffersModule, PlansModule, SubscriptionsModule, TrainersModule, StorageModule
   ],
   controllers: [AppController],
   providers: [
