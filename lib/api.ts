@@ -91,7 +91,7 @@ api.interceptors.response.use(
           }
         );
 
-        if (res.status === 200 && res.data.access_token) {
+        if ((res.status === 200 || res.status === 201) && res.data.access_token) {
           const newToken = res.data.access_token;
 
           if (typeof window !== 'undefined') {
