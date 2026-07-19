@@ -18,7 +18,7 @@ export function MarketplaceSort({ value, onChange }: MarketplaceSortProps) {
   return (
     <div className="flex items-center gap-3">
       <span className="text-sm font-medium text-muted-foreground hidden sm:inline-block">Sort by:</span>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value} onValueChange={(val) => { if (val) onChange(val); }}>
         <SelectTrigger className="w-[180px] bg-white h-10 border-input font-medium focus:ring-purple-500">
           <SelectValue placeholder="Sort freelancers" />
         </SelectTrigger>
