@@ -1,3 +1,8 @@
+"use client"
+
+import { useState } from "react"
+import { useAuth } from "@/lib/auth-context"
+import { toast } from "sonner"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { VerificationModule } from "@/components/shared/VerificationModule"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -7,9 +12,38 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle2, Shield, Upload } from "lucide-react"
+import { CheckCircle2, Shield, Upload, Loader2, User } from "lucide-react"
 
 export default function SettingsPage() {
+  const { user, refreshUser } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/file-upload/avatar`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      toast.success("Avatar uploaded", { description: "Your profile photo has been updated." });
+      if (refreshUser) await refreshUser();
+    } catch (err) {
+      toast.error("Upload Error", { description: "Failed to upload avatar." });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <>
       <PageHeader 
@@ -33,12 +67,27 @@ export default function SettingsPage() {
             <CardContent>
               <form className="space-y-6">
                 <div className="flex items-center gap-6">
-                  <div className="h-24 w-24 rounded-full bg-muted border-2 flex items-center justify-center overflow-hidden">
-                    <Upload className="h-6 w-6 text-muted-foreground" />
+                  <div className="h-24 w-24 rounded-full bg-muted border-2 flex items-center justify-center overflow-hidden shrink-0">
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="h-10 w-10 text-muted-foreground" />
+                    )}
                   </div>
                   <div>
-                    <Button type="button" variant="outline" className="mb-2">Upload new photo</Button>
-                    <p className="text-xs text-muted-foreground">JPG, GIF or PNG. Max size of 800K</p>
+                    <div className="relative">
+                      <Input 
+                        type="file" 
+                        accept="image/jpeg, image/png, image/webp, image/gif" 
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        onChange={handleUploadPhoto}
+                        disabled={isUploading}
+                      />
+                      <Button type="button" variant="outline" className="mb-2 w-40" disabled={isUploading}>
+                        {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Upload new photo"}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">JPG, PNG, WEBP or GIF. Max size of 5MB</p>
                   </div>
                 </div>
                 

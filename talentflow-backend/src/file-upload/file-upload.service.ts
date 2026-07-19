@@ -173,7 +173,7 @@ export class FileUploadService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { candidateProfile: true },
+      include: { candidateProfile: true, trainerProfile: true },
     });
 
     if (!user) {
@@ -194,7 +194,7 @@ export class FileUploadService {
       userId,
     );
 
-    // Update User and CandidateProfile
+    // Update User and Profiles
     await this.prisma.user.update({
       where: { id: userId },
       data: { avatarUrl: result.url },
@@ -207,9 +207,17 @@ export class FileUploadService {
       });
     }
 
+    if (user.trainerProfile) {
+      await this.prisma.trainerProfile.update({
+        where: { id: user.trainerProfile.id },
+        data: { avatarUrl: result.url },
+      });
+    }
+
     return {
       success: true,
       url: result.url,
+      avatarUrl: result.url,
       originalName: file.originalname,
       mimeType: file.mimetype,
     };
