@@ -45,21 +45,21 @@ export function FreelancerCard({
   onSave
 }: FreelancerCardProps) {
   return (
-    <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-      <Card className="h-full flex flex-col hover:shadow-lg hover:border-purple-500/30 transition-all overflow-hidden group">
-        <CardContent className="p-5 flex-1 flex flex-col gap-4 relative">
+    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="h-full">
+      <Card className="h-full flex flex-col hover:shadow-xl hover:border-purple-500/30 transition-all overflow-hidden group">
+        <CardContent className="p-5 flex-grow flex flex-col gap-4 relative">
           
           <Button 
             variant="ghost" 
             size="icon" 
-            className="absolute top-4 right-4 text-muted-foreground hover:text-rose-500 rounded-full"
+            className="absolute top-4 right-4 text-muted-foreground hover:text-rose-500 rounded-full hover:bg-rose-50 transition-colors"
             onClick={(e) => { e.preventDefault(); onSave?.(); }}
           >
             <Heart className="w-5 h-5" />
           </Button>
 
           <div className="flex items-start gap-4">
-            <div className="relative">
+            <div className="relative shrink-0">
               <Avatar className="w-16 h-16 border-2 border-background shadow-sm group-hover:border-purple-100 transition-colors">
                 <AvatarImage src={avatar} alt={name} />
                 <AvatarFallback>{name.substring(0, 2)}</AvatarFallback>
@@ -69,42 +69,42 @@ export function FreelancerCard({
               )}
             </div>
             
-            <div className="pt-1 flex-1 pr-8">
-              <div className="flex items-center gap-1.5">
-                <Link href={`/find-freelancers/${id}`} className="font-bold text-lg hover:text-purple-600 transition-colors line-clamp-1">
+            <div className="pt-1 flex-grow pr-8 min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Link href={`/find-freelancers/${id}`} className="font-bold text-[20px] leading-tight hover:text-purple-600 transition-colors line-clamp-2 break-words">
                   {name}
                 </Link>
                 <VerificationBadge isVerified={isVerified} />
               </div>
-              <p className="text-sm font-medium text-purple-600 line-clamp-1">{title}</p>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1.5">
-                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {location}</span>
-                <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" /> {completedProjects} jobs</span>
+              <p className="text-[16px] font-medium text-purple-600 line-clamp-2 mt-1 break-words leading-tight">{title}</p>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
+                <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {location}</span>
+                <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5" /> {completedProjects} jobs</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
             <RatingStars rating={rating} count={reviews} />
-            <HourlyRateBadge rate={hourlyRate} />
+            <span className="font-bold text-[16px]">${hourlyRate}/hr</span>
           </div>
 
           <div className="flex flex-wrap gap-1.5 mt-2">
-            {skills.slice(0, 4).map(skill => (
+            {skills.slice(0, 6).map(skill => (
               <Badge key={skill} variant="secondary" className="font-normal text-xs bg-muted/50 text-muted-foreground">
                 {skill}
               </Badge>
             ))}
-            {skills.length > 4 && (
+            {skills.length > 6 && (
               <Badge variant="secondary" className="font-normal text-xs bg-muted/50 text-muted-foreground">
-                +{skills.length - 4}
+                +{skills.length - 6} more
               </Badge>
             )}
           </div>
 
         </CardContent>
-        <CardFooter className="p-5 pt-0 mt-auto border-t">
-          <div className="flex items-center gap-3 w-full pt-4">
+        <CardFooter className="p-5 pt-0 mt-auto">
+          <div className="flex items-center gap-3 w-full pt-4 border-t border-border/50">
             <Link href={`/find-freelancers/${id}`} className="flex-1">
               <Button variant="outline" className="w-full">View Profile</Button>
             </Link>

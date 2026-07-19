@@ -36,27 +36,27 @@ export function MarketplaceFilters({ filters, setFilters, className }: Marketpla
   };
 
   return (
-    <div className={`space-y-6 ${className || ""}`}>
+    <div className={`space-y-5 ${className || ""}`}>
       
-      <div className="flex items-center justify-between border-b pb-4">
-        <h3 className="font-semibold text-lg">Filters</h3>
-        <button onClick={() => setFilters({ hourlyRate: [150], verifiedOnly: false, experienceLevel: [] })} className="text-sm text-purple-600 font-medium hover:underline">
+      <div className="flex items-center justify-between border-b pb-3">
+        <h3 className="font-semibold text-[16px]">Filters</h3>
+        <button onClick={() => setFilters({ hourlyRate: [150], verifiedOnly: false, experienceLevel: [] })} className="text-[13px] text-purple-600 font-medium hover:underline">
           Clear All
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label htmlFor="verified-only" className="cursor-pointer">Verified Professionals Only</Label>
+          <Label htmlFor="verified-only" className="cursor-pointer text-[14px]">Verified Professionals Only</Label>
           <Switch id="verified-only" checked={filters.verifiedOnly} onCheckedChange={handleVerifiedChange} />
         </div>
       </div>
 
-      <div className="space-y-6 pt-4">
+      <div className="space-y-5 pt-2">
         
-        <div className="space-y-4">
-          <h4 className="font-semibold text-base">Hourly Rate (Max)</h4>
-          <div className="space-y-6 pt-2 pb-2">
+        <div className="space-y-3">
+          <h4 className="font-semibold text-[15px]">Hourly Rate (Max)</h4>
+          <div className="space-y-4 pt-1">
             <Slider 
               defaultValue={[150]} 
               max={250} 
@@ -72,9 +72,9 @@ export function MarketplaceFilters({ filters, setFilters, className }: Marketpla
           </div>
         </div>
 
-        <div className="space-y-4 pt-2">
-          <h4 className="font-semibold text-base">Experience Level</h4>
-          <div className="space-y-3 pt-2">
+        <div className="space-y-3 pt-2">
+          <h4 className="font-semibold text-[15px]">Experience Level</h4>
+          <div className="space-y-2 pt-1">
             {["Entry Level", "Intermediate", "Expert"].map((level) => (
               <div key={level} className="flex items-center space-x-2">
                 <Checkbox 
@@ -82,7 +82,7 @@ export function MarketplaceFilters({ filters, setFilters, className }: Marketpla
                   checked={filters.experienceLevel.includes(level)}
                   onCheckedChange={(checked) => handleExperienceChange(level, checked as boolean)}
                 />
-                <Label htmlFor={`exp-${level}`} className="font-normal cursor-pointer">{level}</Label>
+                <Label htmlFor={`exp-${level}`} className="font-normal cursor-pointer text-[14px]">{level}</Label>
               </div>
             ))}
           </div>
