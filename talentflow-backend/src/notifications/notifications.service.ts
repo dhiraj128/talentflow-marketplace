@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable , ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
@@ -22,18 +22,18 @@ export class NotificationsService {
     });
   }
 
-  findOne(id: string) {
+  findOne(id: string, user?: any) {
     return this.prisma.notification.findUnique({ where: { id } });
   }
 
-  update(id: string, updateNotificationDto: UpdateNotificationDto) {
+  update(id: string, updateNotificationDto: UpdateNotificationDto, user?: any) {
     return this.prisma.notification.update({
       where: { id },
       data: updateNotificationDto,
     });
   }
 
-  remove(id: string) {
+  remove(id: string, user?: any) {
     return this.prisma.notification.delete({ where: { id } });
   }
 }

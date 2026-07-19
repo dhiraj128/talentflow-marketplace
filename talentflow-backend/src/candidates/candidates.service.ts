@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateCandidateDto,
@@ -29,7 +29,7 @@ export class CandidatesService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user?: any) {
     const candidate = await this.prisma.candidateProfile.findUnique({
       where: { id },
       include: {
@@ -44,6 +44,10 @@ export class CandidatesService {
       },
     });
     if (!candidate) throw new NotFoundException('Candidate not found');
+
+    if (user && user.role !== 'ADMIN' && candidate.userId !== (user.sub || user.userId)) {
+      throw new ForbiddenException('Forbidden');
+    }
 
     let completionScore = 0;
     if (candidate.fullName) completionScore += 10;
@@ -61,23 +65,25 @@ export class CandidatesService {
     return { ...candidate, completionScore };
   }
 
-  async update(id: string, updateCandidateDto: UpdateCandidateDto) {
-    try {
-      return await this.prisma.candidateProfile.update({
-        where: { id },
-        data: updateCandidateDto,
-      });
-    } catch {
-      throw new NotFoundException('Candidate not found');
+  async update(id: string, updateCandidateDto: UpdateCandidateDto, user?: any) {
+    const candidate = await this.prisma.candidateProfile.findUnique({ where: { id } });
+    if (!candidate) throw new NotFoundException('Candidate not found');
+    if (user && user.role !== 'ADMIN' && candidate.userId !== (user.sub || user.userId)) {
+      throw new ForbiddenException('Forbidden');
     }
+    return await this.prisma.candidateProfile.update({
+      where: { id },
+      data: updateCandidateDto,
+    });
   }
 
-  async remove(id: string) {
-    try {
-      await this.prisma.candidateProfile.delete({ where: { id } });
-      return { success: true };
-    } catch {
-      throw new NotFoundException('Candidate not found');
+  async remove(id: string, user?: any) {
+    const candidate = await this.prisma.candidateProfile.findUnique({ where: { id } });
+    if (!candidate) throw new NotFoundException('Candidate not found');
+    if (user && user.role !== 'ADMIN' && candidate.userId !== (user.sub || user.userId)) {
+      throw new ForbiddenException('Forbidden');
     }
+    await this.prisma.candidateProfile.delete({ where: { id } });
+    return { success: true };
   }
 }

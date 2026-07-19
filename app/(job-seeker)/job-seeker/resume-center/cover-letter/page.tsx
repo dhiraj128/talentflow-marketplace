@@ -28,7 +28,7 @@ export default function CoverLetterPage() {
         <p className="text-muted-foreground">Create tailored cover letters instantly using AI.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -83,7 +83,7 @@ export default function CoverLetterPage() {
         </div>
 
         <div className="space-y-6">
-          <Card className="h-full flex flex-col">
+          <Card className="flex flex-col">
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
@@ -102,7 +102,7 @@ export default function CoverLetterPage() {
                 )}
               </div>
             </CardHeader>
-            <CardContent className="flex-1">
+            <CardContent>
               {generatedContent ? (
                 <Textarea 
                   value={generatedContent}

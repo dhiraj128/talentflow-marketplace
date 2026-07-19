@@ -27,7 +27,7 @@ export default function SavedJobsPage() {
       </div>
 
       {SAVED_JOBS.length > 0 ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {SAVED_JOBS.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}

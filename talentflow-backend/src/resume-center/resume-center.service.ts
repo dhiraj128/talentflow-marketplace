@@ -1,6 +1,6 @@
 import {
   Injectable,
-  NotFoundException,
+  NotFoundException, ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -26,15 +26,15 @@ export class ResumeCenterService {
     });
   }
 
-  findOne(id: string) {
+  findOne(id: string, user?: any) {
     return this.prisma.resume.findUnique({ where: { id } });
   }
 
-  update(id: string, data: any) {
+  update(id: string, data: any, user?: any) {
     return this.prisma.resume.update({ where: { id }, data });
   }
 
-  async remove(id: string) {
+  async remove(id: string, user?: any) {
     const resume = await this.prisma.resume.findUnique({
       where: { id },
       include: { applications: true },

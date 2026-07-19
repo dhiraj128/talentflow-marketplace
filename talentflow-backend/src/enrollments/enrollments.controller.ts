@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Role } from "@prisma/client";
 import { Roles } from "../common/decorators/roles.decorator";
 import { RolesGuard } from "../common/guards/roles.guard";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
 
 @ApiTags('enrollments')
 @ApiBearerAuth()
@@ -44,24 +45,24 @@ export class EnrollmentsController {
   @Get(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.CANDIDATE, Role.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.enrollmentsService.findOne(id);
-  }
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.enrollmentsService.findOne(id, user);
+    }
 
   @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.CANDIDATE, Role.ADMIN)
   update(
     @Param('id') id: string,
-    @Body() updateEnrollmentDto: UpdateEnrollmentDto,
+    @Body() updateEnrollmentDto: UpdateEnrollmentDto, @CurrentUser() user: any
   ) {
-    return this.enrollmentsService.update(id, updateEnrollmentDto);
-  }
+      return this.enrollmentsService.update(id, updateEnrollmentDto, user);
+    }
 
   @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.CANDIDATE, Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.enrollmentsService.remove(id);
-  }
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.enrollmentsService.remove(id, user);
+    }
 }

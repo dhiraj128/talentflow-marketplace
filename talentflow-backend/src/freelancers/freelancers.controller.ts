@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from "@prisma/client";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
 
 @Controller('freelancers')
 export class FreelancersController {
@@ -44,9 +45,9 @@ export class FreelancersController {
   @Get(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.FREELANCER, Role.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.freelancersService.findOne(id);
-  }
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.freelancersService.findOne(id, user);
+    }
 
   @Patch('me')
     @UseGuards(JwtAuthGuard, RolesGuard)

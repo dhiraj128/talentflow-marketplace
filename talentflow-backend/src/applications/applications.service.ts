@@ -63,22 +63,50 @@ export class ApplicationsService {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  findOne(id: string) {
-    return this.prisma.application.findUnique({
+  async findOne(id: string, user?: any) {
+    const application = await this.prisma.application.findUnique({
       where: { id },
       include: { candidate: true, job: { include: { employer: true } } },
     });
+    if (!application) throw new NotFoundException('Application not found');
+    if (user && user.role !== 'ADMIN') {
+      const isCandidate = application.candidate.userId === (user.sub || user.userId);
+      const isEmployer = application.job.employer.userId === (user.sub || user.userId);
+      if (!isCandidate && !isEmployer) throw new ForbiddenException('Forbidden');
+    }
+    return application;
   }
 
-  update(id: string, updateApplicationDto: UpdateApplicationDto) {
+  async update(id: string, updateApplicationDto: UpdateApplicationDto, user?: any) {
+    const application = await this.prisma.application.findUnique({
+      where: { id },
+      include: { candidate: true, job: { include: { employer: true } } },
+    });
+    if (!application) throw new NotFoundException('Application not found');
+    if (user && user.role !== 'ADMIN') {
+      const isCandidate = application.candidate.userId === (user.sub || user.userId);
+      const isEmployer = application.job.employer.userId === (user.sub || user.userId);
+      if (!isCandidate && !isEmployer) throw new ForbiddenException('Forbidden');
+    }
     return this.prisma.application.update({
       where: { id },
       data: updateApplicationDto,
     });
   }
 
-  remove(id: string) {
-    return this.prisma.application.delete({ where: { id } });
+  async remove(id: string, user?: any) {
+    const application = await this.prisma.application.findUnique({
+      where: { id },
+      include: { candidate: true, job: { include: { employer: true } } },
+    });
+    if (!application) throw new NotFoundException('Application not found');
+    if (user && user.role !== 'ADMIN') {
+      const isCandidate = application.candidate.userId === (user.sub || user.userId);
+      const isEmployer = application.job.employer.userId === (user.sub || user.userId);
+      if (!isCandidate && !isEmployer) throw new ForbiddenException('Forbidden');
+    }
+    await this.prisma.application.delete({ where: { id } });
+    return { success: true };
   }
 
   async findEmployerApplications(userId: string) {

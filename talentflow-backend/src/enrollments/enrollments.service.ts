@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable , ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
@@ -22,18 +22,18 @@ export class EnrollmentsService {
     });
   }
 
-  findOne(id: string) {
+  findOne(id: string, user?: any) {
     return this.prisma.enrollment.findUnique({ where: { id } });
   }
 
-  update(id: string, updateEnrollmentDto: UpdateEnrollmentDto) {
+  update(id: string, updateEnrollmentDto: UpdateEnrollmentDto, user?: any) {
     return this.prisma.enrollment.update({
       where: { id },
       data: updateEnrollmentDto,
     });
   }
 
-  remove(id: string) {
+  remove(id: string, user?: any) {
     return this.prisma.enrollment.delete({ where: { id } });
   }
 }

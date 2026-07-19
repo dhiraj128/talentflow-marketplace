@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Role } from "@prisma/client";
 import { Roles } from "../common/decorators/roles.decorator";
 import { RolesGuard } from "../common/guards/roles.guard";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
 
 @ApiTags('certificates')
 @ApiBearerAuth()
@@ -44,24 +45,24 @@ export class CertificatesController {
   @Get(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.CANDIDATE, Role.TRAINER, Role.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.certificatesService.findOne(id);
-  }
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.certificatesService.findOne(id, user);
+    }
 
   @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.TRAINER, Role.ADMIN)
   update(
     @Param('id') id: string,
-    @Body() updateCertificateDto: UpdateCertificateDto,
+    @Body() updateCertificateDto: UpdateCertificateDto, @CurrentUser() user: any
   ) {
-    return this.certificatesService.update(id, updateCertificateDto);
-  }
+      return this.certificatesService.update(id, updateCertificateDto, user);
+    }
 
   @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.TRAINER, Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.certificatesService.remove(id);
-  }
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.certificatesService.remove(id, user);
+    }
 }

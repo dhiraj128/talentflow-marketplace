@@ -1,11 +1,13 @@
 "use client";
-import React from "react";
+import React, { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, AlertCircle, Clock, UploadCloud, FileText } from "lucide-react";
+import { CheckCircle2, AlertCircle, Clock, UploadCloud, FileText, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import api from "@/lib/api";
+import { toast } from "sonner";
 
 export interface VerificationDocument {
   id: string;
@@ -31,10 +33,15 @@ export function VerificationModule({
   overallProgress = 0,
   ...rest
 }: VerificationModuleProps) {
-  
-  const displayDocuments = documents.length > 0 ? documents : rest.type === "identity" ? [
-    { id: "id-doc", type: "Identity", name: "Identity Verification", status: "missing" as const, required: true }
-  ] : [];
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [documentType, setDocumentType] = useState<string>("Aadhaar");
+  const [isUploading, setIsUploading] = useState(false);
+  const [localDocs, setLocalDocs] = useState<VerificationDocument[]>(
+    documents.length > 0 ? documents : rest.type === "identity" ? [
+      { id: "id-doc", type: "Identity", name: "Identity Verification", status: "missing", required: true }
+    ] : []
+  );
   
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -54,8 +61,65 @@ export function VerificationModule({
     }
   };
 
+  const handleUploadClick = (docId: string) => {
+    setSelectedDocId(docId);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedDocId) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Error", { description: "File size exceeds 5MB limit" });
+      return;
+    }
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Error", { description: "Only PDF, JPG, and PNG are allowed." });
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("documentType", documentType);
+
+    try {
+      const response = await api.post("/file-upload/verification", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      
+      if (response.data?.success) {
+        toast("Success", { description: "Document uploaded successfully and is pending verification." });
+        setLocalDocs(docs => docs.map(doc => 
+          doc.id === selectedDocId 
+            ? { ...doc, status: "pending", uploadedAt: new Date().toLocaleDateString() } 
+            : doc
+        ));
+      }
+    } catch (error: any) {
+      toast.error("Upload Failed", { 
+        description: error.response?.data?.message || "An error occurred while uploading the document", 
+      });
+    } finally {
+      setIsUploading(false);
+      setSelectedDocId(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="space-y-6">
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        className="hidden" 
+        accept=".pdf,.jpg,.jpeg,.png" 
+      />
+      
       <Card>
         <CardHeader>
           <CardTitle>{title}</CardTitle>
@@ -80,8 +144,8 @@ export function VerificationModule({
 
           <div className="space-y-4 pt-4">
             <div className="grid gap-3">
-              {displayDocuments.map(doc => {
-                const isIdentityBlock = doc.name === "Identity Verification" || doc.type === "Identity" && doc.name !== "Aadhaar Card"; // Fallback to avoid breaking old usage
+              {localDocs.map(doc => {
+                const isIdentityBlock = doc.name === "Identity Verification" || doc.type === "Identity" && doc.name !== "Aadhaar Card"; 
                 
                 return (
                 <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-card gap-4">
@@ -90,7 +154,7 @@ export function VerificationModule({
                     <div>
                       {isIdentityBlock ? (
                         <div className="flex items-center gap-2 mb-1">
-                          <Select defaultValue="Aadhaar">
+                          <Select value={documentType} onValueChange={(val) => setDocumentType(val || "Aadhaar")} disabled={doc.status === "verified" || doc.status === "pending"}>
                             <SelectTrigger className="w-[180px] h-8 text-sm font-medium">
                               <SelectValue placeholder="Select ID Type" />
                             </SelectTrigger>
@@ -127,7 +191,18 @@ export function VerificationModule({
                   <div className="flex items-center gap-3 self-end sm:self-auto">
                     {getStatusBadge(doc.status)}
                     {(doc.status === "missing" || doc.status === "rejected") && (
-                      <Button size="sm" variant="outline"><UploadCloud className="w-4 h-4 mr-2"/> Upload</Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleUploadClick(doc.id)}
+                        disabled={isUploading && selectedDocId === doc.id}
+                      >
+                        {isUploading && selectedDocId === doc.id ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin"/> Uploading...</>
+                        ) : (
+                          <><UploadCloud className="w-4 h-4 mr-2"/> Upload</>
+                        )}
+                      </Button>
                     )}
                   </div>
                 </div>

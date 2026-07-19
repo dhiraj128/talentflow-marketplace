@@ -19,6 +19,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from "@prisma/client";
 import { Roles } from "../common/decorators/roles.decorator";
 import { RolesGuard } from "../common/guards/roles.guard";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
 
 @ApiTags('Employers')
 @ApiBearerAuth()
@@ -43,24 +44,24 @@ export class EmployersController {
   @Get(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.EMPLOYER, Role.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.employersService.findOne(id);
-  }
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.employersService.findOne(id, user);
+    }
 
   @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.EMPLOYER, Role.ADMIN)
   update(
     @Param('id') id: string,
-    @Body() updateEmployerDto: UpdateEmployerDto,
+    @Body() updateEmployerDto: UpdateEmployerDto, @CurrentUser() user: any
   ) {
-    return this.employersService.update(id, updateEmployerDto);
-  }
+      return this.employersService.update(id, updateEmployerDto, user);
+    }
 
   @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.employersService.remove(id);
-  }
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.employersService.remove(id, user);
+    }
 }

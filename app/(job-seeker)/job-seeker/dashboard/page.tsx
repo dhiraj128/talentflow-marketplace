@@ -189,7 +189,7 @@ export default function CandidateDashboard() {
           aiMatchScore: data?.metrics?.jobMatchScore || 85
         }} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Main Content Column */}
           <div className="lg:col-span-2 space-y-8">
             

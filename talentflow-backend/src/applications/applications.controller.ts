@@ -56,9 +56,9 @@ export class ApplicationsController {
   @Get(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.CANDIDATE, Role.EMPLOYER, Role.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.applicationsService.findOne(id);
-  }
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.applicationsService.findOne(id, user);
+    }
 
   @ApiBearerAuth()
   @Patch(':id')
@@ -66,18 +66,18 @@ export class ApplicationsController {
     @Roles(Role.CANDIDATE, Role.ADMIN)
   update(
     @Param('id') id: string,
-    @Body() updateApplicationDto: UpdateApplicationDto,
+    @Body() updateApplicationDto: UpdateApplicationDto, @CurrentUser() user: any
   ) {
-    return this.applicationsService.update(id, updateApplicationDto);
-  }
+      return this.applicationsService.update(id, updateApplicationDto, user);
+    }
 
   @ApiBearerAuth()
   @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.CANDIDATE, Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.applicationsService.remove(id);
-  }
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.applicationsService.remove(id, user);
+    }
 
   @ApiBearerAuth()
   @Patch(':id/status')

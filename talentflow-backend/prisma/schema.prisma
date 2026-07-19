@@ -28,6 +28,7 @@ model User {
   status            UserStatus         @default(ACTIVE)
   auditLogs         AuditLog[]         @relation("ActionBy")
   candidateProfile  CandidateProfile?
+  identityDocuments IdentityVerificationDocument[]
   employerProfile   EmployerProfile?
   freelancerProfile FreelancerProfile?
   sentMessages      Message[]
@@ -365,9 +366,13 @@ model EmployerResumeView {
 }
 
 model IdentityVerificationDocument {
-  id          String   @id @default(uuid())
-  documentUrl String
-  createdAt   DateTime @default(now())
+  id           String   @id @default(uuid())
+  userId       String
+  documentUrl  String
+  documentType String   @default("Identity")
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Assessment {

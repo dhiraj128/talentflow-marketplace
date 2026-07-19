@@ -1,6 +1,6 @@
 import {
   Injectable,
-  NotFoundException,
+  NotFoundException, ForbiddenException,
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -59,7 +59,7 @@ export class FreelancersService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user?: any) {
     const profile = await this.prisma.freelancerProfile.findUnique({
       where: { id },
       include: {

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -9,26 +9,25 @@ export class TrainersService {
     return this.prisma.trainerProfile.findMany();
   }
 
-  async findOne(id: string) {
-    const item = await this.prisma.trainerProfile.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('TrainerProfile not found');
-    return item;
+  async findOne(id: string, user?: any) {
+    const trainer = await this.prisma.trainerProfile.findUnique({ where: { id } });
+    if (!trainer) throw new NotFoundException('Trainer not found');
+    if (user && user.role !== 'ADMIN' && trainer.userId !== (user.sub || user.userId)) throw new ForbiddenException('Forbidden');
+    return trainer;
   }
 
-  async update(id: string, data: any) {
-    try {
-      return await this.prisma.trainerProfile.update({ where: { id }, data });
-    } catch {
-      throw new NotFoundException('TrainerProfile not found');
-    }
+  async update(id: string, updateDto: any, user?: any) {
+    const trainer = await this.prisma.trainerProfile.findUnique({ where: { id } });
+    if (!trainer) throw new NotFoundException('Trainer not found');
+    if (user && user.role !== 'ADMIN' && trainer.userId !== (user.sub || user.userId)) throw new ForbiddenException('Forbidden');
+    return this.prisma.trainerProfile.update({ where: { id }, data: updateDto });
   }
 
-  async remove(id: string) {
-    try {
-      await this.prisma.trainerProfile.delete({ where: { id } });
-      return { success: true };
-    } catch {
-      throw new NotFoundException('TrainerProfile not found');
-    }
+  async remove(id: string, user?: any) {
+    const trainer = await this.prisma.trainerProfile.findUnique({ where: { id } });
+    if (!trainer) throw new NotFoundException('Trainer not found');
+    if (user && user.role !== 'ADMIN' && trainer.userId !== (user.sub || user.userId)) throw new ForbiddenException('Forbidden');
+    await this.prisma.trainerProfile.delete({ where: { id } });
+    return { success: true };
   }
 }

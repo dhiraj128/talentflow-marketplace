@@ -93,6 +93,58 @@ export class FileUploadService {
     };
   }
 
+  async uploadVerificationDocument(file: Express.Multer.File, userId: string, documentType: string) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    const verificationMimeTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/jpg'
+    ];
+
+    if (!verificationMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Invalid file type. Only PDF, JPG, and PNG are allowed.',
+      );
+    }
+
+    if (file.size > this.maxSize) {
+      throw new BadRequestException('File is too large. Maximum size is 5MB.');
+    }
+
+    const result = await this.storageService.uploadFile(
+      {
+        filename: file.originalname,
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        buffer: file.buffer,
+      },
+      'verifications',
+      userId,
+    );
+
+    const doc = await this.prisma.identityVerificationDocument.create({
+      data: {
+        userId: userId,
+        documentUrl: result.url,
+        documentType: documentType,
+        status: 'pending',
+      },
+    });
+
+    return {
+      success: true,
+      url: result.url,
+      documentId: doc.id,
+      documentType: doc.documentType,
+      status: doc.status
+    };
+  }
+
   async deleteFile(key: string) {
     await this.storageService.deleteFile(key);
     return { success: true };

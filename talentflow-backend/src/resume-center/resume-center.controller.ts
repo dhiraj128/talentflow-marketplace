@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Role } from "@prisma/client";
 import { Roles } from "../common/decorators/roles.decorator";
 import { RolesGuard } from "../common/guards/roles.guard";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
 
 @ApiTags('resume-center')
 @ApiBearerAuth()
@@ -41,21 +42,21 @@ export class ResumeCenterController {
   @Get(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.CANDIDATE, Role.ADMIN)
-  findOne(@Param('id') id: string) {
-    return this.resumeService.findOne(id);
-  }
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.resumeService.findOne(id, user);
+    }
 
   @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.CANDIDATE, Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateDto: UpdateResumeCenterDto) {
-    return this.resumeService.update(id, updateDto);
-  }
+  update(@Param('id') id: string, @Body() updateDto: UpdateResumeCenterDto, @CurrentUser() user: any) {
+      return this.resumeService.update(id, updateDto, user);
+    }
 
   @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.CANDIDATE, Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.resumeService.remove(id);
-  }
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.resumeService.remove(id, user);
+    }
 }

@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Role } from "@prisma/client";
 import { Roles } from "../common/decorators/roles.decorator";
 import { RolesGuard } from "../common/guards/roles.guard";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
 
 @ApiTags('notifications')
 @ApiBearerAuth()
@@ -47,23 +48,23 @@ export class NotificationsController {
 
   @Get(':id')
     @UseGuards(JwtAuthGuard)
-  findOne(@Param('id') id: string) {
-    return this.notificationsService.findOne(id);
-  }
+  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.notificationsService.findOne(id, user);
+    }
 
   @Patch(':id')
     @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
-    @Body() updateNotificationDto: UpdateNotificationDto,
+    @Body() updateNotificationDto: UpdateNotificationDto, @CurrentUser() user: any
   ) {
-    return this.notificationsService.update(id, updateNotificationDto);
-  }
+      return this.notificationsService.update(id, updateNotificationDto, user);
+    }
 
   @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.notificationsService.remove(id);
-  }
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+      return this.notificationsService.remove(id, user);
+    }
 }

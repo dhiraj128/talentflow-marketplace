@@ -141,7 +141,7 @@ export default function ATSBuilderPage() {
           </Card>
         ) : (
           <div className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-8 items-start">
               {/* Builder Form */}
               <Card>
                 <CardHeader>
@@ -214,7 +214,7 @@ export default function ATSBuilderPage() {
 
               {/* Live Preview */}
               <div className="space-y-4 flex flex-col">
-                <Card className="flex-1 bg-white">
+                <Card className="bg-white">
                   <CardHeader className="border-b">
                     <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground flex justify-between items-center">
                       Live ATS Preview

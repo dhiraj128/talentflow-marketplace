@@ -37,9 +37,9 @@ export default function CandidateInterviewsPage() {
           <p>You have no interviews scheduled.</p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {interviews.map((iv: any) => (
-            <Card key={iv.id} className="flex flex-col h-full">
+            <Card key={iv.id} className="flex flex-col">
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start gap-4">
                   <div>

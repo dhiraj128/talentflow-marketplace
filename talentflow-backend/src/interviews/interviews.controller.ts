@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from "@prisma/client";
+import { CurrentUser } from "../common/decorators/current-user.decorator";
 
 @Controller('interviews')
 export class InterviewsController {
@@ -45,7 +46,7 @@ export class InterviewsController {
   @Get(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
-  findOne(@Param('id') id: string, @Req() req: any) {
+  findOne(@Param('id') id: string, @Req() req: any, @CurrentUser() user: any) {
     return this.interviewsService.findOne(id, req.user.id, req.user.role);
   }
 
@@ -92,7 +93,7 @@ export class InterviewsController {
   @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
-  remove(@Param('id') id: string, @Req() req: any) {
+  remove(@Param('id') id: string, @Req() req: any, @CurrentUser() user: any) {
     return this.interviewsService.remove(id, req.user.id, req.user.role);
   }
 }

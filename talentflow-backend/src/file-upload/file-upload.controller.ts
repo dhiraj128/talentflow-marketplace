@@ -5,6 +5,7 @@ import {
   UploadedFile,
   BadRequestException,
   UseGuards,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadService } from './file-upload.service';
@@ -20,7 +21,7 @@ export class FileUploadController {
 
   @Post('resume')
   @UseInterceptors(FileInterceptor('file'))
-    @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   uploadResume(
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: any,
@@ -30,10 +31,21 @@ export class FileUploadController {
       console.log('[FileUploadController] File missing in request');
       throw new BadRequestException('No file provided');
     }
-    console.log(
-      `[FileUploadController] File received. Size: ${file.size} bytes, Mime Type: ${file.mimetype}`,
-    );
     return this.fileUploadService.uploadResume(file, user.userId || user.sub);
+  }
+
+  @Post('verification')
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(JwtAuthGuard)
+  uploadVerificationDocument(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('documentType') documentType: string,
+    @CurrentUser() user: any,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    return this.fileUploadService.uploadVerificationDocument(file, user.userId || user.sub, documentType || 'Identity');
   }
 
   @Post('aws-test')
