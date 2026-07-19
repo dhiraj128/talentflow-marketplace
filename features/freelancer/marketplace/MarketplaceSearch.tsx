@@ -12,9 +12,11 @@ interface MarketplaceSearchProps {
 
 export function MarketplaceSearch({ value, onChange, onSearch, onClear }: MarketplaceSearchProps) {
   return (
-    <div className="relative flex flex-col md:flex-row w-full max-w-3xl mx-auto gap-4 md:gap-0 md:bg-white md:rounded-2xl md:shadow-lg md:border md:border-border/50 md:p-1.5 md:focus-within:ring-2 md:focus-within:ring-purple-500/50 transition-all">
-      <div className="relative flex-1 flex items-center bg-white rounded-2xl md:rounded-none shadow-lg md:shadow-none border border-border/50 md:border-0 h-[56px] focus-within:ring-2 focus-within:ring-purple-500/50 md:focus-within:ring-0 overflow-hidden md:overflow-visible">
-        <Search className="absolute left-5 text-muted-foreground w-6 h-6" />
+    <div className="relative flex flex-col md:flex-row w-full max-w-3xl mx-auto gap-4 md:gap-0 md:bg-white md:rounded-xl md:shadow-lg md:border md:border-border/50 md:focus-within:ring-2 md:focus-within:ring-purple-500/50 transition-all md:overflow-hidden">
+      
+      {/* Input Section */}
+      <div className="relative flex-1 flex items-center bg-white rounded-xl md:rounded-none shadow-lg md:shadow-none border border-border/50 md:border-0 h-[56px] focus-within:ring-2 focus-within:ring-purple-500/50 md:focus-within:ring-0 overflow-hidden md:overflow-visible">
+        <Search className="absolute left-5 text-muted-foreground w-6 h-6 flex-shrink-0" />
         <Input 
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -34,9 +36,11 @@ export function MarketplaceSearch({ value, onChange, onSearch, onClear }: Market
           </button>
         )}
       </div>
+
+      {/* Button Section */}
       <Button 
         onClick={onSearch}
-        className="h-[56px] w-full md:w-[150px] rounded-2xl md:rounded-xl bg-purple-600 hover:bg-purple-700 text-base md:text-lg font-medium text-white transition-colors shadow-lg md:shadow-none shrink-0"
+        className="h-[56px] w-full md:w-[150px] rounded-xl md:rounded-none bg-purple-600 hover:bg-purple-700 text-base font-medium text-white transition-colors shadow-lg md:shadow-none flex-shrink-0"
       >
         Search
       </Button>

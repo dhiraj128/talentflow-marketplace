@@ -45,7 +45,7 @@ export function FreelancerCard({
     <motion.div 
       whileHover={{ y: -4 }} 
       transition={{ duration: 0.2 }} 
-      className="h-[480px] w-full max-w-[360px] mx-auto"
+      className="h-[480px] w-full min-w-[min(100%,330px)] max-w-[360px] mx-auto"
     >
       <Card className="h-full w-full flex flex-col hover:shadow-xl hover:border-purple-500/30 transition-all overflow-hidden relative bg-white">
         
