@@ -90,13 +90,13 @@ export function FreelancerCard({
           </div>
 
           {/* Location */}
-          <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground mt-3 truncate">
+          <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground mt-2 truncate">
             <MapPin className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate">{location}</span>
           </div>
 
           {/* Rating & Price */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
             <div className="flex items-center gap-1.5">
               <RatingStars rating={rating} count={0} />
               <span className="text-[13px] font-medium text-foreground">{rating.toFixed(1)}</span>
@@ -106,7 +106,7 @@ export function FreelancerCard({
           </div>
 
           {/* Skills */}
-          <div className="flex flex-wrap gap-1.5 mt-4">
+          <div className="flex flex-wrap gap-1.5 mt-3">
             {skills.slice(0, 5).map(skill => (
               <span key={skill} className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-200 transition-colors">
                 {skill}
@@ -120,7 +120,7 @@ export function FreelancerCard({
           </div>
 
           {/* Stats Row */}
-          <div className="flex items-center gap-4 mt-auto pt-4 text-[13px]">
+          <div className="flex items-center gap-4 mt-auto pt-3 text-[13px]">
             <div className="flex flex-col">
               <span className="font-semibold text-foreground">{completedProjects}</span>
               <span className="text-muted-foreground text-[11px] uppercase tracking-wider">Projects</span>
@@ -136,14 +136,14 @@ export function FreelancerCard({
 
         {/* Footer */}
         <CardFooter className="p-5 pt-0 mt-auto">
-          <div className="flex items-center gap-3 w-full pt-4 border-t border-border/50">
+          <div className="flex items-center gap-3 w-full pt-3 border-t border-border/50">
             <Link href={`/find-freelancers/${id}`} className="flex-1">
-              <Button variant="outline" className="w-full h-[44px] rounded-[12px] font-medium text-[14px]">
+              <Button variant="outline" className="w-full h-[40px] rounded-[12px] font-medium text-[14px]">
                 View Profile
               </Button>
             </Link>
             <Link href={`/employer/interviews?hire=${id}`} className="flex-1">
-              <Button className="w-full h-[44px] rounded-[12px] bg-purple-600 hover:bg-purple-700 text-white font-medium text-[14px]">
+              <Button className="w-full h-[40px] rounded-[12px] bg-purple-600 hover:bg-purple-700 text-white font-medium text-[14px]">
                 Hire
               </Button>
             </Link>
