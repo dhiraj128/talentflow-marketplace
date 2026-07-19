@@ -7,13 +7,15 @@ interface FreelancerGridProps {
 
 export function FreelancerGrid({ freelancers }: FreelancerGridProps) {
   if (!freelancers || freelancers.length === 0) {
-    return null; // Handle empty state elsewhere
+    return null;
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 lg:gap-8 justify-items-center">
       {freelancers.map(freelancer => (
-        <FreelancerCard key={freelancer.id} {...freelancer} />
+        <div key={freelancer.id} className="w-full flex justify-center">
+          <FreelancerCard {...freelancer} />
+        </div>
       ))}
     </div>
   );

@@ -1,6 +1,6 @@
 import React from "react";
-import { UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserX } from "lucide-react";
 
 interface EmptyMarketplaceStateProps {
   onClearFilters: () => void;
@@ -8,16 +8,20 @@ interface EmptyMarketplaceStateProps {
 
 export function EmptyMarketplaceState({ onClearFilters }: EmptyMarketplaceStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center px-4 border border-dashed rounded-xl bg-muted/10">
-      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-        <UserX className="w-8 h-8 text-muted-foreground" />
+    <div className="flex flex-col items-center justify-center py-24 px-4 text-center bg-white rounded-2xl border border-border/50 shadow-sm">
+      <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+        <UserX className="w-12 h-12 text-slate-300" />
       </div>
-      <h3 className="text-xl font-bold mb-2">No Freelancers Found</h3>
-      <p className="text-muted-foreground mb-6 max-w-md">
-        We couldn't find any freelancers matching your current search and filters. Try adjusting your criteria.
+      <h3 className="text-2xl font-bold text-slate-900 mb-2">No freelancers found</h3>
+      <p className="text-slate-500 max-w-md mb-8">
+        We couldn't find any professionals matching your exact criteria. Try adjusting your filters, widening your search, or exploring other categories.
       </p>
-      <Button onClick={onClearFilters} variant="outline" className="border-purple-200 hover:bg-purple-50 hover:text-purple-700">
-        Clear All Filters
+      <Button 
+        onClick={onClearFilters} 
+        variant="outline" 
+        className="px-8 h-12 border-purple-200 text-purple-700 hover:bg-purple-50 rounded-xl"
+      >
+        Reset Filters
       </Button>
     </div>
   );

@@ -25,7 +25,11 @@ export default function FindFreelancersPage() {
   const [filters, setFilters] = useState({
     hourlyRate: [150],
     verifiedOnly: false,
-    experienceLevel: [] as string[]
+    remoteOnly: false,
+    experienceLevel: [] as string[],
+    skills: [] as string[],
+    languages: [] as string[],
+    rating: 0
   });
 
   const featuredFreelancers = useMemo(() => {
@@ -68,18 +72,27 @@ export default function FindFreelancersPage() {
     if (sortValue === "rating") result.sort((a, b) => b.rating - a.rating);
     if (sortValue === "price_asc") result.sort((a, b) => a.hourlyRate - b.hourlyRate);
     if (sortValue === "price_desc") result.sort((a, b) => b.hourlyRate - a.hourlyRate);
-
+    if (sortValue === "projects") result.sort((a, b) => b.completedProjects - a.completedProjects);
+    
     return result;
   }, [searchQuery, activeCategory, filters, sortValue]);
 
   const handleClearFilters = () => {
     setSearchQuery("");
     setActiveCategory("All");
-    setFilters({ hourlyRate: [150], verifiedOnly: false, experienceLevel: [] });
+    setFilters({ 
+      hourlyRate: [150], 
+      verifiedOnly: false, 
+      remoteOnly: false,
+      experienceLevel: [],
+      skills: [],
+      languages: [],
+      rating: 0
+    });
   };
 
   return (
-    <div className="bg-muted/10 min-h-screen pb-20">
+    <div className="bg-slate-50 min-h-screen pb-20">
       
       {/* Hero Header */}
       <div className="bg-gradient-to-b from-purple-900 via-purple-800 to-indigo-900 text-white pt-24 pb-16 px-6 rounded-b-[3rem] shadow-xl relative overflow-hidden">
@@ -95,10 +108,10 @@ export default function FindFreelancersPage() {
         </div>
       </div>
 
-      <PageContainer className="-mt-8 relative z-20">
+      <div className="max-w-[1600px] mx-auto px-6 lg:px-8 xl:px-10 -mt-8 relative z-20">
         
         {/* Category Tabs */}
-        <div className="bg-background rounded-2xl shadow-sm p-2 mb-8">
+        <div className="bg-white rounded-2xl shadow-sm p-2 mb-8">
           <CategoryTabs categories={CATEGORIES} activeCategory={activeCategory} onSelect={setActiveCategory} />
         </div>
 
@@ -114,16 +127,16 @@ export default function FindFreelancersPage() {
           
           {/* Desktop Filters */}
           <div className="hidden lg:block w-72 shrink-0">
-            <div className="sticky top-24 bg-background p-6 rounded-2xl shadow-sm border">
+            <div className="sticky top-24 bg-white p-6 rounded-2xl shadow-sm border border-border/50">
               <MarketplaceFilters filters={filters} setFilters={setFilters} />
             </div>
           </div>
 
           {/* Results Area */}
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 space-y-6 min-w-0">
             
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-2xl font-bold text-foreground">
                 {filteredFreelancers.length} {filteredFreelancers.length === 1 ? 'Result' : 'Results'}
               </h2>
               
@@ -132,10 +145,10 @@ export default function FindFreelancersPage() {
                 
                 {/* Mobile Filters Trigger */}
                 <Sheet>
-                  <SheetTrigger className="lg:hidden flex h-10 w-10 items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                  <SheetTrigger className="lg:hidden flex h-10 w-10 items-center justify-center rounded-md border border-input bg-white hover:bg-slate-50 transition-colors">
                     <Filter className="w-4 h-4" />
                   </SheetTrigger>
-                  <SheetContent side="right" className="w-full sm:w-[400px] pt-12 overflow-y-auto">
+                  <SheetContent side="right" className="w-full sm:w-[400px] pt-12 overflow-y-auto bg-slate-50">
                     <MarketplaceFilters filters={filters} setFilters={setFilters} />
                   </SheetContent>
                 </Sheet>
@@ -148,10 +161,22 @@ export default function FindFreelancersPage() {
               <EmptyMarketplaceState onClearFilters={handleClearFilters} />
             )}
 
+            {/* Pagination Placeholder (As Requested) */}
+            {filteredFreelancers.length > 0 && (
+              <div className="pt-12 pb-8 flex items-center justify-center gap-2">
+                <Button variant="outline" className="w-24 bg-white">Previous</Button>
+                <Button variant="outline" className="w-10 bg-purple-600 text-white hover:bg-purple-700 hover:text-white">1</Button>
+                <Button variant="outline" className="w-10 bg-white">2</Button>
+                <Button variant="outline" className="w-10 bg-white">3</Button>
+                <span className="px-2 text-muted-foreground">...</span>
+                <Button variant="outline" className="w-24 bg-white">Next</Button>
+              </div>
+            )}
+
           </div>
         </div>
 
-      </PageContainer>
+      </div>
     </div>
   );
 }
