@@ -35,9 +35,10 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
       if (user?.id) {
         try {
           const data = await notificationService.getNotifications({ userId: user.id });
-          setNotifications(data);
+          setNotifications(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Failed to load notifications", error);
+          setNotifications([]);
         }
       }
     };

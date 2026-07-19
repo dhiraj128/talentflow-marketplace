@@ -219,7 +219,7 @@ function RoleCard({ role, isActive, onClick }: { role: typeof ROLES[number], isA
       `}
     >
       <Icon className={`h-4 w-4 ${isActive ? "text-[#2563EB]" : "text-slate-400"}`} />
-      <span className="font-semibold text-xs leading-none whitespace-nowrap">{role.label}</span>
+      <span className="font-semibold text-xs leading-none text-center">{role.label}</span>
     </button>
   );
 }
