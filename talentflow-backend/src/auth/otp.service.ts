@@ -3,10 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { OtpPurpose } from '@prisma/client';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
+import { ResendEmailProvider } from './providers/resend-email.provider';
 
 @Injectable()
 export class OtpService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailProvider: ResendEmailProvider,
+  ) {}
 
   // Generate a cryptographically secure 6-digit OTP
   private generateSecureCode(): string {
@@ -40,9 +44,9 @@ export class OtpService {
       },
     });
 
-    // 4. Send Mock OTP
+    // 4. Send OTP
     if (type === 'EMAIL') {
-      console.log(`[MOCK EMAIL PROVIDER] Sending OTP ${code} to ${identifier} for ${purpose}`);
+      await this.emailProvider.sendOtp(identifier, code);
     } else {
       console.log(`[MOCK SMS PROVIDER] Sending OTP ${code} to ${identifier} for ${purpose}`);
     }

@@ -58,6 +58,17 @@ export function SignUpPanel() {
     },
   });
 
+  const resendOtpMutation = useMutation({
+    mutationFn: () => authService.resendOtp({ identifier, purpose: 'REGISTER', method }),
+    onSuccess: () => {
+      setErrorMsg(null);
+      toast.success(`New OTP sent to ${identifier}`);
+    },
+    onError: (error: any) => {
+      setErrorMsg(error?.response?.data?.message || 'Failed to resend OTP.');
+    },
+  });
+
   const verifyOtpMutation = useMutation({
     mutationFn: (code: string) => method === 'EMAIL'
       ? authService.verifyEmailOtp({ identifier: email, code, purpose: 'REGISTER' })
@@ -301,7 +312,7 @@ export function SignUpPanel() {
                   setOtp(code);
                   verifyOtpMutation.mutate(code);
                 }}
-                onResend={() => sendOtpMutation.mutate()}
+                onResend={() => resendOtpMutation.mutate()}
                 resendCooldown={60}
               />
               

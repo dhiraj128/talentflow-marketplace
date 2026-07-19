@@ -8,6 +8,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GithubStrategy } from './strategies/github.strategy';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ResendEmailProvider } from './providers/resend-email.provider';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { PrismaModule } from '../prisma/prisma.module';
       signOptions: { expiresIn: '15m' },
     }),
   ],
-  providers: [AuthService, OtpService, JwtStrategy, GoogleStrategy, GithubStrategy],
+  providers: [AuthService, OtpService, JwtStrategy, GoogleStrategy, GithubStrategy, ResendEmailProvider],
   controllers: [AuthController],
   exports: [AuthService, OtpService],
 })

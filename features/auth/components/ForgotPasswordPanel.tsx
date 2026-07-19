@@ -37,6 +37,19 @@ export function ForgotPasswordPanel() {
     },
   });
 
+  const method = identifier.includes('@') ? 'EMAIL' : 'PHONE';
+
+  const resendOtpMutation = useMutation({
+    mutationFn: () => authService.resendOtp({ identifier, purpose: 'FORGOT_PASSWORD', method }),
+    onSuccess: () => {
+      setErrorMsg(null);
+      toast.success(`New OTP sent to ${identifier}`);
+    },
+    onError: (error: any) => {
+      setErrorMsg(error?.response?.data?.message || 'Failed to resend OTP.');
+    },
+  });
+
   const resetPasswordMutation = useMutation({
     mutationFn: () => authService.resetPassword({ identifier, code: otp, newPassword }),
     onSuccess: () => {
@@ -144,7 +157,7 @@ export function ForgotPasswordPanel() {
                   setOtp(code);
                   setStep(3); // move to password reset once OTP is entered
                 }}
-                onResend={() => forgotPasswordMutation.mutate()}
+                onResend={() => resendOtpMutation.mutate()}
                 resendCooldown={60}
               />
             </div>
