@@ -45,7 +45,7 @@ export function FreelancerCard({
     <motion.div 
       whileHover={{ y: -4 }} 
       transition={{ duration: 0.2 }} 
-      className="h-[430px] w-full max-w-[340px] mx-auto"
+      className="h-[480px] w-full max-w-[340px] mx-auto"
     >
       <Card className="h-full w-full flex flex-col hover:shadow-xl hover:border-purple-500/30 transition-all overflow-hidden relative bg-white">
         
@@ -106,7 +106,7 @@ export function FreelancerCard({
           </div>
 
           {/* Skills */}
-          <div className="flex flex-wrap gap-1.5 mt-4 overflow-hidden h-[26px]">
+          <div className="flex flex-wrap gap-1.5 mt-4">
             {skills.slice(0, 5).map(skill => (
               <span key={skill} className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-200 transition-colors">
                 {skill}
