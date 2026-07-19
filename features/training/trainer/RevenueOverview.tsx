@@ -3,15 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export function RevenueOverview() {
-  const data = [
-    { name: 'Jan', revenue: 4500 },
-    { name: 'Feb', revenue: 5200 },
-    { name: 'Mar', revenue: 4800 },
-    { name: 'Apr', revenue: 6100 },
-    { name: 'May', revenue: 5800 },
-    { name: 'Jun', revenue: 7200 },
-  ];
+export function RevenueOverview({ data }: { data?: any }) {
+  const chartData = data?.charts?.revenueData || [];
 
   return (
     <Card className="border-border/60">
@@ -21,7 +14,7 @@ export function RevenueOverview() {
       <CardContent>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+            <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground)/0.2)" />
               <XAxis dataKey="name" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
               <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />

@@ -1,6 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/shared/PageContainer";
+import { analyticsService } from "@/lib/services/analytics.service";
+import { DashboardSkeleton } from "@/features/admin/dashboard/DashboardSkeleton"; // Borrowing skeleton for visual consistency
+
 import { TrainerDashboard } from "@/features/training/trainer/TrainerDashboard";
 import { CourseManagement } from "@/features/training/trainer/CourseManagement";
 import { StudentAnalytics } from "@/features/training/trainer/StudentAnalytics";
@@ -10,6 +16,33 @@ import { TrainerActivityFeed } from "@/features/training/trainer/TrainerActivity
 import { TrainerNotifications } from "@/features/training/trainer/TrainerNotifications";
 
 export default function TrainerDashboardPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/sign-in");
+    } else if (user) {
+      analyticsService.getTrainerDashboard().then(res => {
+        setData(res);
+        setIsLoading(false);
+      }).catch(err => {
+        console.error("Failed to load trainer dashboard", err);
+        setIsLoading(false);
+      });
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user || isLoading) {
+    return (
+      <PageContainer className="py-8">
+        <DashboardSkeleton />
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer className="py-8">
       <div className="flex flex-col gap-8">
@@ -21,19 +54,19 @@ export default function TrainerDashboardPage() {
           </div>
         </div>
 
-        <TrainerDashboard />
+        <TrainerDashboard data={data} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-2 space-y-6">
-            <StudentAnalytics />
-            <RevenueOverview />
-            <CourseManagement />
+            <StudentAnalytics data={data} />
+            <RevenueOverview data={data} />
+            <CourseManagement data={data} />
           </div>
           
           <div className="space-y-6">
-            <TrainerNotifications />
-            <CoursePerformance />
-            <TrainerActivityFeed />
+            <TrainerNotifications data={data} />
+            <CoursePerformance data={data} />
+            <TrainerActivityFeed data={data} />
           </div>
         </div>
 

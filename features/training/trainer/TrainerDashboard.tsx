@@ -1,12 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Users, DollarSign, Star } from "lucide-react";
 
-export function TrainerDashboard() {
+export function TrainerDashboard({ data }: { data?: any }) {
   const stats = [
-    { label: "Published Courses", value: "8", icon: BookOpen, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30" },
-    { label: "Total Students", value: "14,235", icon: Users, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
-    { label: "Total Revenue", value: "$42,500", icon: DollarSign, color: "text-amber-500", bg: "bg-amber-100 dark:bg-amber-900/30" },
-    { label: "Average Rating", value: "4.8", icon: Star, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-900/30" },
+    { label: "Published Courses", value: data?.publishedCourses ?? 0, icon: BookOpen, color: "text-blue-500", bg: "bg-blue-100 dark:bg-blue-900/30" },
+    { label: "Total Students", value: data?.totalStudents ?? 0, icon: Users, color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
+    { label: "Total Revenue", value: `$${data?.revenue ?? 0}`, icon: DollarSign, color: "text-amber-500", bg: "bg-amber-100 dark:bg-amber-900/30" },
+    { label: "Average Rating", value: data?.courseRating ?? 0, icon: Star, color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-900/30" },
   ];
 
   return (
