@@ -12,17 +12,20 @@ export function QuickActions() {
   ];
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-lg">Quick Actions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
           {actions.map((action, i) => (
-            <Link key={i} href={action.href} className="w-full">
-              <Button variant="outline" className="w-full h-20 flex-col gap-2 justify-center">
-                <action.icon className="w-5 h-5 text-primary" />
-                <span className="text-xs">{action.label}</span>
+            <Link key={i} href={action.href} className="w-full focus:outline-none">
+              <Button 
+                variant="outline" 
+                className="w-full h-24 flex flex-col gap-3 justify-center items-center rounded-xl transition-all hover:bg-primary/5 hover:border-primary/50 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                <action.icon className="w-6 h-6 text-primary" aria-hidden="true" />
+                <span className="text-sm font-medium">{action.label}</span>
               </Button>
             </Link>
           ))}

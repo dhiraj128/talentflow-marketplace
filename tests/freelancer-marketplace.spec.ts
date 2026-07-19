@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupAuthForEmployer, setupAuthForCandidate, setupAuthForTrainer } from './utils/auth-helpers';
+// import { setupAuthForEmployer, setupAuthForCandidate, setupAuthForTrainer } from './utils/auth-helpers';
 
 test.describe.skip('Freelancer Marketplace (Phase 6)', () => {
   

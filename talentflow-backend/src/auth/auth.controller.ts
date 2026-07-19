@@ -8,6 +8,7 @@ import {
   Req,
   Res,
   UseFilters,
+  UnauthorizedException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -108,8 +109,12 @@ export class AuthController {
 
   @ApiBearerAuth()
   @Get('me')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get current user profile' })
   getProfile(@CurrentUser() user: any) {
+    if (!user) {
+      throw new UnauthorizedException('User is not authenticated');
+    }
     return this.authService.getProfile(user.sub || user.userId);
   }
 

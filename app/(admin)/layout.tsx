@@ -21,12 +21,14 @@ const adminRoutes: SidebarRoute[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
   { label: "Users", icon: Users, href: "/admin/users" },
   { label: "Employers", icon: Building2, href: "/admin/employers" },
+  { label: "Candidates", icon: Users, href: "/admin/candidates" },
   { label: "Candidate Review", icon: FileCheck2, href: "/admin/reviews/job-seekers" },
   { label: "Job Approvals", icon: FileCheck2, href: "/admin/reviews/jobs" },
-  { label: "Course Approvals", icon: GraduationCap, href: "/admin/reviews/courses" },
+  { label: "Course Approvals", icon: GraduationCap, href: "/admin/course-reviews" },
+  { label: "Pending Approvals", icon: FileCheck2, href: "/admin/pending-approvals" },
   { label: "Matching Engine", icon: Network, href: "/admin/matching" },
   { label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
-  { label: "Audit Logs", icon: ShieldCheck, href: "/admin/audit" },
+  { label: "Audit Logs", icon: ShieldCheck, href: "/admin/audit-logs" },
   { label: "Settings", icon: Settings, href: "/admin/settings" },
 ];
 
