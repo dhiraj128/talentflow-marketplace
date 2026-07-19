@@ -23,7 +23,11 @@ export default function ProfilePage() {
     bio: "",
     linkedinUrl: "",
     githubUrl: "",
-    portfolioUrl: ""
+    portfolioUrl: "",
+    location: "",
+    skills: "",
+    experience: "",
+    education: ""
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingLinks, setIsSavingLinks] = useState(false);
@@ -36,7 +40,11 @@ export default function ProfilePage() {
         bio: profile.bio || "",
         linkedinUrl: profile.linkedinUrl || "",
         githubUrl: profile.githubUrl || "",
-        portfolioUrl: profile.portfolioUrl || ""
+        portfolioUrl: profile.portfolioUrl || "",
+        location: profile.location || "",
+        skills: profile.skills?.map((s: any) => s.skill?.name || s.name || s).join(", ") || "",
+        experience: profile.experience ? JSON.stringify(profile.experience) : "",
+        education: profile.education ? JSON.stringify(profile.education) : ""
       });
     }
   }, [profile]);
@@ -51,14 +59,28 @@ export default function ProfilePage() {
     if (!profile?.id) return;
     setIsSaving(true);
     try {
+      const skillsArray = formData.skills ? formData.skills.split(",").map(s => s.trim()).filter(Boolean) : [];
+      const expJson = formData.experience ? JSON.parse(formData.experience) : null;
+      const eduJson = formData.education ? JSON.parse(formData.education) : null;
+
       await candidateService.updateCandidate(profile.id, {
         fullName: formData.fullName,
         title: formData.title,
-        bio: formData.bio
-      });
+        bio: formData.bio,
+        location: formData.location,
+        skills: skillsArray,
+        experience: expJson,
+        education: eduJson
+      } as any);
+      
       toast("Profile updated", { description: "Your basic information has been saved." });
+      
+      if ((user as any)?.refreshUser) {
+        await (user as any).refreshUser();
+      }
     } catch (error) {
-      toast.error("Error", { description: "Failed to update profile." });
+      console.error(error);
+      toast.error("Error", { description: "Failed to update profile. Ensure JSON arrays are valid." });
     } finally {
       setIsSaving(false);
     }
@@ -75,6 +97,10 @@ export default function ProfilePage() {
         portfolioUrl: formData.portfolioUrl
       });
       toast("Links updated", { description: "Your social links have been saved." });
+      
+      if ((user as any)?.refreshUser) {
+        await (user as any).refreshUser();
+      }
     } catch (error) {
       toast.error("Error", { description: "Failed to update links." });
     } finally {
@@ -107,13 +133,67 @@ export default function ProfilePage() {
                   <Input name="title" value={formData.title} onChange={handleChange} placeholder="Senior Frontend Developer | React | TypeScript" />
                 </div>
                 <div className="col-span-1 md:col-span-2 space-y-2">
+                  <Label>Location</Label>
+                  <Input name="location" value={formData.location} onChange={handleChange} placeholder="New York, USA" />
+                </div>
+                <div className="col-span-1 md:col-span-2 space-y-2">
+                  <Label>Skills (Comma separated)</Label>
+                  <Input name="skills" value={formData.skills} onChange={handleChange} placeholder="React, Node.js, TypeScript" />
+                </div>
+                <div className="col-span-1 md:col-span-2 space-y-2">
                   <Label>About</Label>
                   <Textarea name="bio" value={formData.bio} onChange={handleChange} placeholder="Tell employers about yourself..." className="h-32" />
+                </div>
+                <div className="col-span-1 md:col-span-2 space-y-2">
+                  <Label>Experience (JSON array format {`[{"role": "Dev", "company": "Tech Corp"}]`})</Label>
+                  <Textarea name="experience" value={formData.experience} onChange={handleChange} placeholder='[{"role": "Developer", "company": "Tech Corp"}]' className="h-24 font-mono text-sm" />
+                </div>
+                <div className="col-span-1 md:col-span-2 space-y-2">
+                  <Label>Education (JSON array format {`[{"degree": "B.Sc", "school": "University"}]`})</Label>
+                  <Textarea name="education" value={formData.education} onChange={handleChange} placeholder='[{"degree": "B.Sc", "school": "University"}]' className="h-24 font-mono text-sm" />
                 </div>
                 <div className="col-span-1 md:col-span-2">
                   <Button type="submit" disabled={isSaving}>{isSaving ? "Saving..." : "Save Profile"}</Button>
                 </div>
               </form>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Photo</CardTitle>
+              <CardDescription>Upload an avatar to personalize your profile. JPG, PNG (Max 5MB).</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                {profile?.avatarUrl && (
+                  <img src={profile.avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover border" />
+                )}
+                <div className="flex-1">
+                  <Input type="file" accept="image/png, image/jpeg" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      // Use fetch or api to upload directly
+                      // Because api might need special config for formData, we'll use api instance
+                      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/file-upload/avatar`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                        }
+                      });
+                      if (!res.ok) throw new Error("Upload failed");
+                      toast("Avatar uploaded", { description: "Your profile photo has been updated." });
+                      if ((user as any)?.refreshUser) await (user as any).refreshUser();
+                    } catch (err) {
+                      toast.error("Upload Error", { description: "Failed to upload avatar." });
+                    }
+                  }} />
+                </div>
+              </div>
             </CardContent>
           </Card>
           

@@ -69,6 +69,21 @@ export class AnalyticsService {
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, 4);
 
+    // Determine missing profile items
+    const missingProfileItems = [];
+    if (!candidate.fullName) missingProfileItems.push({ label: "Full Name", actionHref: "/job-seeker/profile" });
+    if (!candidate.title) missingProfileItems.push({ label: "Professional Title", actionHref: "/job-seeker/profile" });
+    if (!candidate.location) missingProfileItems.push({ label: "Location", actionHref: "/job-seeker/profile" });
+    if (!candidate.avatarUrl) missingProfileItems.push({ label: "Profile Photo", actionHref: "/job-seeker/profile" });
+    if (!candidate.resumeUrl) missingProfileItems.push({ label: "Upload Resume", actionHref: "/job-seeker/resume-center/my-resume" });
+    if (!candidate.bio) missingProfileItems.push({ label: "About Me (Bio)", actionHref: "/job-seeker/profile" });
+    if (!candidate.education) missingProfileItems.push({ label: "Education", actionHref: "/job-seeker/profile" });
+    if (!candidate.experience) missingProfileItems.push({ label: "Experience", actionHref: "/job-seeker/profile" });
+    if (!candidate.githubUrl && !candidate.linkedinUrl && !candidate.portfolioUrl) {
+      missingProfileItems.push({ label: "Social Links", actionHref: "/job-seeker/profile" });
+    }
+    if (!candidate.skills || candidate.skills.length === 0) missingProfileItems.push({ label: "Skills", actionHref: "/job-seeker/profile" });
+
     return {
       stats: {
         activeApplications: activeApps,
@@ -81,6 +96,7 @@ export class AnalyticsService {
           recommendedJobs.length > 0 ? recommendedJobs[0].matchScore : 0,
         profileCompletion: profileScore,
         recentlyViewed: 12,
+        missingProfileItems,
       },
       recentApplications: applications,
       recommendedJobs,

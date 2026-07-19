@@ -81,6 +81,12 @@ export class FileUploadService {
       `[FileUploadService] After Resume record creation in DB. ID: ${resume.id}`,
     );
 
+    // Update the candidate profile's resumeUrl
+    await this.prisma.candidateProfile.update({
+      where: { id: user.candidateProfile.id },
+      data: { resumeUrl: result.url }
+    });
+
     return {
       success: true,
       url: result.url,
@@ -148,6 +154,65 @@ export class FileUploadService {
   async deleteFile(key: string) {
     await this.storageService.deleteFile(key);
     return { success: true };
+  }
+
+  async uploadAvatar(file: Express.Multer.File, userId: string) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Invalid file type. Only JPG, JPEG, and PNG are allowed.',
+      );
+    }
+
+    if (file.size > this.maxSize) {
+      throw new BadRequestException('File is too large. Maximum size is 5MB.');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { candidateProfile: true },
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Upload to S3
+    const prefix = `avatars/${userId}`;
+    const result = await this.storageService.uploadFile(
+      {
+        filename: file.originalname,
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        buffer: file.buffer,
+      },
+      prefix,
+      userId,
+    );
+
+    // Update User and CandidateProfile
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl: result.url },
+    });
+
+    if (user.candidateProfile) {
+      await this.prisma.candidateProfile.update({
+        where: { id: user.candidateProfile.id },
+        data: { avatarUrl: result.url },
+      });
+    }
+
+    return {
+      success: true,
+      url: result.url,
+      originalName: file.originalname,
+      mimeType: file.mimetype,
+    };
   }
 
   async testAws() {

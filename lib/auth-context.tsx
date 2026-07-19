@@ -19,6 +19,7 @@ interface AuthContextType {
   loading: boolean;
   login: (token: string, refreshToken: string, userData: User) => void;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,6 +68,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData);
   };
 
+  const refreshUser = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    try {
+      const storedUserStr = localStorage.getItem('user');
+      const res = await api.get('/auth/me');
+      const freshUser = res.data;
+      const normalizedRole = freshUser.role.toLowerCase() === 'candidate' ? 'job-seeker' : 
+        freshUser.role.toLowerCase().replace('_', '-');
+      const storedUser = storedUserStr ? JSON.parse(storedUserStr) : {};
+      const updated = { ...storedUser, ...freshUser, role: normalizedRole };
+      setUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+    } catch (err) {
+      console.error("Failed to refresh user data", err);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -78,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

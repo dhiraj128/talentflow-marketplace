@@ -9,7 +9,7 @@ import { resumeService } from "@/lib/services/resume.service";
 import { useAuth } from "@/lib/auth-context";
 
 export default function MyResumePage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [resumes, setResumes] = useState<any[]>([]);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +47,7 @@ export default function MyResumePage() {
 
   const [uploading, setUploading] = useState(false);
 
-  const handleFileSelect = (fileOrResume: any) => {
+  const handleFileSelect = async (fileOrResume: any) => {
     if (!fileOrResume) return;
     
     if (fileOrResume instanceof File) {
@@ -78,6 +78,9 @@ export default function MyResumePage() {
       };
       setResumes([formattedResume, ...resumes]);
       setVersionHistory([{ version: `v${versionHistory.length + 1}.0`, date: new Date().toLocaleDateString(), changes: `Uploaded ${formattedResume.name}` }, ...versionHistory]);
+      
+      // Ensure profile completion score updates immediately
+      if (refreshUser) await refreshUser();
     }
   };
 

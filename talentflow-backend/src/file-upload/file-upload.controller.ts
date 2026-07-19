@@ -48,6 +48,19 @@ export class FileUploadController {
     return this.fileUploadService.uploadVerificationDocument(file, user.userId || user.sub, documentType || 'Identity');
   }
 
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(JwtAuthGuard)
+  uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: any,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    return this.fileUploadService.uploadAvatar(file, user.userId || user.sub);
+  }
+
   @Post('aws-test')
     @UseGuards(JwtAuthGuard)
   async testAws() {

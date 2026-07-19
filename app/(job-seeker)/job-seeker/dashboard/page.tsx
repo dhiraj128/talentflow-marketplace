@@ -65,15 +65,8 @@ export default function CandidateDashboard() {
     return <DashboardSkeleton />;
   }
 
-  // --- MOCK TRANSFORMATIONS FOR MISSING BACKEND DATA ---
-  
-  // Profile Completion Mock Data
-  const missingProfileItems = [];
-  if (data?.metrics?.profileCompletion < 100) {
-    if (!(user as any)?.avatarUrl && !(user as any)?.avatar) missingProfileItems.push({ label: "Profile Photo", actionHref: "/job-seeker/profile" });
-    missingProfileItems.push({ label: "Add Portfolio Link", actionHref: "/job-seeker/profile" });
-    missingProfileItems.push({ label: "Update Certifications", actionHref: "/job-seeker/profile" });
-  }
+  // Profile Completion Data
+  const missingProfileItems = data?.metrics?.missingProfileItems || [];
 
   // AI Match Mock Data (now dynamically fetched and calculated in backend)
   const aiMatchJobs = (data?.recommendedJobs || []).slice(0, 4).map((job: any) => ({

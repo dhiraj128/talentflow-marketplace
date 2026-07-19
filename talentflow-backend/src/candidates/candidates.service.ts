@@ -71,10 +71,38 @@ export class CandidatesService {
     if (user && user.role !== 'ADMIN' && candidate.userId !== (user.sub || user.userId)) {
       throw new ForbiddenException('Forbidden');
     }
-    return await this.prisma.candidateProfile.update({
+
+    const { skills, ...restData } = updateCandidateDto as any;
+
+    const updated = await this.prisma.candidateProfile.update({
       where: { id },
-      data: updateCandidateDto,
+      data: restData,
     });
+
+    if (skills && Array.isArray(skills)) {
+      // Very basic skill syncing
+      // First, find or create skills
+      const skillIds = [];
+      for (const skillName of skills) {
+        let skill = await this.prisma.skill.findUnique({ where: { name: skillName } });
+        if (!skill) {
+          skill = await this.prisma.skill.create({ data: { name: skillName } });
+        }
+        skillIds.push(skill.id);
+      }
+
+      // Delete old connections
+      await this.prisma.candidateSkill.deleteMany({ where: { candidateId: id } });
+
+      // Create new connections
+      for (const sId of skillIds) {
+        await this.prisma.candidateSkill.create({
+          data: { candidateId: id, skillId: sId }
+        });
+      }
+    }
+
+    return updated;
   }
 
   async remove(id: string, user?: any) {
