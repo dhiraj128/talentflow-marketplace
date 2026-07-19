@@ -57,17 +57,8 @@ export default function AdminDashboardPage() {
   const userGrowthData = data?.charts?.userGrowthData || [];
   const revenueData = data?.charts?.revenueData || [];
 
-  const activities = [
-    { id: "1", user: { name: "Alice Smith" }, action: "upgraded to", target: "Employer Enterprise", time: "10 mins ago" },
-    { id: "2", user: { name: "John Doe" }, action: "published course", target: "React Masterclass", time: "1 hour ago" },
-    { id: "3", user: { name: "Sarah Tech" }, action: "posted job", target: "Senior Backend Engineer", time: "2 hours ago" },
-  ];
-
-  const notifications = [
-    { id: "1", title: "High Traffic Alert", message: "User registrations spiked by 200% in the last hour.", type: "warning", time: "30 mins ago" },
-    { id: "2", title: "Payment Gateway", message: "Stripe API response times are slightly degraded.", type: "error", time: "2 hours ago" },
-    { id: "3", title: "System Update", message: "Platform v2.4 successfully deployed.", type: "success", time: "1 day ago" },
-  ] as any[];
+  const activities = data?.recentActivity || [];
+  const notifications = data?.notifications || [];
 
   return (
     <PageContainer>
