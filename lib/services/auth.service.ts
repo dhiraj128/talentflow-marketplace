@@ -42,5 +42,29 @@ export const authService = {
   getCurrentUser: async () => {
     const response = await api.get('/auth/me');
     return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
+  },
+  sendEmailOtp: async (data: { identifier: string; purpose: string }) => {
+    const response = await api.post('/auth/send-email-otp', data);
+    return response.data;
+  },
+  sendPhoneOtp: async (data: { identifier: string; purpose: string }) => {
+    const response = await api.post('/auth/send-phone-otp', data);
+    return response.data;
+  },
+  verifyEmailOtp: async (data: { identifier: string; code: string; purpose: string }) => {
+    const response = await api.post('/auth/verify-email-otp', data);
+    return response.data;
+  },
+  verifyPhoneOtp: async (data: { identifier: string; code: string; purpose: string }) => {
+    const response = await api.post('/auth/verify-phone-otp', data);
+    return response.data;
+  },
+  forgotPassword: async (data: { identifier: string }) => {
+    const response = await api.post('/auth/forgot-password', data);
+    return response.data;
+  },
+  resetPassword: async (data: { identifier: string; code: string; newPassword: string }) => {
+    const response = await api.post('/auth/reset-password', data);
+    return response.data;
   }
 };

@@ -25,11 +25,16 @@ import { AuthGuard } from '@nestjs/passport';
 import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 import { GithubOAuthGuard } from './guards/github-oauth.guard';
 import { OAuthExceptionFilter } from './filters/oauth-exception.filter';
+import { OtpService } from './otp.service';
+import { SendOtpDto, VerifyOtpDto, ForgotPasswordDto, ResetPasswordDto } from './dto/otp.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly otpService: OtpService,
+  ) {}
 
   @Post('login')
   @ApiOperation({ summary: 'Login to the application' })
@@ -45,6 +50,49 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Post('send-email-otp')
+  @ApiOperation({ summary: 'Send OTP to Email' })
+  async sendEmailOtp(@Body() dto: SendOtpDto) {
+    return this.otpService.sendOtp(dto.identifier, dto.purpose, 'EMAIL');
+  }
+
+  @Post('send-phone-otp')
+  @ApiOperation({ summary: 'Send OTP to Phone' })
+  async sendPhoneOtp(@Body() dto: SendOtpDto) {
+    return this.otpService.sendOtp(dto.identifier, dto.purpose, 'PHONE');
+  }
+
+  @Post('verify-email-otp')
+  @ApiOperation({ summary: 'Verify Email OTP' })
+  async verifyEmailOtp(@Body() dto: VerifyOtpDto) {
+    return this.otpService.verifyOtp(dto.identifier, dto.code, dto.purpose);
+  }
+
+  @Post('verify-phone-otp')
+  @ApiOperation({ summary: 'Verify Phone OTP' })
+  async verifyPhoneOtp(@Body() dto: VerifyOtpDto) {
+    return this.otpService.verifyOtp(dto.identifier, dto.code, dto.purpose);
+  }
+
+  @Post('resend-otp')
+  @ApiOperation({ summary: 'Resend OTP' })
+  async resendOtp(@Body() dto: SendOtpDto) {
+    const type = dto.identifier.includes('@') ? 'EMAIL' : 'PHONE';
+    return this.otpService.sendOtp(dto.identifier, dto.purpose, type);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Initiate Forgot Password' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.identifier);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset Password using OTP' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.identifier, dto.code, dto.newPassword);
   }
 
   @ApiBearerAuth()

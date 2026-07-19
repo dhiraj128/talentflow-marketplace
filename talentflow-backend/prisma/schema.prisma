@@ -13,6 +13,10 @@ model User {
   passwordHash      String?
   role              Role               @default(CANDIDATE)
   isEmailVerified   Boolean            @default(false)
+  phoneVerified     Boolean            @default(false)
+  phoneNumber       String?            @unique
+  countryCode       String?
+  verificationMethod VerificationMethod? @default(EMAIL)
   refreshToken      String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -624,5 +628,34 @@ model Interview {
   application     Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   employer        EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
   candidate       CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+}
+
+enum VerificationMethod {
+  EMAIL
+  PHONE
+  GOOGLE
+  GITHUB
+}
+
+enum OtpPurpose {
+  REGISTER
+  LOGIN
+  FORGOT_PASSWORD
+  CHANGE_EMAIL
+  CHANGE_PHONE
+}
+
+model OTP {
+  id          String     @id @default(uuid())
+  identifier  String
+  codeHash    String
+  purpose     OtpPurpose
+  expiresAt   DateTime
+  attempts    Int        @default(0)
+  createdAt   DateTime   @default(now())
+  verifiedAt  DateTime?
+
+  @@index([identifier])
+  @@index([expiresAt])
 }
 

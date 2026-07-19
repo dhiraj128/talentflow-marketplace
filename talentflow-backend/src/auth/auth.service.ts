@@ -17,8 +17,16 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+  async validateUser(identifier: string, pass: string): Promise<any> {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: identifier },
+          { phoneNumber: identifier }
+        ]
+      }
+    });
+
     if (user && user.status === 'SUSPENDED') {
       throw new UnauthorizedException('Your account has been suspended.');
     }
@@ -136,10 +144,27 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
+    const identifier = loginDto.email || loginDto.phoneNumber;
+    if (!identifier) {
+      throw new BadRequestException('Email or Phone Number is required');
+    }
+    const user = await this.validateUser(identifier, loginDto.password);
     if (!user) {
+      // Try to find user to log failure
+      const existingUser = await this.prisma.user.findFirst({
+        where: { OR: [{ email: identifier }, { phoneNumber: identifier }] }
+      });
+      if (existingUser) {
+        await this.prisma.auditLog.create({
+          data: { actionBy: existingUser.id, action: 'LOGIN_FAILURE', resource: 'Auth' }
+        });
+      }
       throw new UnauthorizedException('Invalid credentials');
     }
+    
+    await this.prisma.auditLog.create({
+      data: { actionBy: user.id, action: 'LOGIN_SUCCESS', resource: 'Auth' }
+    });
     const payload = { email: user.email, sub: user.id, role: user.role };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -196,57 +221,170 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: registerDto.email },
-    });
-    if (existing) {
-      throw new BadRequestException('Email already exists');
+    const identifier = registerDto.email || registerDto.phoneNumber;
+    if (!identifier) {
+      throw new BadRequestException('Email or Phone Number is required');
     }
 
-    const passwordHash = await bcrypt.hash(registerDto.password, 10);
+    // Enterprise OTP Requirement: "Only verified users may reach this step"
+    // The frontend should have verified the OTP, so we double-check the OTP table.
+    const isVerified = await this.prisma.oTP.findFirst({
+      where: {
+        identifier,
+        purpose: 'REGISTER',
+        verifiedAt: { not: null }
+      },
+      orderBy: { verifiedAt: 'desc' }
+    });
+
+    if (!isVerified || (Date.now() - isVerified.verifiedAt!.getTime()) > 30 * 60 * 1000) {
+      // For development/mock purposes, if you want to allow bypass, you can comment this out,
+      // but the enterprise spec requires it:
+      throw new BadRequestException('Please verify your email/phone before registering.');
+    }
+
+    const existing = await this.prisma.user.findFirst({
+      where: { 
+        OR: [
+          { email: registerDto.email || 'NO_EMAIL' },
+          { phoneNumber: registerDto.phoneNumber || 'NO_PHONE' }
+        ]
+       },
+    });
+
+    if (existing) {
+      throw new BadRequestException('User with this email or phone already exists');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(registerDto.password, salt);
+
+    // Create user with default Role if not provided
+    const role = registerDto.role || Role.CANDIDATE;
+    
+    // Default the name if provided
+    let fullName = registerDto.fullName || 'User';
+
     const user = await this.prisma.user.create({
       data: {
-        email: registerDto.email,
+        email: registerDto.email || `${registerDto.phoneNumber}@talentflow.mock`,
+        phoneNumber: registerDto.phoneNumber,
+        countryCode: registerDto.countryCode,
+        isEmailVerified: !!registerDto.email,
+        phoneVerified: !!registerDto.phoneNumber,
+        verificationMethod: registerDto.verificationMethod || 'EMAIL',
         passwordHash,
-        role: registerDto.role,
-        isEmailVerified: false,
+        role,
       },
     });
 
-    if (registerDto.role === Role.CANDIDATE) {
+    // Create corresponding profile based on role
+    if (role === Role.CANDIDATE) {
       await this.prisma.candidateProfile.create({
         data: {
           userId: user.id,
-          fullName: registerDto.fullName || '',
+          fullName,
         },
       });
-    } else if (registerDto.role === Role.EMPLOYER) {
+    } else if (role === Role.EMPLOYER) {
       await this.prisma.employerProfile.create({
         data: {
           userId: user.id,
-          companyName: registerDto.fullName || '',
+          companyName: fullName, // mapping fullName to companyName for employer
         },
       });
-    } else if (registerDto.role === Role.FREELANCER) {
+    } else if (role === Role.FREELANCER) {
       await this.prisma.freelancerProfile.create({
         data: {
           userId: user.id,
-          fullName: registerDto.fullName || '',
+          fullName,
         },
       });
-    } else if (registerDto.role === Role.TRAINER) {
+    } else if (role === Role.TRAINER) {
       await this.prisma.trainerProfile.create({
         data: {
           userId: user.id,
-          fullName: registerDto.fullName || '',
+          fullName,
         },
       });
     }
 
-    return this.login({
-      email: registerDto.email,
-      password: registerDto.password,
+    // Return tokens so they are logged in immediately after register
+    const payload = { email: user.email, sub: user.id, role: user.role };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
+      expiresIn: '15m',
     });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-change-in-production',
+      expiresIn: '7d',
+    });
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
+    });
+
+    await this.prisma.auditLog.create({
+      data: { actionBy: user.id, action: 'REGISTRATION_SUCCESS', resource: 'Auth' }
+    });
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user,
+    };
+  }
+
+  async forgotPassword(identifier: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: identifier },
+          { phoneNumber: identifier }
+        ]
+      }
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Wait, the OTP logic is handled by OtpService inside the Controller,
+    // so this method just verifies the user exists.
+    return { message: 'User found', type: user.phoneNumber === identifier ? 'PHONE' : 'EMAIL' };
+  }
+
+  async resetPassword(identifier: string, code: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: identifier },
+          { phoneNumber: identifier }
+        ]
+      }
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        passwordHash,
+        refreshToken: null // invalidate sessions
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: { actionBy: user.id, action: 'PASSWORD_RESET_SUCCESS', resource: 'Auth' }
+    });
+
+    return { message: 'Password reset successfully' };
   }
 
   async logout(userId: string) {

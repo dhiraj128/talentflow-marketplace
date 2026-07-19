@@ -7,7 +7,7 @@ const authFileEmployerB = path.join(__dirname, '../.auth/employer-b.json');
 
 setup('authenticate candidate', async ({ page }) => {
   await page.goto('/sign-in');
-  await page.getByLabel('Email').fill(process.env.E2E_CANDIDATE_EMAIL!);
+  await page.getByLabel('Email or Mobile Number').fill(process.env.E2E_CANDIDATE_EMAIL!);
   await page.getByLabel('Password').fill(process.env.E2E_CANDIDATE_PASSWORD!);
   
   // Role Selector defaults to Job Seeker
@@ -33,7 +33,7 @@ setup('authenticate candidate', async ({ page }) => {
 
 setup('authenticate employer A', async ({ page }) => {
   await page.goto('/sign-in');
-  await page.getByLabel('Email').fill(process.env.E2E_EMPLOYER_A_EMAIL!);
+  await page.getByLabel('Email or Mobile Number').fill(process.env.E2E_EMPLOYER_A_EMAIL!);
   await page.getByLabel('Password').fill(process.env.E2E_EMPLOYER_A_PASSWORD!);
   
   await page.getByRole('button', { name: 'Employer' }).click();
@@ -47,7 +47,7 @@ setup('authenticate employer A', async ({ page }) => {
 
 setup('authenticate employer B', async ({ page }) => {
   await page.goto('/sign-in');
-  await page.getByLabel('Email').fill(process.env.E2E_EMPLOYER_B_EMAIL!);
+  await page.getByLabel('Email or Mobile Number').fill(process.env.E2E_EMPLOYER_B_EMAIL!);
   await page.getByLabel('Password').fill(process.env.E2E_EMPLOYER_B_PASSWORD!);
   
   await page.getByRole('button', { name: 'Employer' }).click();

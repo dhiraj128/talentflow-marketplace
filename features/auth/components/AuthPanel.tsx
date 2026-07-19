@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 const signInSchema = z.object({
-  email: z.string().email("Please enter a valid email address."),
+  email: z.string().min(3, "Please enter a valid email or phone number."),
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
 type SignInValues = z.infer<typeof signInSchema>;
@@ -116,10 +116,11 @@ export function AuthPanel() {
             )}
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email" className="text-slate-300 text-sm font-semibold">Email</Label>
+              <Label htmlFor="email" className="text-slate-300 text-sm font-semibold">Email or Mobile Number</Label>
               <Input 
                 id="email" 
-                type="email" 
+                type="text" 
+                placeholder="name@example.com or 9876543210"
                 autoCapitalize="none" 
                 autoComplete="email" 
                 {...register("email")} 
@@ -131,7 +132,7 @@ export function AuthPanel() {
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-slate-300 text-sm font-semibold">Password</Label>
-                <Link href="#" className="text-xs text-[#2563EB] hover:text-blue-400 hover:underline font-medium transition-colors">Forgot password?</Link>
+                <Link href="/forgot-password" className="text-xs text-[#2563EB] hover:text-blue-400 hover:underline font-medium transition-colors">Forgot password?</Link>
               </div>
               <Input 
                 id="password" 
