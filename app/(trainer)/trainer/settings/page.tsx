@@ -68,8 +68,8 @@ export default function SettingsPage() {
               <form className="space-y-6">
                 <div className="flex items-center gap-6">
                   <div className="h-24 w-24 rounded-full bg-muted border-2 flex items-center justify-center overflow-hidden shrink-0">
-                    {user?.avatarUrl ? (
-                      <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    {((user as any)?.avatarUrl || user?.avatar) ? (
+                      <img src={(user as any)?.avatarUrl || user?.avatar} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <User className="h-10 w-10 text-muted-foreground" />
                     )}
