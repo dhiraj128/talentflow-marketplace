@@ -95,17 +95,17 @@ export default function FindFreelancersPage() {
     <div className="bg-slate-50 min-h-screen pb-20">
       
       {/* Hero Header */}
-      <div className="bg-gradient-to-b from-purple-900 via-purple-800 to-indigo-900 text-white pt-16 pb-12 px-6 rounded-b-[2rem] shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-b from-purple-900 via-purple-800 to-indigo-900 text-white pt-16 pb-10 px-6 rounded-b-[2rem] shadow-xl relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-20 mix-blend-overlay"></div>
-        <div className="max-w-[900px] mx-auto text-center space-y-4 relative z-10">
+        <div className="max-w-[900px] mx-auto text-center space-y-3 relative z-10">
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Hire the World's Best Talent</h1>
           <p className="text-base md:text-lg text-purple-200 max-w-2xl mx-auto">
             Connect with top-rated freelancers and independent professionals for your next project.
           </p>
-          <div className="pt-2">
+          <div className="pt-4">
             <MarketplaceSearch value={searchQuery} onChange={setSearchQuery} onSearch={() => {}} />
           </div>
-          <div className="pt-3 flex flex-wrap justify-center gap-2 text-sm text-purple-200">
+          <div className="pt-2 flex flex-wrap justify-center gap-2 text-sm text-purple-200">
             <span className="opacity-70 mr-2 flex items-center">Popular:</span>
             {["React", "Next.js", "Node.js", "HTML", "CSS", "Python", "UI/UX", "AI", "DevOps"].map(tag => (
               <button
