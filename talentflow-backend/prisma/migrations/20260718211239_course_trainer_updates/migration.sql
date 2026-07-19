@@ -6,8 +6,8 @@
 -- the enum.
 
 
-ALTER TYPE "CourseStatus" ADD VALUE 'PENDING';
-ALTER TYPE "CourseStatus" ADD VALUE 'REJECTED';
+ALTER TYPE "CourseStatus" ADD VALUE IF NOT EXISTS 'PENDING';
+ALTER TYPE "CourseStatus" ADD VALUE IF NOT EXISTS 'REJECTED';
 
 -- AlterTable
 ALTER TABLE "TrainerProfile" ADD COLUMN     "isVerified" BOOLEAN NOT NULL DEFAULT false;
