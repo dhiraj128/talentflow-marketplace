@@ -18,8 +18,12 @@ export class AssessmentsController {
   submitAssessment(
     @Param('courseId') courseId: string,
     @Body('answers') answers: Record<string, string>,
-    @CurrentUser() user: any
+    @CurrentUser() user: any,
   ) {
-    return this.assessmentsService.submitAssessment(courseId, user.profile.id, answers);
+    return this.assessmentsService.submitAssessment(
+      courseId,
+      user.profile.id,
+      answers,
+    );
   }
 }

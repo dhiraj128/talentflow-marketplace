@@ -32,7 +32,9 @@ export class AnalyticsController {
   @Get('dashboard/freelancer')
   @ApiOperation({ summary: 'Get freelancer dashboard statistics' })
   getFreelancerDashboard(@CurrentUser() user: any) {
-    return this.analyticsService.getFreelancerDashboard(user.userId || user.sub);
+    return this.analyticsService.getFreelancerDashboard(
+      user.userId || user.sub,
+    );
   }
 
   @Get('dashboard/trainer')

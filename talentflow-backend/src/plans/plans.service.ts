@@ -15,7 +15,7 @@ export class PlansService {
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
       this.prisma.plan.findMany({ skip, take: limit }),
-      this.prisma.plan.count()
+      this.prisma.plan.count(),
     ]);
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }

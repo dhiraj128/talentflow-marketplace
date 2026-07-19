@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -18,7 +22,11 @@ export class AuthService {
     if (user && user.status === 'SUSPENDED') {
       throw new UnauthorizedException('Your account has been suspended.');
     }
-    if (user && user.passwordHash && await bcrypt.compare(pass, user.passwordHash)) {
+    if (
+      user &&
+      user.passwordHash &&
+      (await bcrypt.compare(pass, user.passwordHash))
+    ) {
       const { passwordHash, ...result } = user;
       return result;
     }
@@ -26,8 +34,9 @@ export class AuthService {
   }
 
   async validateOAuthUser(oauthUser: any) {
-    const { email, firstName, lastName, provider, providerId, picture } = oauthUser;
-    
+    const { email, firstName, lastName, provider, providerId, picture } =
+      oauthUser;
+
     // Find user by email
     let user = await this.prisma.user.findUnique({ where: { email } });
     const fullName = `${firstName} ${lastName}`.trim();
@@ -40,14 +49,16 @@ export class AuthService {
       // User exists, link account if not already linked
       const updateData: any = {};
       if (!user.provider) updateData.provider = provider;
-      if (provider === 'google' && !user.googleId) updateData.googleId = providerId;
-      if (provider === 'github' && !user.githubId) updateData.githubId = providerId;
+      if (provider === 'google' && !user.googleId)
+        updateData.googleId = providerId;
+      if (provider === 'github' && !user.githubId)
+        updateData.githubId = providerId;
       if (!user.avatarUrl && picture) updateData.avatarUrl = picture;
 
       if (Object.keys(updateData).length > 0) {
         user = await this.prisma.user.update({
           where: { id: user.id },
-          data: updateData
+          data: updateData,
         });
       }
     } else {
@@ -70,7 +81,7 @@ export class AuthService {
           userId: user.id,
           fullName,
           avatarUrl: picture,
-        }
+        },
       });
     }
 
@@ -80,35 +91,47 @@ export class AuthService {
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, role: true, isEmailVerified: true, createdAt: true }
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isEmailVerified: true,
+        createdAt: true,
+      },
     });
-    
+
     if (!user) throw new UnauthorizedException('User not found');
-    
+
     let profile = null;
     if (user.role === Role.CANDIDATE) {
-      profile = await this.prisma.candidateProfile.findUnique({ 
+      profile = await this.prisma.candidateProfile.findUnique({
         where: { userId },
         include: {
           certificates: {
             include: {
               course: {
                 include: {
-                  trainer: true
-                }
-              }
-            }
-          }
-        }
+                  trainer: true,
+                },
+              },
+            },
+          },
+        },
       });
     } else if (user.role === Role.EMPLOYER) {
-      profile = await this.prisma.employerProfile.findUnique({ where: { userId } });
+      profile = await this.prisma.employerProfile.findUnique({
+        where: { userId },
+      });
     } else if (user.role === Role.FREELANCER) {
-      profile = await this.prisma.freelancerProfile.findUnique({ where: { userId } });
+      profile = await this.prisma.freelancerProfile.findUnique({
+        where: { userId },
+      });
     } else if (user.role === Role.TRAINER) {
-      profile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
+      profile = await this.prisma.trainerProfile.findUnique({
+        where: { userId },
+      });
     }
-    
+
     return { ...user, profile };
   }
 
@@ -118,15 +141,18 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
     const payload = { email: user.email, sub: user.id, role: user.role };
-    
+
     const accessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
-      expiresIn: '15m'
+      secret:
+        process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
+      expiresIn: '15m',
     });
-    
+
     const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-change-in-production',
-      expiresIn: '7d'
+      secret:
+        process.env.JWT_REFRESH_SECRET ||
+        'super-secret-refresh-key-change-in-production',
+      expiresIn: '7d',
     });
 
     await this.prisma.user.update({
@@ -137,21 +163,24 @@ export class AuthService {
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
-      user
+      user,
     };
   }
 
   async loginOAuth(user: any) {
     const payload = { email: user.email, sub: user.id, role: user.role };
-    
+
     const accessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
-      expiresIn: '15m'
+      secret:
+        process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
+      expiresIn: '15m',
     });
-    
+
     const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-change-in-production',
-      expiresIn: '7d'
+      secret:
+        process.env.JWT_REFRESH_SECRET ||
+        'super-secret-refresh-key-change-in-production',
+      expiresIn: '7d',
     });
 
     await this.prisma.user.update({
@@ -162,12 +191,14 @@ export class AuthService {
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
-      user
+      user,
     };
   }
 
   async register(registerDto: RegisterDto) {
-    const existing = await this.prisma.user.findUnique({ where: { email: registerDto.email } });
+    const existing = await this.prisma.user.findUnique({
+      where: { email: registerDto.email },
+    });
     if (existing) {
       throw new BadRequestException('Email already exists');
     }
@@ -187,32 +218,35 @@ export class AuthService {
         data: {
           userId: user.id,
           fullName: registerDto.fullName || '',
-        }
+        },
       });
     } else if (registerDto.role === Role.EMPLOYER) {
       await this.prisma.employerProfile.create({
         data: {
           userId: user.id,
           companyName: registerDto.fullName || '',
-        }
+        },
       });
     } else if (registerDto.role === Role.FREELANCER) {
       await this.prisma.freelancerProfile.create({
         data: {
           userId: user.id,
           fullName: registerDto.fullName || '',
-        }
+        },
       });
     } else if (registerDto.role === Role.TRAINER) {
       await this.prisma.trainerProfile.create({
         data: {
           userId: user.id,
           fullName: registerDto.fullName || '',
-        }
+        },
       });
     }
 
-    return this.login({ email: registerDto.email, password: registerDto.password });
+    return this.login({
+      email: registerDto.email,
+      password: registerDto.password,
+    });
   }
 
   async logout(userId: string) {
@@ -226,10 +260,14 @@ export class AuthService {
   async refreshToken(token: string) {
     try {
       const payload = this.jwtService.verify(token, {
-        secret: process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-change-in-production',
+        secret:
+          process.env.JWT_REFRESH_SECRET ||
+          'super-secret-refresh-key-change-in-production',
       });
-      
-      const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+      });
       if (!user || user.refreshToken !== token) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -240,8 +278,9 @@ export class AuthService {
 
       const newPayload = { email: user.email, sub: user.id, role: user.role };
       const accessToken = this.jwtService.sign(newPayload, {
-        secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
-        expiresIn: '15m'
+        secret:
+          process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
+        expiresIn: '15m',
       });
 
       return { access_token: accessToken };

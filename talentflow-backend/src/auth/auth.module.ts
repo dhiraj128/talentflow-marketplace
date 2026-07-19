@@ -13,7 +13,8 @@ import { PrismaModule } from '../prisma/prisma.module';
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
+      secret:
+        process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
       signOptions: { expiresIn: '15m' },
     }),
   ],

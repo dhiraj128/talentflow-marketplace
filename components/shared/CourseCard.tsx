@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+ 
 "use client";
 import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";

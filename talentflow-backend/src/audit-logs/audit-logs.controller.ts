@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuditLogsService } from './audit-logs.service';
 import { CreateAuditLogDto } from './dto/create-audit-log.dto';
 import { UpdateAuditLogDto } from './dto/update-audit-log.dto';
@@ -19,7 +29,10 @@ export class AuditLogsController {
 
   @Get()
   findAll(@Query('skip') skip?: string, @Query('take') take?: string) {
-    return this.auditLogsService.findAll(skip ? +skip : undefined, take ? +take : undefined);
+    return this.auditLogsService.findAll(
+      skip ? +skip : undefined,
+      take ? +take : undefined,
+    );
   }
 
   @Get(':id')
@@ -28,7 +41,10 @@ export class AuditLogsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuditLogDto: UpdateAuditLogDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateAuditLogDto: UpdateAuditLogDto,
+  ) {
     return this.auditLogsService.update(id, updateAuditLogDto);
   }
 

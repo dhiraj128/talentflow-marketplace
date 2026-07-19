@@ -1,6 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { EmployersService } from './employers.service';
-import { CreateEmployerDto, UpdateEmployerDto } from './dto/create-employer.dto';
+import {
+  CreateEmployerDto,
+  UpdateEmployerDto,
+} from './dto/create-employer.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
@@ -27,7 +40,10 @@ export class EmployersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEmployerDto: UpdateEmployerDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateEmployerDto: UpdateEmployerDto,
+  ) {
     return this.employersService.update(id, updateEmployerDto);
   }
 

@@ -18,7 +18,10 @@ export class SearchController {
   }
 
   @Get('freelancers')
-  searchFreelancers(@Query('q') q: string, @Query('location') location: string) {
+  searchFreelancers(
+    @Query('q') q: string,
+    @Query('location') location: string,
+  ) {
     return this.searchService.searchFreelancers(q, location);
   }
 

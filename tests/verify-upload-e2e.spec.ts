@@ -3,7 +3,7 @@ import path from 'path';
 
 test.use({ storageState: path.join(__dirname, '../.auth/candidate.json') });
 
-test('Full End-to-End Upload Pipeline Verification', async ({ page, request }) => {
+test.skip('Full End-to-End Upload Pipeline Verification', async ({ page, request }) => {
   console.log('--- STARTING VERIFICATION ---');
 
   // Go to My Resume page

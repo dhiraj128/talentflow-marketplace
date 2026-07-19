@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { EnrollmentsService } from './enrollments.service';
 import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
@@ -20,7 +30,7 @@ export class EnrollmentsController {
   @Get()
   findAll(
     @Query('candidateId') candidateId?: string,
-    @Query('courseId') courseId?: string
+    @Query('courseId') courseId?: string,
   ) {
     return this.enrollmentsService.findAll({ candidateId, courseId });
   }
@@ -31,7 +41,10 @@ export class EnrollmentsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEnrollmentDto: UpdateEnrollmentDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateEnrollmentDto: UpdateEnrollmentDto,
+  ) {
     return this.enrollmentsService.update(id, updateEnrollmentDto);
   }
 

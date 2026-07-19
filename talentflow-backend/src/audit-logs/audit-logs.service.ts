@@ -9,11 +9,11 @@ export class AuditLogsService {
 
   create(createAuditLogDto: CreateAuditLogDto) {
     // details usually json, so typecast to any or Prisma.InputJsonValue
-    return this.prisma.auditLog.create({ 
+    return this.prisma.auditLog.create({
       data: {
         ...createAuditLogDto,
-        details: createAuditLogDto.details || {}
-      } 
+        details: createAuditLogDto.details || {},
+      },
     });
   }
 
@@ -26,12 +26,14 @@ export class AuditLogsService {
   }
 
   update(id: string, updateAuditLogDto: UpdateAuditLogDto) {
-    return this.prisma.auditLog.update({ 
-      where: { id }, 
+    return this.prisma.auditLog.update({
+      where: { id },
       data: {
         ...updateAuditLogDto,
-        details: updateAuditLogDto.details ? updateAuditLogDto.details : undefined
-      } 
+        details: updateAuditLogDto.details
+          ? updateAuditLogDto.details
+          : undefined,
+      },
     });
   }
 

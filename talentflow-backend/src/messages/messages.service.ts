@@ -8,18 +8,15 @@ export class MessagesService {
   async getConversations(userId: string) {
     return this.prisma.conversation.findMany({
       where: {
-        OR: [
-          { participant1Id: userId },
-          { participant2Id: userId }
-        ]
+        OR: [{ participant1Id: userId }, { participant2Id: userId }],
       },
       include: {
         messages: {
           orderBy: { createdAt: 'desc' },
-          take: 1
-        }
+          take: 1,
+        },
       },
-      orderBy: { updatedAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
     });
   }
 
@@ -28,17 +25,17 @@ export class MessagesService {
       where: {
         OR: [
           { participant1Id, participant2Id },
-          { participant1Id: participant2Id, participant2Id: participant1Id }
-        ]
-      }
+          { participant1Id: participant2Id, participant2Id: participant1Id },
+        ],
+      },
     });
     if (existing) return existing;
 
     return this.prisma.conversation.create({
       data: {
         participant1Id,
-        participant2Id
-      }
+        participant2Id,
+      },
     });
   }
 
@@ -46,7 +43,16 @@ export class MessagesService {
     return this.prisma.message.findMany({
       where: { conversationId },
       orderBy: { createdAt: 'asc' },
-      include: { sender: { select: { id: true, email: true, candidateProfile: { select: { fullName: true } }, employerProfile: { select: { companyName: true } } } } }
+      include: {
+        sender: {
+          select: {
+            id: true,
+            email: true,
+            candidateProfile: { select: { fullName: true } },
+            employerProfile: { select: { companyName: true } },
+          },
+        },
+      },
     });
   }
 
@@ -55,13 +61,13 @@ export class MessagesService {
       data: {
         conversationId,
         senderId,
-        content
-      }
+        content,
+      },
     });
 
     await this.prisma.conversation.update({
       where: { id: conversationId },
-      data: { updatedAt: new Date() }
+      data: { updatedAt: new Date() },
     });
 
     return message;
@@ -70,7 +76,7 @@ export class MessagesService {
   async markAsRead(id: string) {
     return this.prisma.message.update({
       where: { id },
-      data: { isRead: true }
+      data: { isRead: true },
     });
   }
 }

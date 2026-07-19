@@ -14,8 +14,12 @@ export class SkillsService {
     const limit = Number(filters.limit) || 20;
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
-      this.prisma.skill.findMany({ skip, take: limit, orderBy: { name: 'asc' } }),
-      this.prisma.skill.count()
+      this.prisma.skill.findMany({
+        skip,
+        take: limit,
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.skill.count(),
     ]);
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
@@ -31,4 +35,3 @@ export class SkillsService {
     return this.prisma.skill.delete({ where: { id } });
   }
 }
-

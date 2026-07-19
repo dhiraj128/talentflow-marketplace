@@ -1,5 +1,20 @@
-import { CreateModuleDto, CreateLessonDto, CreateAssessmentDto, CreateQuestionDto } from './dto/course-parts.dto';
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  CreateModuleDto,
+  CreateLessonDto,
+  CreateAssessmentDto,
+  CreateQuestionDto,
+} from './dto/course-parts.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -35,7 +50,7 @@ export class CoursesController {
   findAll(
     @Query('q') q?: string,
     @Query('category') category?: string,
-    @Query('trainerId') trainerId?: string
+    @Query('trainerId') trainerId?: string,
   ) {
     return this.coursesService.findAll({ q, category, trainerId });
   }
@@ -73,7 +88,11 @@ export class CoursesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('TRAINER')
   @Post(':id/modules')
-  createModule(@Param('id') courseId: string, @Body() data: CreateModuleDto, @CurrentUser() user: any) {
+  createModule(
+    @Param('id') courseId: string,
+    @Body() data: CreateModuleDto,
+    @CurrentUser() user: any,
+  ) {
     return this.coursesService.createModule(courseId, data, user.profile.id);
   }
 
@@ -81,7 +100,11 @@ export class CoursesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('TRAINER')
   @Post('modules/:moduleId/lessons')
-  createLesson(@Param('moduleId') moduleId: string, @Body() data: CreateLessonDto, @CurrentUser() user: any) {
+  createLesson(
+    @Param('moduleId') moduleId: string,
+    @Body() data: CreateLessonDto,
+    @CurrentUser() user: any,
+  ) {
     return this.coursesService.createLesson(moduleId, data, user.profile.id);
   }
 
@@ -89,23 +112,43 @@ export class CoursesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('TRAINER')
   @Post(':courseId/assessment')
-  createAssessment(@Param('courseId') courseId: string, @Body() data: CreateAssessmentDto, @CurrentUser() user: any) {
-    return this.coursesService.createAssessment(courseId, data, user.profile.id);
+  createAssessment(
+    @Param('courseId') courseId: string,
+    @Body() data: CreateAssessmentDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.coursesService.createAssessment(
+      courseId,
+      data,
+      user.profile.id,
+    );
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('TRAINER')
   @Post('assessments/:assessmentId/questions')
-  createQuestion(@Param('assessmentId') assessmentId: string, @Body() data: CreateQuestionDto, @CurrentUser() user: any) {
-    return this.coursesService.createQuestion(assessmentId, data, user.profile.id);
+  createQuestion(
+    @Param('assessmentId') assessmentId: string,
+    @Body() data: CreateQuestionDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.coursesService.createQuestion(
+      assessmentId,
+      data,
+      user.profile.id,
+    );
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('TRAINER')
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCourseDto: UpdateCourseDto, @CurrentUser() user: any) {
+  update(
+    @Param('id') id: string,
+    @Body() updateCourseDto: UpdateCourseDto,
+    @CurrentUser() user: any,
+  ) {
     return this.coursesService.update(id, updateCourseDto, user.profile.id);
   }
 

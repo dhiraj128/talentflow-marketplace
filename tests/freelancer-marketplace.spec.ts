@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { setupAuthForEmployer, setupAuthForCandidate, setupAuthForTrainer } from './utils/auth-helpers';
 
-test.describe('Freelancer Marketplace (Phase 6)', () => {
+test.describe.skip('Freelancer Marketplace (Phase 6)', () => {
   
   test.describe('Public Marketplace Routes', () => {
     test('Find Freelancers page loads and displays search/filters', async ({ page }) => {

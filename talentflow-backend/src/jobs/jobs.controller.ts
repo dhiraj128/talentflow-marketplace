@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -26,9 +36,16 @@ export class JobsController {
     @Query('type') type?: string,
     @Query('employerId') employerId?: string,
     @Query('page') page?: string,
-    @Query('limit') limit?: string
+    @Query('limit') limit?: string,
   ) {
-    return this.jobsService.findAll({ q, location, type, employerId, page, limit });
+    return this.jobsService.findAll({
+      q,
+      location,
+      type,
+      employerId,
+      page,
+      limit,
+    });
   }
 
   @Get(':id')
@@ -46,7 +63,11 @@ export class JobsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto, @CurrentUser() user: any) {
+  update(
+    @Param('id') id: string,
+    @Body() updateJobDto: UpdateJobDto,
+    @CurrentUser() user: any,
+  ) {
     return this.jobsService.update(id, updateJobDto, user);
   }
 
@@ -68,12 +89,16 @@ export class JobsController {
   @UseGuards(JwtAuthGuard)
   @Post(':id/apply')
   async applyToJob(
-    @Param('id') id: string, 
+    @Param('id') id: string,
     @Body() body: { resumeId?: string },
-    @CurrentUser() user: any
+    @CurrentUser() user: any,
   ) {
     try {
-      return await this.jobsService.applyToJob(id, user.sub || user.userId, body?.resumeId);
+      return await this.jobsService.applyToJob(
+        id,
+        user.sub || user.userId,
+        body?.resumeId,
+      );
     } catch (error: any) {
       if (error.message.includes('not found')) {
         throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -87,14 +112,20 @@ export class JobsController {
       if (error.message.includes('not open for applications')) {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }
-      throw new HttpException('Failed to apply to job', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Failed to apply to job',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get(':id/application-status')
-  async checkApplicationStatus(@Param('id') id: string, @CurrentUser() user: any) {
+  async checkApplicationStatus(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
     return this.jobsService.checkApplicationStatus(id, user.sub || user.userId);
   }
 }

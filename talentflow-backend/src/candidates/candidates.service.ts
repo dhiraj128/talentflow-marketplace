@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCandidateDto, UpdateCandidateDto } from './dto/create-candidate.dto';
+import {
+  CreateCandidateDto,
+  UpdateCandidateDto,
+} from './dto/create-candidate.dto';
 
 @Injectable()
 export class CandidatesService {
@@ -11,36 +14,51 @@ export class CandidatesService {
   }
 
   findAll(skip: number = 0, take: number = 10) {
-    return this.prisma.candidateProfile.findMany({ 
-      skip, 
+    return this.prisma.candidateProfile.findMany({
+      skip,
       take,
       include: {
         certificates: {
           include: {
             course: {
-              include: { trainer: true }
-            }
-          }
-        }
-      }
+              include: { trainer: true },
+            },
+          },
+        },
+      },
     });
   }
 
   async findOne(id: string) {
-    const candidate = await this.prisma.candidateProfile.findUnique({ 
+    const candidate = await this.prisma.candidateProfile.findUnique({
       where: { id },
       include: {
+        skills: true,
         certificates: {
           include: {
             course: {
-              include: { trainer: true }
-            }
-          }
-        }
-      }
+              include: { trainer: true },
+            },
+          },
+        },
+      },
     });
     if (!candidate) throw new NotFoundException('Candidate not found');
-    return candidate;
+
+    let completionScore = 0;
+    if (candidate.fullName) completionScore += 10;
+    if (candidate.title) completionScore += 10;
+    if (candidate.location) completionScore += 10;
+    if (candidate.avatarUrl) completionScore += 10;
+    if (candidate.resumeUrl) completionScore += 10;
+    if (candidate.bio) completionScore += 10;
+    if (candidate.education) completionScore += 10;
+    if (candidate.experience) completionScore += 10;
+    if (candidate.githubUrl || candidate.linkedinUrl || candidate.portfolioUrl)
+      completionScore += 10;
+    if (candidate.skills && candidate.skills.length > 0) completionScore += 10;
+
+    return { ...candidate, completionScore };
   }
 
   async update(id: string, updateCandidateDto: UpdateCandidateDto) {

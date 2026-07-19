@@ -11,7 +11,7 @@ export class AppController {
     return {
       status: 'ok',
       service: 'TalentFlow Backend',
-      version: '1.0.0'
+      version: '1.0.0',
     };
   }
 
@@ -27,9 +27,15 @@ export class AppController {
         AWS_ACCESS_KEY_ID: !!process.env.AWS_ACCESS_KEY_ID,
         SECRET_ACCESS_KEY: !!process.env.SECRET_ACCESS_KEY,
         AWS_SECRET_ACCESS_KEY: !!process.env.AWS_SECRET_ACCESS_KEY,
-        accessKeyLast4: process.env.AWS_ACCESS_KEY_ID ? process.env.AWS_ACCESS_KEY_ID.slice(-4) : (process.env.ACCESS_KEY_ID ? process.env.ACCESS_KEY_ID.slice(-4) : 'none'),
-        secretHasSpace: process.env.AWS_SECRET_ACCESS_KEY ? process.env.AWS_SECRET_ACCESS_KEY.includes(' ') : false
-      }
+        accessKeyLast4: process.env.AWS_ACCESS_KEY_ID
+          ? process.env.AWS_ACCESS_KEY_ID.slice(-4)
+          : process.env.ACCESS_KEY_ID
+            ? process.env.ACCESS_KEY_ID.slice(-4)
+            : 'none',
+        secretHasSpace: process.env.AWS_SECRET_ACCESS_KEY
+          ? process.env.AWS_SECRET_ACCESS_KEY.includes(' ')
+          : false,
+      },
     };
   }
 }

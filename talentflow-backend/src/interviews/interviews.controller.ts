@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+﻿import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { InterviewsService } from './interviews.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
@@ -30,31 +40,49 @@ export class InterviewsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.interviewsService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.interviewsService.findOne(id, req.user.id, req.user.role);
   }
 
   @Patch(':id/reschedule')
   @Roles('EMPLOYER')
-  reschedule(@Param('id') id: string, @Body() updateInterviewDto: UpdateInterviewDto) {
-    return this.interviewsService.reschedule(id, updateInterviewDto);
+  reschedule(
+    @Param('id') id: string,
+    @Body() updateInterviewDto: UpdateInterviewDto,
+    @Req() req: any,
+  ) {
+    return this.interviewsService.reschedule(
+      id,
+      updateInterviewDto,
+      req.user.id,
+    );
   }
 
   @Patch(':id/cancel')
   @Roles('EMPLOYER', 'CANDIDATE')
-  cancel(@Param('id') id: string) {
-    return this.interviewsService.cancel(id);
+  cancel(@Param('id') id: string, @Req() req: any) {
+    return this.interviewsService.cancel(id, req.user.id, req.user.role);
   }
 
   @Patch(':id/complete')
   @Roles('EMPLOYER')
-  complete(@Param('id') id: string, @Body() body: { feedback?: string }) {
-    return this.interviewsService.complete(id, body.feedback);
+  complete(
+    @Param('id') id: string,
+    @Body() body: { feedback?: string },
+    @Req() req: any,
+  ) {
+    return this.interviewsService.complete(id, body.feedback, req.user.id);
+  }
+
+  @Patch(':id/no-show')
+  @Roles('EMPLOYER')
+  markNoShow(@Param('id') id: string, @Req() req: any) {
+    return this.interviewsService.markNoShow(id, req.user.id);
   }
 
   @Delete(':id')
   @Roles('EMPLOYER', 'ADMIN')
-  remove(@Param('id') id: string) {
-    return this.interviewsService.remove(id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.interviewsService.remove(id, req.user.id, req.user.role);
   }
 }

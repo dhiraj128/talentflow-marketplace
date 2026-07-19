@@ -14,8 +14,12 @@ export class CategoriesService {
     const limit = Number(filters.limit) || 20;
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
-      this.prisma.category.findMany({ skip, take: limit, orderBy: { name: 'asc' } }),
-      this.prisma.category.count()
+      this.prisma.category.findMany({
+        skip,
+        take: limit,
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.category.count(),
     ]);
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }

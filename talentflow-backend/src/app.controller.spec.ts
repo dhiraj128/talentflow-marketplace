@@ -19,7 +19,7 @@ describe('AppController', () => {
       expect(appController.getRoot()).toEqual({
         status: 'ok',
         service: 'TalentFlow Backend',
-        version: '1.0.0'
+        version: '1.0.0',
       });
     });
   });

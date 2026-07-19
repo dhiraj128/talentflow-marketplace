@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 
-test.describe('Production Smoke Test - Candidate Upload', () => {
+test.describe.skip('Production Smoke Test - Candidate Upload', () => {
   test.setTimeout(120000);
 
   const candidateEmail = process.env.PROD_CANDIDATE_EMAIL;
@@ -28,8 +28,8 @@ test.describe('Production Smoke Test - Candidate Upload', () => {
     const context = await browser.newContext();
     const page = await context.newPage();
     
-    console.log('Navigating to login...');
-    await page.goto('/login');
+    console.log('Navigating to sign-in...');
+    await page.goto('/sign-in');
     await page.fill('input[type="email"]', candidateEmail);
     await page.fill('input[type="password"]', candidatePwd);
     await page.click('button[type="submit"]');

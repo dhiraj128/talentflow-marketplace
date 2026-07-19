@@ -20,7 +20,10 @@ export class BillingService {
   }
 
   update(id: string, updateBillingDto: UpdateBillingDto) {
-    return this.prisma.billing.update({ where: { id }, data: updateBillingDto });
+    return this.prisma.billing.update({
+      where: { id },
+      data: updateBillingDto,
+    });
   }
 
   remove(id: string) {

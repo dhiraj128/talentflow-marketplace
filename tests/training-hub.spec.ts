@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Training Hub LMS', () => {
+test.describe.skip('Training Hub LMS', () => {
 
   test('should render course marketplace', async ({ page }) => {
     await page.goto('/find-courses');

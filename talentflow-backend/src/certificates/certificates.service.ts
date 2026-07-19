@@ -20,7 +20,10 @@ export class CertificatesService {
   }
 
   update(id: string, updateCertificateDto: UpdateCertificateDto) {
-    return this.prisma.certificate.update({ where: { id }, data: updateCertificateDto });
+    return this.prisma.certificate.update({
+      where: { id },
+      data: updateCertificateDto,
+    });
   }
 
   remove(id: string) {

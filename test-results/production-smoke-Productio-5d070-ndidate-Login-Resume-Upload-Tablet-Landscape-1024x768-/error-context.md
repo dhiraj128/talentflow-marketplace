@@ -1,0 +1,201 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: production-smoke.spec.ts >> Production Smoke Test - Candidate Upload >> 1. Candidate Login & Resume Upload
+- Location: tests\production-smoke.spec.ts:27:7
+
+# Error details
+
+```
+Test timeout of 120000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "TalentFlow" [ref=e6]:
+          - /url: /
+          - img [ref=e8]
+          - generic [ref=e11]: TalentFlow
+        - navigation [ref=e12]:
+          - link "Home" [ref=e13]:
+            - /url: /
+          - link "Find Jobs" [ref=e14]:
+            - /url: /find-jobs
+          - link "Freelance" [ref=e15]:
+            - /url: /find-freelancers
+          - link "Training" [ref=e16]:
+            - /url: /find-courses
+          - link "For Employers" [ref=e17]:
+            - /url: /find-talent
+        - generic [ref=e18]:
+          - button [ref=e19]:
+            - img
+          - button "C" [ref=e20]:
+            - generic [ref=e22]: C
+    - generic [ref=e23]:
+      - generic [ref=e25]:
+        - heading "Job Seeker Portal" [level=2] [ref=e27]
+        - generic [ref=e29]:
+          - link "Dashboard" [ref=e30]:
+            - /url: /job-seeker/dashboard
+            - img
+            - text: Dashboard
+          - link "Applications" [ref=e31]:
+            - /url: /job-seeker/applications
+            - img
+            - text: Applications
+          - link "Interviews" [ref=e32]:
+            - /url: /job-seeker/interviews
+            - img
+            - text: Interviews
+          - link "Saved Jobs" [ref=e33]:
+            - /url: /job-seeker/saved-jobs
+            - img
+            - text: Saved Jobs
+          - link "Recommended Jobs" [ref=e34]:
+            - /url: /job-seeker/recommended
+            - img
+            - text: Recommended Jobs
+          - link "Resume Center ⭐" [ref=e35]:
+            - /url: /job-seeker/resume-center
+            - img
+            - text: Resume Center ⭐
+          - link "Certificates" [ref=e36]:
+            - /url: /job-seeker/certificates
+            - img
+            - text: Certificates
+          - link "Assessments" [ref=e37]:
+            - /url: /job-seeker/assessments
+            - img
+            - text: Assessments
+          - link "Messages" [ref=e38]:
+            - /url: /job-seeker/messages
+            - img
+            - text: Messages
+          - link "Notifications" [ref=e39]:
+            - /url: /job-seeker/notifications
+            - img
+            - text: Notifications
+          - link "Profile" [ref=e40]:
+            - /url: /job-seeker/profile
+            - img
+            - text: Profile
+          - link "Verification" [ref=e41]:
+            - /url: /job-seeker/verification
+            - img
+            - text: Verification
+          - link "Settings" [ref=e42]:
+            - /url: /job-seeker/settings
+            - img
+            - text: Settings
+      - main [ref=e43]:
+        - generic [ref=e45]:
+          - generic [ref=e47]:
+            - heading "Resume Center ⭐" [level=1] [ref=e48]
+            - paragraph [ref=e49]: Build, manage, and optimize your resume to land your dream job.
+          - generic [ref=e50]:
+            - link "Overview" [ref=e51]:
+              - /url: /job-seeker/resume-center
+            - link "Builder" [ref=e52]:
+              - /url: /job-seeker/resume-center/builder
+            - link "My Resume" [ref=e53]:
+              - /url: /job-seeker/resume-center/my-resume
+            - link "ATS Check" [ref=e54]:
+              - /url: /job-seeker/resume-center/ats
+            - link "Templates" [ref=e55]:
+              - /url: /job-seeker/resume-center/templates
+            - link "Services" [ref=e56]:
+              - /url: /job-seeker/resume-center/services
+            - link "Orders" [ref=e57]:
+              - /url: /job-seeker/resume-center/orders
+            - link "Cover Letter" [ref=e58]:
+              - /url: /job-seeker/resume-center/cover-letter
+            - link "Verification" [ref=e59]:
+              - /url: /job-seeker/resume-center/verification
+            - link "Portfolio" [ref=e60]:
+              - /url: /job-seeker/resume-center/portfolio
+            - link "Downloads" [ref=e61]:
+              - /url: /job-seeker/resume-center/downloads
+            - link "Analytics" [ref=e62]:
+              - /url: /job-seeker/resume-center/analytics
+          - generic [ref=e64]:
+            - generic [ref=e65]:
+              - generic [ref=e66]:
+                - generic [ref=e68]: Profile Completion
+                - generic [ref=e69]:
+                  - generic [ref=e70]: 85%
+                  - paragraph [ref=e71]: Excellent standing
+              - generic [ref=e72]:
+                - generic [ref=e74]: ATS Score
+                - generic [ref=e75]:
+                  - generic [ref=e76]: 92/100
+                  - paragraph [ref=e77]: Highly compatible
+              - generic [ref=e78]:
+                - generic [ref=e80]: Profile Views
+                - generic [ref=e81]:
+                  - generic [ref=e82]: "124"
+                  - paragraph [ref=e83]: +12% from last week
+              - generic [ref=e84]:
+                - generic [ref=e86]: Active Versions
+                - generic [ref=e87]:
+                  - generic [ref=e88]: "16"
+                  - paragraph [ref=e89]: Tailored resumes
+            - heading "Quick Actions" [level=2] [ref=e90]
+            - generic [ref=e91]:
+              - generic [ref=e92]:
+                - generic [ref=e94]:
+                  - img [ref=e96]
+                  - generic [ref=e101]:
+                    - generic [ref=e102]: Resume Builder
+                    - generic [ref=e103]: Create or edit your professional resume
+                - link "Open Builder" [ref=e105]:
+                  - /url: /job-seeker/resume-center/builder
+                  - button "Open Builder" [ref=e106]:
+                    - text: Open Builder
+                    - img
+              - generic [ref=e107]:
+                - generic [ref=e109]:
+                  - img [ref=e111]
+                  - generic [ref=e114]:
+                    - generic [ref=e115]: ATS Check
+                    - generic [ref=e116]: Analyze your resume against job descriptions
+                - link "Run ATS Scan" [ref=e118]:
+                  - /url: /job-seeker/resume-center/ats
+                  - button "Run ATS Scan" [ref=e119]:
+                    - text: Run ATS Scan
+                    - img
+              - generic [ref=e120]:
+                - generic [ref=e122]:
+                  - img [ref=e124]
+                  - generic [ref=e127]:
+                    - generic [ref=e128]: Cover Letter
+                    - generic [ref=e129]: Generate matching cover letters instantly
+                - link "Create Cover Letter" [ref=e131]:
+                  - /url: /job-seeker/resume-center/cover-letter
+                  - button "Create Cover Letter" [ref=e132]:
+                    - text: Create Cover Letter
+                    - img
+              - generic [ref=e133]:
+                - generic [ref=e135]:
+                  - img [ref=e137]
+                  - generic [ref=e138]:
+                    - generic [ref=e139]: Analytics
+                    - generic [ref=e140]: Track performance of your documents
+                - link "View Insights" [ref=e142]:
+                  - /url: /job-seeker/resume-center/analytics
+                  - button "View Insights" [ref=e143]:
+                    - text: View Insights
+                    - img
+  - region "Notifications alt+T"
+  - alert [ref=e144]
+```

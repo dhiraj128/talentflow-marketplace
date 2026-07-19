@@ -14,6 +14,8 @@ import { DashboardStatistics } from "@/features/job-seeker/dashboard/DashboardSt
 import { ProfileCompletionMeter } from "@/features/job-seeker/dashboard/ProfileCompletionMeter";
 import { ResumeStrengthWidget } from "@/features/job-seeker/dashboard/ResumeStrengthWidget";
 import { ATSResumeServicesWidget } from "@/features/job-seeker/dashboard/ATSResumeServicesWidget";
+import { interviewsService } from "@/lib/services/interviews.service";
+import { useQuery } from "@tanstack/react-query";
 import { ResumeAnalyticsCard } from "@/features/job-seeker/dashboard/ResumeAnalyticsCard";
 import { AIMatchEngine } from "@/features/job-seeker/dashboard/AIMatchEngine";
 import { RecommendedJobsList } from "@/features/job-seeker/dashboard/RecommendedJobsList";
@@ -53,6 +55,12 @@ export default function CandidateDashboard() {
     }
   }, [user, loading, router]);
 
+  const { data: realInterviews } = useQuery({
+    queryKey: ['candidate-interviews'],
+    queryFn: () => interviewsService.getCandidateInterviews(),
+    enabled: !!user,
+  });
+
   if (loading || !user || isLoadingData) {
     return <DashboardSkeleton />;
   }
@@ -67,19 +75,19 @@ export default function CandidateDashboard() {
     missingProfileItems.push({ label: "Update Certifications", actionHref: "/job-seeker/profile" });
   }
 
-  // AI Match Mock Data
-  const aiMatchJobs = (data?.recommendedJobs || []).slice(0, 4).map((job: any, index: number) => ({
+  // AI Match Mock Data (now dynamically fetched and calculated in backend)
+  const aiMatchJobs = (data?.recommendedJobs || []).slice(0, 4).map((job: any) => ({
     id: job.id,
-    matchScore: 85 + (index * 3), // mock high score
+    matchScore: job.matchScore || 85,
     title: job.title,
     companyName: job.employer?.companyName || "Unknown Company",
     companyLogo: job.employer?.logoUrl,
     location: job.location || "Remote",
-    salary: job.salaryRange || "$80k - $120k",
-    experience: job.experienceLevel || "Mid-Senior",
-    skills: ["React", "TypeScript", "Node.js"],
-    missingSkills: index % 2 === 0 ? ["AWS"] : [],
-    postedDate: "2 days ago"
+    salary: job.salaryRange ? `${job.salaryRange} LPA` : "Not specified",
+    experience: job.type || "Full-Time", // Using type as placeholder for experience since job.type maps better for now
+    skills: job.requiredSkills?.map((rs: any) => rs.skill?.name || "Skill") || [],
+    missingSkills: [],
+    postedDate: formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })
   }));
 
   // Application Tracker Mock Data
@@ -94,26 +102,16 @@ export default function CandidateDashboard() {
   }));
 
   // Interview Timeline Mock Data
-  const mockInterviews = data?.upcomingInterviews?.length ? data.upcomingInterviews : [
-    {
-      id: "int-1",
-      companyName: "Stripe",
-      roleTitle: "Frontend Engineer",
-      date: "Tomorrow",
-      time: "10:00 AM",
-      type: "Video Call",
-      status: "Upcoming"
-    },
-    {
-      id: "int-2",
-      companyName: "Vercel",
-      roleTitle: "Senior React Developer",
-      date: "Oct 24, 2023",
-      time: "2:00 PM",
-      type: "Video Call",
-      status: "Completed"
-    }
-  ];
+  const upcomingInterviews = realInterviews ? realInterviews.map((i: any) => ({
+    id: i.id,
+    companyName: i.employer?.companyName || "Company",
+    companyLogo: i.employer?.logoUrl || "/placeholder.svg",
+    roleTitle: i.application?.job?.title || "Role",
+    date: new Date(i.scheduledAt).toLocaleDateString(),
+    time: new Date(i.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    type: (i.meetingProvider === 'Zoom' ? 'Video Call' : (i.meetingProvider === 'Phone' ? 'Phone' : 'Video Call')) as "Video Call" | "Phone" | "In-Person",
+    status: (i.status === 'SCHEDULED' ? 'Upcoming' : 'Completed') as "Upcoming" | "Completed"
+  })) : [];
 
   // Saved Jobs Mock Data
   const mockSavedJobs = [
@@ -263,7 +261,7 @@ export default function CandidateDashboard() {
               notifications={mockNotifications} 
             />
 
-            <InterviewTimelineWidget interviews={mockInterviews} />
+            <InterviewTimelineWidget interviews={upcomingInterviews} />
 
             <SavedJobsWidget jobs={mockSavedJobs} />
             

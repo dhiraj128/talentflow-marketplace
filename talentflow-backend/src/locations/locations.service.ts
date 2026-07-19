@@ -14,8 +14,12 @@ export class LocationsService {
     const limit = Number(filters.limit) || 20;
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
-      this.prisma.location.findMany({ skip, take: limit, orderBy: { name: 'asc' } }),
-      this.prisma.location.count()
+      this.prisma.location.findMany({
+        skip,
+        take: limit,
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.location.count(),
     ]);
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
@@ -31,4 +35,3 @@ export class LocationsService {
     return this.prisma.location.delete({ where: { id } });
   }
 }
-

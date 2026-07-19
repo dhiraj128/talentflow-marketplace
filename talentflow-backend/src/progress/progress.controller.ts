@@ -1,4 +1,10 @@
-import { Controller, Post, Param, UseGuards, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Param,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { ProgressService } from './progress.service';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -17,7 +23,7 @@ export class ProgressController {
   @Post('lesson/:lessonId')
   markLessonComplete(
     @Param('lessonId') lessonId: string,
-    @CurrentUser() user: any
+    @CurrentUser() user: any,
   ) {
     return this.progressService.markLessonComplete(lessonId, user.profile.id);
   }

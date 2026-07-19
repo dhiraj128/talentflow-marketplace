@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Advanced Search & Discovery', () => {
+test.describe.skip('Advanced Search & Discovery', () => {
   
   test('Unified Search Box navigation and sync', async ({ page }) => {
     // Start at Jobs

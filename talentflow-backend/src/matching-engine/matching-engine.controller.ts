@@ -11,7 +11,20 @@ export class MatchingEngineController {
   constructor(private readonly matchingEngineService: MatchingEngineService) {}
 
   @Get(':candidateId/:jobId')
-  calculateMatch(@Param('candidateId') candidateId: string, @Param('jobId') jobId: string) {
+  calculateMatch(
+    @Param('candidateId') candidateId: string,
+    @Param('jobId') jobId: string,
+  ) {
     return this.matchingEngineService.calculateMatch(candidateId, jobId);
+  }
+
+  @Get('jobs/:candidateId')
+  getRecommendedJobs(@Param('candidateId') candidateId: string) {
+    return this.matchingEngineService.getRecommendedJobs(candidateId);
+  }
+
+  @Get('candidates/:jobId')
+  getRecommendedCandidates(@Param('jobId') jobId: string) {
+    return this.matchingEngineService.getRecommendedCandidates(jobId);
   }
 }

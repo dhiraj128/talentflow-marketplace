@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateEmployerDto, UpdateEmployerDto } from './dto/create-employer.dto';
+import {
+  CreateEmployerDto,
+  UpdateEmployerDto,
+} from './dto/create-employer.dto';
 
 @Injectable()
 export class EmployersService {
@@ -15,7 +18,9 @@ export class EmployersService {
   }
 
   async findOne(id: string) {
-    const employer = await this.prisma.employerProfile.findUnique({ where: { id } });
+    const employer = await this.prisma.employerProfile.findUnique({
+      where: { id },
+    });
     if (!employer) throw new NotFoundException('Employer not found');
     return employer;
   }

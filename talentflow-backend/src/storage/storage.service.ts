@@ -1,5 +1,9 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 
@@ -17,7 +21,11 @@ export interface StorageResult {
 }
 
 export abstract class AbstractStorageService {
-  abstract uploadFile(file: UploadedFile, folder: string, candidateId?: string): Promise<StorageResult>;
+  abstract uploadFile(
+    file: UploadedFile,
+    folder: string,
+    candidateId?: string,
+  ): Promise<StorageResult>;
   abstract deleteFile(key: string): Promise<void>;
   abstract getFileUrl(key: string): string;
   abstract getS3Client(): S3Client | null;
@@ -29,25 +37,37 @@ export class S3StorageService extends AbstractStorageService {
   private readonly s3Client: S3Client;
   private readonly bucket: string;
   private readonly region: string;
-  private readonly baseUrl = process.env.API_URL || 'http://localhost:3001/api/v1';
+  private readonly baseUrl =
+    process.env.API_URL || 'http://localhost:3001/api/v1';
 
   constructor() {
     super();
     this.region = process.env.AWS_REGION || 'ap-south-1';
-    
-    console.log(`[S3 Config Startup] process.env.AWS_REGION='${process.env.AWS_REGION}', actual region passed to S3Client='${this.region}'`);
 
-    this.bucket = process.env.AWS_S3_BUCKET || 'talentflow-private-resumes-dk2026';
-    
-    const accessKeyId = (process.env.AWS_ACCESS_KEY_ID || process.env.ACCESS_KEY_ID || '').trim();
-    const secretAccessKey = (process.env.AWS_SECRET_ACCESS_KEY || process.env.SECRET_ACCESS_KEY || '').trim();
+    console.log(
+      `[S3 Config Startup] process.env.AWS_REGION='${process.env.AWS_REGION}', actual region passed to S3Client='${this.region}'`,
+    );
+
+    this.bucket =
+      process.env.AWS_S3_BUCKET || 'talentflow-private-resumes-dk2026';
+
+    const accessKeyId = (
+      process.env.AWS_ACCESS_KEY_ID ||
+      process.env.ACCESS_KEY_ID ||
+      ''
+    ).trim();
+    const secretAccessKey = (
+      process.env.AWS_SECRET_ACCESS_KEY ||
+      process.env.SECRET_ACCESS_KEY ||
+      ''
+    ).trim();
 
     this.s3Client = new S3Client({
       region: this.region,
       credentials: {
         accessKeyId,
         secretAccessKey,
-      }
+      },
     });
   }
 
@@ -59,11 +79,15 @@ export class S3StorageService extends AbstractStorageService {
     return this.bucket;
   }
 
-  async uploadFile(file: UploadedFile, folder: string = 'resumes', candidateId?: string): Promise<StorageResult> {
+  async uploadFile(
+    file: UploadedFile,
+    folder: string = 'resumes',
+    candidateId?: string,
+  ): Promise<StorageResult> {
     try {
       const extension = path.extname(file.originalname || file.filename);
       const uniqueName = `${uuidv4()}${extension}`;
-      
+
       let key = `${folder}/${uniqueName}`;
       if (candidateId) {
         key = `${folder}/${candidateId}/${uniqueName}`;
@@ -76,13 +100,15 @@ export class S3StorageService extends AbstractStorageService {
         ContentType: file.mimetype,
       });
 
-      console.log(`[S3StorageService] Before PutObject. Bucket: ${this.bucket}, Key: ${key}`);
+      console.log(
+        `[S3StorageService] Before PutObject. Bucket: ${this.bucket}, Key: ${key}`,
+      );
       await this.s3Client.send(command);
       console.log(`[S3StorageService] After PutObject success. Key: ${key}`);
 
       return {
         key,
-        url: this.getFileUrl(key)
+        url: this.getFileUrl(key),
       };
     } catch (error: any) {
       console.error('S3 Upload Error:', error);
@@ -92,7 +118,7 @@ export class S3StorageService extends AbstractStorageService {
         awsErrorCode: error?.Code || error?.code,
         awsRequestId: error?.$metadata?.requestId,
         httpStatusCode: error?.$metadata?.httpStatusCode,
-        details: error?.message
+        details: error?.message,
       });
     }
   }
@@ -116,7 +142,8 @@ export class S3StorageService extends AbstractStorageService {
 
 @Injectable()
 export class LocalStorageService extends AbstractStorageService {
-  private readonly baseUrl = process.env.API_URL || 'http://localhost:3001/api/v1';
+  private readonly baseUrl =
+    process.env.API_URL || 'http://localhost:3001/api/v1';
   private readonly uploadPath: string;
 
   constructor() {
@@ -132,12 +159,16 @@ export class LocalStorageService extends AbstractStorageService {
     return null;
   }
 
-  async uploadFile(file: UploadedFile, folder: string = 'resumes', candidateId?: string): Promise<StorageResult> {
+  async uploadFile(
+    file: UploadedFile,
+    folder: string = 'resumes',
+    candidateId?: string,
+  ): Promise<StorageResult> {
     try {
       const fs = await import('fs/promises');
       const extension = path.extname(file.originalname || file.filename);
       const uniqueName = `${uuidv4()}${extension}`;
-      
+
       let key = `${folder}/${uniqueName}`;
       if (candidateId) {
         key = `${folder}/${candidateId}/${uniqueName}`;
@@ -146,11 +177,11 @@ export class LocalStorageService extends AbstractStorageService {
       // Ensure no path traversal in the key itself
       const safeKey = path.normalize(key).replace(/^(\.\.(\/|\\|$))+/, '');
       const fullPath = path.resolve(process.cwd(), this.uploadPath, safeKey);
-      
+
       // Ensure the resolved path is inside the uploadPath directory (prevent traversal)
       const uploadDir = path.resolve(process.cwd(), this.uploadPath);
       if (!fullPath.startsWith(uploadDir)) {
-         throw new InternalServerErrorException('Invalid file path');
+        throw new InternalServerErrorException('Invalid file path');
       }
 
       await fs.mkdir(path.dirname(fullPath), { recursive: true });
@@ -158,7 +189,7 @@ export class LocalStorageService extends AbstractStorageService {
 
       return {
         key: safeKey,
-        url: this.getFileUrl(safeKey)
+        url: this.getFileUrl(safeKey),
       };
     } catch (error) {
       console.error('Local Upload Error:', error);
@@ -181,4 +212,3 @@ export class LocalStorageService extends AbstractStorageService {
     return `${this.baseUrl}/files/${key}`;
   }
 }
-

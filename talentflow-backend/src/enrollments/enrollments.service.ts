@@ -15,10 +15,10 @@ export class EnrollmentsService {
     const where: any = {};
     if (filters.candidateId) where.candidateId = filters.candidateId;
     if (filters.courseId) where.courseId = filters.courseId;
-    return this.prisma.enrollment.findMany({ 
+    return this.prisma.enrollment.findMany({
       where,
       include: { course: true },
-      orderBy: { enrolledAt: 'desc' }
+      orderBy: { enrolledAt: 'desc' },
     });
   }
 
@@ -27,7 +27,10 @@ export class EnrollmentsService {
   }
 
   update(id: string, updateEnrollmentDto: UpdateEnrollmentDto) {
-    return this.prisma.enrollment.update({ where: { id }, data: updateEnrollmentDto });
+    return this.prisma.enrollment.update({
+      where: { id },
+      data: updateEnrollmentDto,
+    });
   }
 
   remove(id: string) {

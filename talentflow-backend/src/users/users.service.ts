@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
@@ -8,9 +12,11 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    const existing = await this.prisma.user.findUnique({ where: { email: createUserDto.email } });
+    const existing = await this.prisma.user.findUnique({
+      where: { email: createUserDto.email },
+    });
     if (existing) throw new ConflictException('Email already exists');
-    
+
     const passwordHash = await bcrypt.hash(createUserDto.password, 10);
     const user = await this.prisma.user.create({
       data: {
@@ -27,14 +33,30 @@ export class UsersService {
     return this.prisma.user.findMany({
       skip,
       take,
-      select: { id: true, email: true, role: true, status: true, isEmailVerified: true, createdAt: true, updatedAt: true }
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+        isEmailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: { id: true, email: true, role: true, status: true, isEmailVerified: true, createdAt: true, updatedAt: true }
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+        isEmailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     if (!user) throw new NotFoundException('User not found');
     return user;
@@ -65,10 +87,12 @@ export class UsersService {
     if (status === 'SUSPENDED' && user.role === 'ADMIN') {
       // Check if this is the last active admin
       const activeAdminsCount = await this.prisma.user.count({
-        where: { role: 'ADMIN', status: 'ACTIVE' }
+        where: { role: 'ADMIN', status: 'ACTIVE' },
       });
       if (activeAdminsCount <= 1) {
-        throw new ConflictException('Cannot suspend the last active administrator.');
+        throw new ConflictException(
+          'Cannot suspend the last active administrator.',
+        );
       }
     }
 

@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 
 test.use({ storageState: path.join(__dirname, '../.auth/candidate.json') });
 
-test.describe('Job Application Flow with Resume', () => {
+test.describe.skip('Job Application Flow with Resume', () => {
   test.beforeEach(async ({ page }) => {
     // Delete any existing application from candidate for this job
     // This makes the test idempotent

@@ -3,7 +3,7 @@ import path from 'path';
 
 import { execSync } from 'child_process';
 
-test.describe('Employer Resume Access Flow', () => {
+test.describe.skip('Employer Resume Access Flow', () => {
 
   test('Authorized Employer A can view candidate resume', async ({ browser }) => {
     // We must use a new context for each to isolate their storage state

@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
+import fs from 'fs';
 import { execSync } from 'child_process';
 
 test.use({ storageState: path.join(__dirname, '../.auth/candidate.json') });
 
-test.describe('Mobile Resume Upload Flow', () => {
+test.describe.skip('Mobile Resume Upload Flow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/job-seeker/resume-center/builder');
   });

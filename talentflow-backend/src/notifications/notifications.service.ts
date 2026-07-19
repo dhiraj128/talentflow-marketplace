@@ -14,11 +14,11 @@ export class NotificationsService {
   findAll(filters: { userId?: string; skip?: number; take?: number }) {
     const where: any = {};
     if (filters.userId) where.userId = filters.userId;
-    return this.prisma.notification.findMany({ 
-      where, 
-      skip: filters.skip, 
+    return this.prisma.notification.findMany({
+      where,
+      skip: filters.skip,
       take: filters.take,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -27,7 +27,10 @@ export class NotificationsService {
   }
 
   update(id: string, updateNotificationDto: UpdateNotificationDto) {
-    return this.prisma.notification.update({ where: { id }, data: updateNotificationDto });
+    return this.prisma.notification.update({
+      where: { id },
+      data: updateNotificationDto,
+    });
   }
 
   remove(id: string) {

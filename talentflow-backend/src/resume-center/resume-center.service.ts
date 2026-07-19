@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AbstractStorageService } from '../storage/storage.service';
 
@@ -6,7 +10,7 @@ import { AbstractStorageService } from '../storage/storage.service';
 export class ResumeCenterService {
   constructor(
     private prisma: PrismaService,
-    private storage: AbstractStorageService
+    private storage: AbstractStorageService,
   ) {}
 
   create(data: any) {
@@ -16,7 +20,10 @@ export class ResumeCenterService {
   findAll(candidateId?: string) {
     const where: any = {};
     if (candidateId) where.candidateId = candidateId;
-    return this.prisma.resume.findMany({ where, orderBy: { createdAt: 'desc' } });
+    return this.prisma.resume.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   findOne(id: string) {
@@ -28,21 +35,23 @@ export class ResumeCenterService {
   }
 
   async remove(id: string) {
-    const resume = await this.prisma.resume.findUnique({ 
+    const resume = await this.prisma.resume.findUnique({
       where: { id },
-      include: { applications: true } 
+      include: { applications: true },
     });
     if (!resume) throw new NotFoundException('Resume not found');
 
     if (resume.applications && resume.applications.length > 0) {
       // Keep historical resume versions used by applications by preventing physical deletion
-      throw new BadRequestException('Cannot delete a resume that has been used in job applications');
+      throw new BadRequestException(
+        'Cannot delete a resume that has been used in job applications',
+      );
     }
 
     if (resume.storageKey) {
       await this.storage.deleteFile(resume.storageKey);
     }
-    
+
     return this.prisma.resume.delete({ where: { id } });
   }
 

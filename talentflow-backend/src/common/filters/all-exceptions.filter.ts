@@ -1,4 +1,11 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 
@@ -18,22 +25,26 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       const responsePayload = exception.getResponse() as any;
-      
+
       message = responsePayload.message || exception.message;
       error = responsePayload.error || exception.name;
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       // Handle known Prisma errors securely
-      this.logger.error(`Prisma Error: ${exception.code} - ${exception.message}`);
-      
+      this.logger.error(
+        `Prisma Error: ${exception.code} - ${exception.message}`,
+      );
+
       switch (exception.code) {
         case 'P2002':
           statusCode = HttpStatus.CONFLICT;
-          message = 'A record with this value already exists (Unique constraint failed).';
+          message =
+            'A record with this value already exists (Unique constraint failed).';
           error = 'Conflict';
           break;
         case 'P2003':
           statusCode = HttpStatus.BAD_REQUEST;
-          message = 'A related record does not exist (Foreign key constraint failed).';
+          message =
+            'A related record does not exist (Foreign key constraint failed).';
           error = 'Bad Request';
           break;
         case 'P2025':

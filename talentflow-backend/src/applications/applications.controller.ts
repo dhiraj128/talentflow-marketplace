@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
@@ -22,7 +32,7 @@ export class ApplicationsController {
   findAll(
     @Query('candidateId') candidateId?: string,
     @Query('employerId') employerId?: string,
-    @Query('jobId') jobId?: string
+    @Query('jobId') jobId?: string,
   ) {
     return this.applicationsService.findAll({ candidateId, employerId, jobId });
   }
@@ -31,7 +41,9 @@ export class ApplicationsController {
   @UseGuards(JwtAuthGuard)
   @Get('employer/me')
   getEmployerApplications(@CurrentUser() user: any) {
-    return this.applicationsService.findEmployerApplications(user.sub || user.userId);
+    return this.applicationsService.findEmployerApplications(
+      user.sub || user.userId,
+    );
   }
 
   @Get(':id')
@@ -42,7 +54,10 @@ export class ApplicationsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateApplicationDto: UpdateApplicationDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateApplicationDto: UpdateApplicationDto,
+  ) {
     return this.applicationsService.update(id, updateApplicationDto);
   }
 
@@ -57,9 +72,9 @@ export class ApplicationsController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id/status')
   updateStatus(
-    @Param('id') id: string, 
-    @Body('status') status: string, 
-    @CurrentUser() user: any
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @CurrentUser() user: any,
   ) {
     return this.applicationsService.updateStatus(id, status, user);
   }

@@ -42,11 +42,47 @@ import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 100,
-    }]),
-    PrismaModule, AuthModule, UsersModule, EmployersModule, CandidatesModule, JobsModule, ApplicationsModule, CoursesModule, EnrollmentsModule, CertificatesModule, SkillsModule, NotificationsModule, AuditLogsModule, AnalyticsModule, MatchingEngineModule, InterviewsModule, BillingModule, SubscriptionModule, FileUploadModule, ResumeCenterModule, MessagesModule, SearchModule, ProgressModule, AssessmentsModule, FreelancersModule, ProjectRequestsModule, CategoriesModule, DesignationsModule, LocationsModule, CouponsModule, OffersModule, PlansModule, SubscriptionsModule, TrainersModule, StorageModule
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    EmployersModule,
+    CandidatesModule,
+    JobsModule,
+    ApplicationsModule,
+    CoursesModule,
+    EnrollmentsModule,
+    CertificatesModule,
+    SkillsModule,
+    NotificationsModule,
+    AuditLogsModule,
+    AnalyticsModule,
+    MatchingEngineModule,
+    InterviewsModule,
+    BillingModule,
+    SubscriptionModule,
+    FileUploadModule,
+    ResumeCenterModule,
+    MessagesModule,
+    SearchModule,
+    ProgressModule,
+    AssessmentsModule,
+    FreelancersModule,
+    ProjectRequestsModule,
+    CategoriesModule,
+    DesignationsModule,
+    LocationsModule,
+    CouponsModule,
+    OffersModule,
+    PlansModule,
+    SubscriptionsModule,
+    TrainersModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [
@@ -54,7 +90,7 @@ import { StorageModule } from './storage/storage.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
-    }
+    },
   ],
 })
 export class AppModule {}

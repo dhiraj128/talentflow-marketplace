@@ -15,7 +15,7 @@ export class CouponsService {
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
       this.prisma.coupon.findMany({ skip, take: limit }),
-      this.prisma.coupon.count()
+      this.prisma.coupon.count(),
     ]);
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }

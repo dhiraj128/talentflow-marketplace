@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsUrl, IsArray, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsUrl,
+  IsArray,
+  IsObject,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateCandidateDto {

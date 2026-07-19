@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CertificatesService } from './certificates.service';
 import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { UpdateCertificateDto } from './dto/update-certificate.dto';
@@ -19,7 +29,10 @@ export class CertificatesController {
 
   @Get()
   findAll(@Query('skip') skip?: string, @Query('take') take?: string) {
-    return this.certificatesService.findAll(skip ? +skip : undefined, take ? +take : undefined);
+    return this.certificatesService.findAll(
+      skip ? +skip : undefined,
+      take ? +take : undefined,
+    );
   }
 
   @Get(':id')
@@ -28,7 +41,10 @@ export class CertificatesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCertificateDto: UpdateCertificateDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateCertificateDto: UpdateCertificateDto,
+  ) {
     return this.certificatesService.update(id, updateCertificateDto);
   }
 

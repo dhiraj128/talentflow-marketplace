@@ -5,6 +5,8 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { analyticsService } from "@/lib/services/analytics.service";
+import { interviewsService } from "@/lib/services/interviews.service";
+import { useQuery } from "@tanstack/react-query";
 
 // Dashboard Components
 import { EmployerWelcomeHeader } from "@/features/employer/dashboard/EmployerWelcomeHeader";
@@ -31,7 +33,6 @@ export default function EmployerDashboard() {
     if (!loading && !user) {
       router.push("/sign-in");
     } else if (user) {
-      // We still call the existing API, and mock the missing pieces.
       analyticsService.getEmployerDashboard().then(res => {
         setData(res);
         setIsLoading(false);
@@ -41,6 +42,12 @@ export default function EmployerDashboard() {
       });
     }
   }, [user, loading, router]);
+
+  const { data: realInterviews } = useQuery({
+    queryKey: ['employer-interviews'],
+    queryFn: () => interviewsService.getEmployerInterviews(),
+    enabled: !!user,
+  });
 
   if (loading || !user || isLoading) {
     return <DashboardSkeleton />;
@@ -69,42 +76,18 @@ export default function EmployerDashboard() {
     { label: "Hired", count: stats.hired, percentage: Math.floor((stats.hired / stats.applications) * 100) }
   ];
 
-  const aiCandidates = [
-    {
-      id: "cand-1",
-      name: "Alex Johnson",
-      role: "Senior Frontend Engineer",
-      experience: "5 Yrs",
-      matchScore: 98,
-      atsScore: 95,
-      skills: ["React", "TypeScript", "Next.js", "Tailwind"],
-      missingSkills: [],
-      certifications: ["AWS Certified Developer"],
-      isAtsOptimized: true
-    },
-    {
-      id: "cand-2",
-      name: "Sarah Chen",
-      role: "Full Stack Developer",
-      experience: "3 Yrs",
-      matchScore: 92,
-      atsScore: 85,
-      skills: ["React", "Node.js", "PostgreSQL"],
-      missingSkills: ["GraphQL"],
-      isAtsOptimized: false
-    },
-    {
-      id: "cand-3",
-      name: "Michael Smith",
-      role: "Frontend Developer",
-      experience: "2 Yrs",
-      matchScore: 88,
-      atsScore: 78,
-      skills: ["React", "JavaScript", "CSS"],
-      missingSkills: ["TypeScript", "Next.js"],
-      isAtsOptimized: true
-    }
-  ];
+  const aiCandidates = (data?.recommendedCandidates || []).map((cand: any) => ({
+    id: cand.id,
+    name: cand.fullName || "Candidate",
+    role: cand.title || "Developer",
+    experience: cand.experience ? `${cand.experience} Yrs` : "N/A",
+    matchScore: cand.matchScore,
+    atsScore: cand.matchScore,
+    skills: cand.skills?.map((s: any) => s.skill?.name || "Skill") || [],
+    missingSkills: [],
+    certifications: [],
+    isAtsOptimized: cand.matchScore > 80
+  }));
 
   const applications = (data?.recentApplications || []).map((app: any, idx: number) => ({
     id: app.id,
@@ -137,10 +120,15 @@ export default function EmployerDashboard() {
     { id: "s-2", name: "Elena Rodriguez", role: "Backend Engineer", experience: "6 Yrs", matchScore: 91, skills: ["Python", "Django", "AWS"] }
   ];
 
-  const upcomingInterviews: Interview[] = [
-    { id: "i-1", candidateName: "David Kim", position: "Product Designer", date: "Today", time: "2:00 PM", type: "Video Call", status: "Upcoming" },
-    { id: "i-2", candidateName: "Elena Rodriguez", position: "Backend Engineer", date: "Tomorrow", time: "10:30 AM", type: "Video Call", status: "Upcoming" }
-  ];
+  const upcomingInterviews: Interview[] = realInterviews ? realInterviews.map((i: any) => ({
+    id: i.id,
+    candidateName: i.candidate?.fullName || "Candidate",
+    position: i.application?.job?.title || "Position",
+    date: new Date(i.scheduledAt).toLocaleDateString(),
+    time: new Date(i.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    type: (i.meetingProvider === 'Zoom' ? 'Video Call' : (i.meetingProvider === 'Phone' ? 'Phone' : 'Video Call')) as "Video Call" | "Phone" | "In-Person",
+    status: (i.status === 'SCHEDULED' ? 'Upcoming' : 'Completed') as "Upcoming" | "Completed"
+  })) : [];
 
   const activities = [
     { id: "a-1", type: "CANDIDATE_APPLIED", title: "Alex Johnson applied for Senior Frontend Engineer", timestamp: "2 hours ago" },

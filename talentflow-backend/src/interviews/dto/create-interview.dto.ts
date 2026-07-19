@@ -1,19 +1,25 @@
-import { IsString, IsNotEmpty, IsOptional, IsInt, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsInt,
+  IsDateString,
+  IsUrl,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 export class CreateInterviewDto {
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   applicationId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  candidateId: string;
 
   @IsDateString()
   @IsNotEmpty()
   scheduledAt: string;
 
   @IsInt()
+  @Min(15)
   @IsOptional()
   duration?: number;
 
@@ -25,7 +31,7 @@ export class CreateInterviewDto {
   @IsOptional()
   meetingProvider?: string;
 
-  @IsString()
+  @IsUrl()
   @IsOptional()
   meetingUrl?: string;
 

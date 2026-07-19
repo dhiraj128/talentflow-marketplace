@@ -15,7 +15,7 @@ export class OffersService {
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
       this.prisma.offer.findMany({ skip, take: limit }),
-      this.prisma.offer.count()
+      this.prisma.offer.count(),
     ]);
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }

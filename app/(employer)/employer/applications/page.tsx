@@ -119,21 +119,26 @@ export default function ApplicationsPage() {
                       <Eye className="w-4 h-4 mr-2" /> View Profile & Resume
                     </Button>
                     {app.status === "PENDING" && (
-                      <Button variant="outline" size="sm" className="min-h-[44px] bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200" onClick={() => updateStatus(app.id, "REVIEWING")}>
+                      <Button variant="outline" size="sm" className="min-h-[44px] bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200" onClick={() => updateStatus(app.id, "SHORTLISTED")}>
                         <Check className="w-4 h-4 mr-1" /> Shortlist
                       </Button>
                     )}
-                    {app.status === "REVIEWING" && (
+                    {(app.status === "SHORTLISTED" || app.status === "REVIEWING") && (
                       <Button variant="outline" size="sm" className="min-h-[44px] bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200" onClick={() => updateStatus(app.id, "INTERVIEWING")}>
                         <Check className="w-4 h-4 mr-1" /> Interview
                       </Button>
                     )}
                     {app.status === "INTERVIEWING" && (
-                      <Button variant="default" size="sm" className="min-h-[44px] bg-green-600 hover:bg-green-700" onClick={() => updateStatus(app.id, "OFFERED")}>
+                      <Button variant="default" size="sm" className="min-h-[44px] bg-indigo-600 hover:bg-indigo-700" onClick={() => updateStatus(app.id, "OFFERED")}>
                         <Check className="w-4 h-4 mr-1" /> Offer Job
                       </Button>
                     )}
-                    {["PENDING", "REVIEWING", "INTERVIEWING"].includes(app.status) && (
+                    {app.status === "OFFERED" && (
+                      <Button variant="default" size="sm" className="min-h-[44px] bg-green-600 hover:bg-green-700" onClick={() => updateStatus(app.id, "HIRED")}>
+                        <Check className="w-4 h-4 mr-1" /> Hire Candidate
+                      </Button>
+                    )}
+                    {["PENDING", "REVIEWING", "SHORTLISTED", "INTERVIEWING", "OFFERED"].includes(app.status) && (
                       <Button variant="outline" size="sm" className="min-h-[44px] text-red-600 border-red-200 hover:bg-red-50" onClick={() => updateStatus(app.id, "REJECTED")}>
                         <X className="w-4 h-4" /> Reject
                       </Button>

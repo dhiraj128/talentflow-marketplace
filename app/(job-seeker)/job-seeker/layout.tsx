@@ -18,13 +18,15 @@ import {
   User,
   ShieldCheck,
   Settings,
-  LogOut
+  LogOut,
+  Calendar
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 const jobSeekerRoutes: SidebarRoute[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/job-seeker/dashboard" },
   { label: "Applications", icon: FileText, href: "/job-seeker/applications" },
+  { label: "Interviews", icon: Calendar, href: "/job-seeker/interviews" },
   { label: "Saved Jobs", icon: Bookmark, href: "/job-seeker/saved-jobs" },
   { label: "Recommended Jobs", icon: Sparkles, href: "/job-seeker/recommended" },
   { label: "Resume Center ⭐", icon: FileSignature, href: "/job-seeker/resume-center" },

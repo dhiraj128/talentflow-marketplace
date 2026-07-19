@@ -1,6 +1,15 @@
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { SendMessageDto } from './dto/send-message.dto';
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Patch,
+} from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -19,7 +28,10 @@ export class MessagesController {
 
   @Post('conversations')
   createConversation(@Body() data: CreateConversationDto) {
-    return this.messagesService.createConversation(data.participant1Id, data.participant2Id);
+    return this.messagesService.createConversation(
+      data.participant1Id,
+      data.participant2Id,
+    );
   }
 
   @Get('conversations/:id')
@@ -29,7 +41,11 @@ export class MessagesController {
 
   @Post()
   sendMessage(@Body() data: SendMessageDto) {
-    return this.messagesService.sendMessage(data.conversationId, data.senderId, data.content);
+    return this.messagesService.sendMessage(
+      data.conversationId,
+      data.senderId,
+      data.content,
+    );
   }
 
   @Patch(':id/read')
@@ -37,4 +53,3 @@ export class MessagesController {
     return this.messagesService.markAsRead(id);
   }
 }
-

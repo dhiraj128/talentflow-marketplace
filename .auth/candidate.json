@@ -2,10 +2,10 @@
   "cookies": [
     {
       "name": "access_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNhbmRpZGF0ZV9lMmVAdGFsZW50Zmxvdy50ZXN0Iiwic3ViIjoiYTExYzZlNDgtNjhhOC00NWM1LTk5NDYtY2I1NzIzYzc3NjdiIiwicm9sZSI6IkNBTkRJREFURSIsImlhdCI6MTc4NDM0NjU1OCwiZXhwIjoxNzg0MzQ3NDU4fQ.BDklIbBS9d_k9Mja8mxU8h-RBvCkdBGfiel5sRGf_Ao",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNhbmRpZGF0ZUBlMmUuY29tIiwic3ViIjoiNDJiODg4MWQtODIyMC00MTdhLTgxZjItMmZhNTljY2Y4YmYwIiwicm9sZSI6IkNBTkRJREFURSIsImlhdCI6MTc4NDQ0MDU5NywiZXhwIjoxNzg0NDQxNDk3fQ.9TAAjok2HcWNp3Fmidl1fVnYNt5ETglmhHr2_cx56Tw",
       "domain": "localhost",
       "path": "/",
-      "expires": 1784432958.447561,
+      "expires": 1784526997.668947,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -15,7 +15,7 @@
       "value": "CANDIDATE",
       "domain": "localhost",
       "path": "/",
-      "expires": 1784432958.448732,
+      "expires": 1784526997.670502,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -23,19 +23,19 @@
   ],
   "origins": [
     {
-      "origin": "http://localhost:3001",
+      "origin": "http://localhost:3000",
       "localStorage": [
         {
           "name": "user",
-          "value": "{\"id\":\"a11c6e48-68a8-45c5-9946-cb5723c7767b\",\"email\":\"candidate_e2e@talentflow.test\",\"role\":\"CANDIDATE\",\"isEmailVerified\":true,\"refreshToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNhbmRpZGF0ZV9lMmVAdGFsZW50Zmxvdy50ZXN0Iiwic3ViIjoiYTExYzZlNDgtNjhhOC00NWM1LTk5NDYtY2I1NzIzYzc3NjdiIiwicm9sZSI6IkNBTkRJREFURSIsImlhdCI6MTc4NDM0NjIyMywiZXhwIjoxNzg0OTUxMDIzfQ.3gF9BHSMDZdVN3XmleQrujTpAEILmutL8d4Cr0wpjyI\",\"createdAt\":\"2026-07-18T03:38:37.796Z\",\"updatedAt\":\"2026-07-18T03:43:43.152Z\",\"deletedAt\":null,\"avatarUrl\":null,\"githubId\":null,\"googleId\":null,\"provider\":null,\"status\":\"ACTIVE\"}"
+          "value": "{\"id\":\"42b8881d-8220-417a-81f2-2fa59ccf8bf0\",\"email\":\"candidate@e2e.com\",\"role\":\"CANDIDATE\",\"isEmailVerified\":true,\"refreshToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNhbmRpZGF0ZUBlMmUuY29tIiwic3ViIjoiNDJiODg4MWQtODIyMC00MTdhLTgxZjItMmZhNTljY2Y4YmYwIiwicm9sZSI6IkNBTkRJREFURSIsImlhdCI6MTc4NDQ0MDUwMSwiZXhwIjoxNzg1MDQ1MzAxfQ.9O8zvLtbjPvZsY3JBAYYDPBqOf_FMCnowc8XyJ5GlPM\",\"createdAt\":\"2026-07-19T05:25:58.674Z\",\"updatedAt\":\"2026-07-19T05:55:02.029Z\",\"deletedAt\":null,\"avatarUrl\":null,\"githubId\":null,\"googleId\":null,\"provider\":null,\"status\":\"ACTIVE\"}"
         },
         {
           "name": "refresh_token",
-          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNhbmRpZGF0ZV9lMmVAdGFsZW50Zmxvdy50ZXN0Iiwic3ViIjoiYTExYzZlNDgtNjhhOC00NWM1LTk5NDYtY2I1NzIzYzc3NjdiIiwicm9sZSI6IkNBTkRJREFURSIsImlhdCI6MTc4NDM0NjU1OCwiZXhwIjoxNzg0OTUxMzU4fQ.DLXGiW5WJsWmOehvhTDaNrFuN6XAZiXyBGG_0Np6AC8"
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNhbmRpZGF0ZUBlMmUuY29tIiwic3ViIjoiNDJiODg4MWQtODIyMC00MTdhLTgxZjItMmZhNTljY2Y4YmYwIiwicm9sZSI6IkNBTkRJREFURSIsImlhdCI6MTc4NDQ0MDU5NywiZXhwIjoxNzg1MDQ1Mzk3fQ.Y2iIhxkZsBq3SqxY7Zaxed_85S5ezuyj8xYlLuS_2sA"
         },
         {
           "name": "access_token",
-          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNhbmRpZGF0ZV9lMmVAdGFsZW50Zmxvdy50ZXN0Iiwic3ViIjoiYTExYzZlNDgtNjhhOC00NWM1LTk5NDYtY2I1NzIzYzc3NjdiIiwicm9sZSI6IkNBTkRJREFURSIsImlhdCI6MTc4NDM0NjU1OCwiZXhwIjoxNzg0MzQ3NDU4fQ.BDklIbBS9d_k9Mja8mxU8h-RBvCkdBGfiel5sRGf_Ao"
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImNhbmRpZGF0ZUBlMmUuY29tIiwic3ViIjoiNDJiODg4MWQtODIyMC00MTdhLTgxZjItMmZhNTljY2Y4YmYwIiwicm9sZSI6IkNBTkRJREFURSIsImlhdCI6MTc4NDQ0MDU5NywiZXhwIjoxNzg0NDQxNDk3fQ.9TAAjok2HcWNp3Fmidl1fVnYNt5ETglmhHr2_cx56Tw"
         }
       ]
     }

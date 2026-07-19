@@ -14,8 +14,12 @@ export class DesignationsService {
     const limit = Number(filters.limit) || 20;
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
-      this.prisma.designation.findMany({ skip, take: limit, orderBy: { name: 'asc' } }),
-      this.prisma.designation.count()
+      this.prisma.designation.findMany({
+        skip,
+        take: limit,
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.designation.count(),
     ]);
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
@@ -31,4 +35,3 @@ export class DesignationsService {
     return this.prisma.designation.delete({ where: { id } });
   }
 }
-

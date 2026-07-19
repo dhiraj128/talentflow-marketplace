@@ -1,10 +1,24 @@
 import { RefreshDto } from './dto/refresh.dto';
-import { Controller, Post, Body, UseGuards, Get, Req, Res, UseFilters } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Req,
+  Res,
+  UseFilters,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AuthGuard } from '@nestjs/passport';
@@ -19,7 +33,10 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Login to the application' })
-  @ApiResponse({ status: 200, description: 'Return access and refresh tokens.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return access and refresh tokens.',
+  })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
@@ -66,7 +83,9 @@ export class AuthController {
     const tokens = await this.authService.loginOAuth(req.user);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     // Redirect back to frontend callback page with tokens
-    return res.redirect(`${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
+    return res.redirect(
+      `${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`,
+    );
   }
 
   // --- GITHUB OAUTH ---
@@ -83,7 +102,8 @@ export class AuthController {
     const tokens = await this.authService.loginOAuth(req.user);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     // Redirect back to frontend callback page with tokens
-    return res.redirect(`${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
+    return res.redirect(
+      `${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`,
+    );
   }
 }
-

@@ -127,8 +127,8 @@ export function PostJobWizard({ onSubmit, onCancel, isSubmitting }: PostJobWizar
         </CardContent>
       </Card>
 
-      <p className="text-center text-xs text-muted-foreground">
-        Autosaved locally • Your job will go live after Admin review (typically 2–4 hours).
+      <p className="text-center text-xs text-muted-foreground mt-4">
+        Job will go live after Admin review (typically 2–4 hours).
       </p>
     </div>
   );

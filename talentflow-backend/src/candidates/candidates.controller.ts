@@ -1,6 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { CandidatesService } from './candidates.service';
-import { CreateCandidateDto, UpdateCandidateDto } from './dto/create-candidate.dto';
+import {
+  CreateCandidateDto,
+  UpdateCandidateDto,
+} from './dto/create-candidate.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
@@ -27,7 +40,10 @@ export class CandidatesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCandidateDto: UpdateCandidateDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateCandidateDto: UpdateCandidateDto,
+  ) {
     return this.candidatesService.update(id, updateCandidateDto);
   }
 

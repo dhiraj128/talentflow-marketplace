@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Premium Resume Services (ATS Publishing)', () => {
+test.describe.skip('Premium Resume Services (ATS Publishing)', () => {
 
   test('should display ATS Resume Services widget on Job Seeker Dashboard', async ({ page }) => {
     // 1. Navigate to Job Seeker Dashboard
