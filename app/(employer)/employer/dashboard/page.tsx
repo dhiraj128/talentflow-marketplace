@@ -53,27 +53,26 @@ export default function EmployerDashboard() {
     return <DashboardSkeleton />;
   }
 
-  // MOCK DATA TRANSFORMATIONS for AI / Premium features not in backend
-
+  // Backend data maps directly to UI now
   const stats = {
-    activeJobs: data?.stats?.activeJobs || 3,
-    applications: data?.stats?.totalApplications || 42,
-    shortlisted: data?.stats?.shortlisted || 12,
-    interviews: data?.stats?.interviewsScheduled || 5,
-    hired: data?.stats?.hiredCandidates || 2,
-    jobViews: 1250,
-    candidateViews: 340,
-    aiMatchAccuracy: 94
+    activeJobs: data?.stats?.activeJobs ?? 0,
+    applications: data?.stats?.totalApplications ?? 0,
+    shortlisted: data?.stats?.shortlisted ?? 0,
+    interviews: data?.stats?.interviewsScheduled ?? 0,
+    hired: data?.stats?.hiredCandidates ?? 0,
+    jobViews: 0,
+    candidateViews: 0,
+    aiMatchAccuracy: 0
   };
 
   const funnelStages = [
     { label: "Jobs Posted", count: stats.activeJobs, percentage: 100 },
     { label: "Applications", count: stats.applications, percentage: 100 },
     { label: "AI Screening Passed", count: Math.floor(stats.applications * 0.7), percentage: 70 },
-    { label: "Shortlisted", count: stats.shortlisted, percentage: Math.floor((stats.shortlisted / stats.applications) * 100) },
-    { label: "Interviews", count: stats.interviews, percentage: Math.floor((stats.interviews / stats.applications) * 100) },
-    { label: "Offers Sent", count: stats.hired + 1, percentage: Math.floor(((stats.hired + 1) / stats.applications) * 100) },
-    { label: "Hired", count: stats.hired, percentage: Math.floor((stats.hired / stats.applications) * 100) }
+    { label: "Shortlisted", count: stats.shortlisted, percentage: stats.applications > 0 ? Math.floor((stats.shortlisted / stats.applications) * 100) : 0 },
+    { label: "Interviews", count: stats.interviews, percentage: stats.applications > 0 ? Math.floor((stats.interviews / stats.applications) * 100) : 0 },
+    { label: "Offers Sent", count: stats.hired, percentage: stats.applications > 0 ? Math.floor((stats.hired / stats.applications) * 100) : 0 },
+    { label: "Hired", count: stats.hired, percentage: stats.applications > 0 ? Math.floor((stats.hired / stats.applications) * 100) : 0 }
   ];
 
   const aiCandidates = (data?.recommendedCandidates || []).map((cand: any) => ({
@@ -94,31 +93,23 @@ export default function EmployerDashboard() {
     candidateName: app.candidate?.fullName || "Applicant",
     position: app.job?.title || "Position",
     appliedAt: app.appliedAt,
-    atsScore: app.matchScore || (80 + idx * 2),
+    atsScore: app.matchScore || 0,
     status: app.status,
-    isAtsOptimized: idx % 2 === 0
+    isAtsOptimized: false
   }));
 
-  const trendData = [
-    { name: 'Jan', applications: 400 },
-    { name: 'Feb', applications: 300 },
-    { name: 'Mar', applications: 550 },
-    { name: 'Apr', applications: 480 },
-    { name: 'May', applications: 700 },
-    { name: 'Jun', applications: 850 },
-  ];
+  const trendData = data?.trendData || [];
+  const sourceData = data?.sourceData || [];
 
-  const sourceData = [
-    { name: 'AI Matches', value: 45 },
-    { name: 'Organic', value: 30 },
-    { name: 'Referral', value: 15 },
-    { name: 'Agency', value: 10 },
-  ];
-
-  const shortlistedCards: CandidateCardProps[] = [
-    { id: "s-1", name: "David Kim", role: "Product Designer", experience: "4 Yrs", matchScore: 94, skills: ["Figma", "UI/UX"], isAtsOptimized: true },
-    { id: "s-2", name: "Elena Rodriguez", role: "Backend Engineer", experience: "6 Yrs", matchScore: 91, skills: ["Python", "Django", "AWS"] }
-  ];
+  const shortlistedCards: CandidateCardProps[] = (data?.recommendedCandidates || []).slice(0, 3).map((cand: any) => ({
+    id: cand.id,
+    name: cand.fullName || "Candidate",
+    role: cand.title || "Developer",
+    experience: cand.experience ? `${cand.experience} Yrs` : "N/A",
+    matchScore: cand.matchScore || 0,
+    skills: cand.skills?.map((s: any) => s.skill?.name || "Skill").slice(0, 3) || [],
+    isAtsOptimized: true
+  }));
 
   const upcomingInterviews: Interview[] = realInterviews ? realInterviews.map((i: any) => ({
     id: i.id,
@@ -130,17 +121,14 @@ export default function EmployerDashboard() {
     status: (i.status === 'SCHEDULED' ? 'Upcoming' : 'Completed') as "Upcoming" | "Completed"
   })) : [];
 
-  const activities = [
-    { id: "a-1", type: "CANDIDATE_APPLIED", title: "Alex Johnson applied for Senior Frontend Engineer", timestamp: "2 hours ago" },
-    { id: "a-2", type: "INTERVIEW_SCHEDULED", title: "Interview scheduled with David Kim", timestamp: "5 hours ago" },
-    { id: "a-3", type: "JOB_POSTED", title: "Published new job: Product Designer", timestamp: "1 day ago" }
-  ] as any[];
+  const activities = (data?.recentActivity || []).map((a: any) => ({
+    id: a.id,
+    type: a.type,
+    title: a.title,
+    timestamp: a.timestamp
+  }));
 
-  const notifications = [
-    { id: "n-1", type: "AI_MATCH", title: "New 98% AI Match", message: "Alex Johnson perfectly matches your Senior Frontend Engineer role.", time: "1h ago", isRead: false },
-    { id: "n-2", type: "VERIFICATION", title: "Verification Under Review", message: "Your company documents are being reviewed by our team.", time: "4h ago", isRead: false },
-    { id: "n-3", type: "ADMIN_MESSAGE", title: "Job Approved", message: "Your job 'Product Designer' is now live.", time: "1d ago", isRead: true }
-  ] as any[];
+  const notifications = [] as any[];
 
   return (
     <PageContainer>
