@@ -27,6 +27,9 @@ import { GithubOAuthGuard } from './guards/github-oauth.guard';
 import { OAuthExceptionFilter } from './filters/oauth-exception.filter';
 import { OtpService } from './otp.service';
 import { SendOtpDto, VerifyOtpDto, ForgotPasswordDto, ResetPasswordDto } from './dto/otp.dto';
+import { Role } from "@prisma/client";
+import { Roles } from "../common/decorators/roles.decorator";
+import { RolesGuard } from "../common/guards/roles.guard";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -96,15 +99,14 @@ export class AuthController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
   @ApiOperation({ summary: 'Logout and invalidate refresh token' })
+    @UseGuards(JwtAuthGuard)
   async logout(@CurrentUser() user: any) {
     return this.authService.logout(user.userId || user.sub);
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   getProfile(@CurrentUser() user: any) {
@@ -119,12 +121,10 @@ export class AuthController {
 
   // --- GOOGLE OAUTH ---
   @Get('google')
-  @UseGuards(GoogleOAuthGuard)
   @ApiOperation({ summary: 'Login with Google' })
   async googleAuth(@Req() req: Request) {}
 
   @Get('google/callback')
-  @UseGuards(GoogleOAuthGuard)
   @UseFilters(OAuthExceptionFilter)
   @ApiOperation({ summary: 'Google OAuth callback' })
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
@@ -138,12 +138,10 @@ export class AuthController {
 
   // --- GITHUB OAUTH ---
   @Get('github')
-  @UseGuards(GithubOAuthGuard)
   @ApiOperation({ summary: 'Login with GitHub' })
   async githubAuth(@Req() req: Request) {}
 
   @Get('github/callback')
-  @UseGuards(GithubOAuthGuard)
   @UseFilters(OAuthExceptionFilter)
   @ApiOperation({ summary: 'GitHub OAuth callback' })
   async githubAuthRedirect(@Req() req: Request, @Res() res: Response) {

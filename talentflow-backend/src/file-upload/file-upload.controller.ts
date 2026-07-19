@@ -11,14 +11,16 @@ import { FileUploadService } from './file-upload.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Role } from "@prisma/client";
+import { Roles } from "../common/decorators/roles.decorator";
 
 @Controller('file-upload')
 export class FileUploadController {
   constructor(private readonly fileUploadService: FileUploadService) {}
 
   @Post('resume')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
+    @UseGuards(JwtAuthGuard)
   uploadResume(
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: any,
@@ -35,6 +37,7 @@ export class FileUploadController {
   }
 
   @Post('aws-test')
+    @UseGuards(JwtAuthGuard)
   async testAws() {
     return this.fileUploadService.testAws();
   }

@@ -15,37 +15,43 @@ import { UpdateInterviewDto } from './dto/update-interview.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from "@prisma/client";
 
 @Controller('interviews')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class InterviewsController {
   constructor(private readonly interviewsService: InterviewsService) {}
 
   @Post('schedule')
-  @Roles('EMPLOYER')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
   schedule(@Body() createInterviewDto: CreateInterviewDto, @Req() req: any) {
     return this.interviewsService.schedule(createInterviewDto, req.user.id);
   }
 
   @Get('employer')
-  @Roles('EMPLOYER')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
   findAllByEmployer(@Req() req: any) {
     return this.interviewsService.findAllByEmployer(req.user.id);
   }
 
   @Get('candidate')
-  @Roles('CANDIDATE')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
   findAllByCandidate(@Req() req: any) {
     return this.interviewsService.findAllByCandidate(req.user.id);
   }
 
   @Get(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
   findOne(@Param('id') id: string, @Req() req: any) {
     return this.interviewsService.findOne(id, req.user.id, req.user.role);
   }
 
   @Patch(':id/reschedule')
-  @Roles('EMPLOYER')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
   reschedule(
     @Param('id') id: string,
     @Body() updateInterviewDto: UpdateInterviewDto,
@@ -59,13 +65,15 @@ export class InterviewsController {
   }
 
   @Patch(':id/cancel')
-  @Roles('EMPLOYER', 'CANDIDATE')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
   cancel(@Param('id') id: string, @Req() req: any) {
     return this.interviewsService.cancel(id, req.user.id, req.user.role);
   }
 
   @Patch(':id/complete')
-  @Roles('EMPLOYER')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
   complete(
     @Param('id') id: string,
     @Body() body: { feedback?: string },
@@ -75,13 +83,15 @@ export class InterviewsController {
   }
 
   @Patch(':id/no-show')
-  @Roles('EMPLOYER')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
   markNoShow(@Param('id') id: string, @Req() req: any) {
     return this.interviewsService.markNoShow(id, req.user.id);
   }
 
   @Delete(':id')
-  @Roles('EMPLOYER', 'ADMIN')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.CANDIDATE, Role.ADMIN)
   remove(@Param('id') id: string, @Req() req: any) {
     return this.interviewsService.remove(id, req.user.id, req.user.role);
   }

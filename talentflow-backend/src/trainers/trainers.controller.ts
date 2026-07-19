@@ -14,6 +14,7 @@ import { TrainersService } from './trainers.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from "@prisma/client";
 
 @Controller('trainers')
 export class TrainersController {
@@ -25,20 +26,26 @@ export class TrainersController {
   }
 
   @Get(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.trainersService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  
+  
   @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   update(@Param('id') id: string, @Body() updateDto: UpdateTrainersDto) {
     return this.trainersService.update(id, updateDto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  
+  
   @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.trainersService.remove(id);
   }

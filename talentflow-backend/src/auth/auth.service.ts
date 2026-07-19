@@ -263,7 +263,7 @@ export class AuthService {
     const role = registerDto.role || Role.CANDIDATE;
     
     // Default the name if provided
-    let fullName = registerDto.fullName || 'User';
+    const fullName = registerDto.fullName || 'User';
 
     const user = await this.prisma.user.create({
       data: {

@@ -16,30 +16,40 @@ import {
 } from './dto/create-employer.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Role } from "@prisma/client";
+import { Roles } from "../common/decorators/roles.decorator";
+import { RolesGuard } from "../common/guards/roles.guard";
 
 @ApiTags('Employers')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('employers')
 export class EmployersController {
   constructor(private readonly employersService: EmployersService) {}
 
   @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   create(@Body() createEmployerDto: CreateEmployerDto) {
     return this.employersService.create(createEmployerDto);
   }
 
   @Get()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   findAll(@Query('skip') skip?: string, @Query('take') take?: string) {
     return this.employersService.findAll(skip ? +skip : 0, take ? +take : 10);
   }
 
   @Get(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.employersService.findOne(id);
   }
 
   @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.ADMIN)
   update(
     @Param('id') id: string,
     @Body() updateEmployerDto: UpdateEmployerDto,
@@ -48,6 +58,8 @@ export class EmployersController {
   }
 
   @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.employersService.remove(id);
   }

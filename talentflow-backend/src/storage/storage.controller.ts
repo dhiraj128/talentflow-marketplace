@@ -17,6 +17,9 @@ import { AbstractStorageService } from './storage.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
+import { Role } from "@prisma/client";
+import { Roles } from "../common/decorators/roles.decorator";
+import { RolesGuard } from "../common/guards/roles.guard";
 
 @Controller('files')
 export class StorageController {
@@ -26,7 +29,7 @@ export class StorageController {
   ) {}
 
   @Get('*')
-  @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
   async serveFile(
     @Req() req: Request,
     @Res() res: Response,

@@ -11,6 +11,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from "@prisma/client";
 
 @ApiTags('progress')
 @Controller('progress')
@@ -18,9 +19,9 @@ export class ProgressController {
   constructor(private readonly progressService: ProgressService) {}
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CANDIDATE')
   @Post('lesson/:lessonId')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.CANDIDATE, Role.ADMIN)
   markLessonComplete(
     @Param('lessonId') lessonId: string,
     @CurrentUser() user: any,

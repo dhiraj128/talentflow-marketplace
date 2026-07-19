@@ -15,6 +15,7 @@ import { FreelancersService } from './freelancers.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from "@prisma/client";
 
 @Controller('freelancers')
 export class FreelancersController {
@@ -26,35 +27,37 @@ export class FreelancersController {
   }
 
   @Get('admin/all')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   findAllAdmin() {
     return this.freelancersService.findAllAdmin();
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('FREELANCER')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   getMe(@Req() req: any) {
     // We can reuse updateMe logic or create getMe in service
     return this.freelancersService.getMe(req.user.id);
   }
 
   @Get(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.FREELANCER, Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.freelancersService.findOne(id);
   }
 
   @Patch('me')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('FREELANCER')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   updateMe(@Req() req: any, @Body() updateData: UpdateMeDto) {
     return this.freelancersService.updateMe(req.user.id, updateData);
   }
 
   @Patch(':id/verify')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   verify(@Param('id') id: string, @Body('isVerified') isVerified: boolean) {
     return this.freelancersService.verify(id, isVerified);
   }

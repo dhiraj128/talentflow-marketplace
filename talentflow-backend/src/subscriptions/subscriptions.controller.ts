@@ -14,14 +14,17 @@ import { SubscriptionsService } from './subscriptions.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from "@prisma/client";
 
 @Controller('subscriptions')
 export class SubscriptionsController {
   constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  
+  
   @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   create(@Body() createDto: CreateSubscriptionsDto) {
     return this.subscriptionsService.create(createDto);
   }
@@ -36,16 +39,20 @@ export class SubscriptionsController {
     return this.subscriptionsService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  
+  
   @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() updateDto: UpdateSubscriptionsDto) {
     return this.subscriptionsService.update(id, updateDto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  
+  
   @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.subscriptionsService.remove(id);
   }

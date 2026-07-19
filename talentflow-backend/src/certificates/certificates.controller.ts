@@ -14,20 +14,26 @@ import { CreateCertificateDto } from './dto/create-certificate.dto';
 import { UpdateCertificateDto } from './dto/update-certificate.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Role } from "@prisma/client";
+import { Roles } from "../common/decorators/roles.decorator";
+import { RolesGuard } from "../common/guards/roles.guard";
 
 @ApiTags('certificates')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('certificates')
 export class CertificatesController {
   constructor(private readonly certificatesService: CertificatesService) {}
 
   @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   create(@Body() createCertificateDto: CreateCertificateDto) {
     return this.certificatesService.create(createCertificateDto);
   }
 
   @Get()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.CANDIDATE, Role.TRAINER, Role.ADMIN)
   findAll(@Query('skip') skip?: string, @Query('take') take?: string) {
     return this.certificatesService.findAll(
       skip ? +skip : undefined,
@@ -36,11 +42,15 @@ export class CertificatesController {
   }
 
   @Get(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.CANDIDATE, Role.TRAINER, Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.certificatesService.findOne(id);
   }
 
   @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   update(
     @Param('id') id: string,
     @Body() updateCertificateDto: UpdateCertificateDto,
@@ -49,6 +59,8 @@ export class CertificatesController {
   }
 
   @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.certificatesService.remove(id);
   }

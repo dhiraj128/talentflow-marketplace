@@ -23,6 +23,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { Role } from "@prisma/client";
 
 @ApiTags('courses')
 @Controller('courses')
@@ -30,17 +31,15 @@ export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('TRAINER')
   @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   create(@Body() createCourseDto: CreateCourseDto, @CurrentUser() user: any) {
     const trainerId = user.profile.id;
     return this.coursesService.create(createCourseDto, trainerId);
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CANDIDATE')
   @Get('my-learning')
   getMyLearning(@CurrentUser() user: any) {
     return this.coursesService.getMyLearning(user.profile.id);
@@ -61,33 +60,33 @@ export class CoursesController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CANDIDATE')
   @Post(':id/enroll')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   enroll(@Param('id') id: string, @CurrentUser() user: any) {
     return this.coursesService.enroll(id, user.profile.id);
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN', 'TRAINER')
   @Patch(':id/approve')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   approve(@Param('id') id: string) {
     return this.coursesService.approve(id);
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('TRAINER')
   @Patch(':id/submit')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   submit(@Param('id') id: string, @CurrentUser() user: any) {
     return this.coursesService.submit(id, user.profile.id);
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('TRAINER')
   @Post(':id/modules')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   createModule(
     @Param('id') courseId: string,
     @Body() data: CreateModuleDto,
@@ -97,9 +96,9 @@ export class CoursesController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('TRAINER')
   @Post('modules/:moduleId/lessons')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   createLesson(
     @Param('moduleId') moduleId: string,
     @Body() data: CreateLessonDto,
@@ -109,9 +108,9 @@ export class CoursesController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('TRAINER')
   @Post(':courseId/assessment')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   createAssessment(
     @Param('courseId') courseId: string,
     @Body() data: CreateAssessmentDto,
@@ -125,9 +124,9 @@ export class CoursesController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('TRAINER')
   @Post('assessments/:assessmentId/questions')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   createQuestion(
     @Param('assessmentId') assessmentId: string,
     @Body() data: CreateQuestionDto,
@@ -141,9 +140,9 @@ export class CoursesController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('TRAINER')
   @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   update(
     @Param('id') id: string,
     @Body() updateCourseDto: UpdateCourseDto,
@@ -153,9 +152,9 @@ export class CoursesController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('TRAINER')
   @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.TRAINER, Role.ADMIN)
   remove(@Param('id') id: string, @CurrentUser() user: any) {
     return this.coursesService.remove(id, user.profile.id);
   }

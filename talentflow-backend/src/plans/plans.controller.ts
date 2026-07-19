@@ -14,14 +14,17 @@ import { PlansService } from './plans.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from "@prisma/client";
 
 @Controller('plans')
 export class PlansController {
   constructor(private readonly plansService: PlansService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  
+  
   @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   create(@Body() createDto: CreatePlansDto) {
     return this.plansService.create(createDto);
   }
@@ -36,16 +39,20 @@ export class PlansController {
     return this.plansService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  
+  
   @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() updateDto: UpdatePlansDto) {
     return this.plansService.update(id, updateDto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  
+  
   @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.plansService.remove(id);
   }

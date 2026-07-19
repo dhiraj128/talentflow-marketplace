@@ -14,20 +14,25 @@ import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Role } from "@prisma/client";
+import { Roles } from "../common/decorators/roles.decorator";
+import { RolesGuard } from "../common/guards/roles.guard";
 
 @ApiTags('notifications')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   create(@Body() createNotificationDto: CreateNotificationDto) {
     return this.notificationsService.create(createNotificationDto);
   }
 
   @Get()
+    @UseGuards(JwtAuthGuard)
   findAll(
     @Query('userId') userId?: string,
     @Query('skip') skip?: string,
@@ -41,11 +46,13 @@ export class NotificationsController {
   }
 
   @Get(':id')
+    @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     return this.notificationsService.findOne(id);
   }
 
   @Patch(':id')
+    @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
     @Body() updateNotificationDto: UpdateNotificationDto,
@@ -54,6 +61,8 @@ export class NotificationsController {
   }
 
   @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.notificationsService.remove(id);
   }

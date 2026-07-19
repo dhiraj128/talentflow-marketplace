@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Role } from "@prisma/client";
 
 @ApiTags('assessments')
 @Controller('assessments')
@@ -12,9 +13,9 @@ export class AssessmentsController {
   constructor(private readonly assessmentsService: AssessmentsService) {}
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CANDIDATE')
   @Post(':courseId/submit')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.CANDIDATE, Role.ADMIN)
   submitAssessment(
     @Param('courseId') courseId: string,
     @Body('answers') answers: Record<string, string>,

@@ -16,6 +16,9 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { Role } from "@prisma/client";
+import { Roles } from "../common/decorators/roles.decorator";
+import { RolesGuard } from "../common/guards/roles.guard";
 
 @ApiTags('jobs')
 @Controller('jobs')
@@ -23,8 +26,9 @@ export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.ADMIN)
   create(@Body() createJobDto: CreateJobDto, @CurrentUser() user: any) {
     return this.jobsService.create(createJobDto, user.sub || user.userId);
   }
@@ -54,15 +58,15 @@ export class JobsController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get('employer/me')
   getEmployerJobs(@CurrentUser() user: any) {
     return this.jobsService.findEmployerJobs(user.sub || user.userId);
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.ADMIN)
   update(
     @Param('id') id: string,
     @Body() updateJobDto: UpdateJobDto,
@@ -72,22 +76,25 @@ export class JobsController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.ADMIN)
   remove(@Param('id') id: string, @CurrentUser() user: any) {
     return this.jobsService.remove(id, user);
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Patch(':id/approve')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.ADMIN)
   approveJob(@Param('id') id: string, @CurrentUser() user: any) {
     return this.jobsService.approveJob(id, user);
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post(':id/apply')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.ADMIN)
   async applyToJob(
     @Param('id') id: string,
     @Body() body: { resumeId?: string },
@@ -120,7 +127,6 @@ export class JobsController {
   }
 
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get(':id/application-status')
   async checkApplicationStatus(
     @Param('id') id: string,
