@@ -23,16 +23,23 @@ export default function FreelancerDashboard() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      const res = await analyticsService.getFreelancerDashboard();
+      setData(res);
+    } catch (error) {
+      console.error("Failed to load freelancer dashboard", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!loading && !user) {
       router.push("/sign-in");
     } else if (user) {
-      // Typically, fetch freelancer dashboard data here
-      // For now, we mock to ensure UI completeness
-      setTimeout(() => {
-        setData({ success: true });
-        setIsLoading(false);
-      }, 500);
+      fetchDashboardData();
     }
   }, [user, loading, router]);
 
@@ -40,81 +47,51 @@ export default function FreelancerDashboard() {
     return <DashboardSkeleton />;
   }
 
-  // MOCK DATA TRANSFORMATIONS
-
   const stats = {
-    activeServices: 3,
-    activeProjects: 2,
-    pendingBids: 2,
-    completedProjects: 15,
-    earnings: 4500,
-    rating: 4.8,
-    profileCompletion: 95
+    activeServices: data?.stats?.activeServices ?? 0,
+    activeProjects: data?.stats?.activeProjects ?? 0,
+    pendingBids: data?.stats?.pendingBids ?? 0,
+    completedProjects: data?.stats?.completedProjects ?? 0,
+    earnings: data?.stats?.earnings ?? 0,
+    rating: data?.stats?.rating ?? 0,
+    profileCompletion: data?.stats?.profileCompletion ?? 0,
+    totalReviews: data?.stats?.totalReviews ?? 0,
   };
 
-  const bids: BidCardProps[] = [
-    {
-      id: "bid-1",
-      employerName: "TechCorp Inc.",
-      projectTitle: "Frontend Rebuild - React & Tailwind",
-      budget: "$2,000",
-      deadline: "2 weeks",
-      status: "PENDING",
-      message: "We loved your portfolio and would like you to rebuild our landing page.",
-    },
-    {
-      id: "bid-2",
-      employerName: "DesignFlow Agency",
-      projectTitle: "Figma to Next.js Conversion",
-      budget: "$850",
-      deadline: "1 week",
-      status: "PENDING",
-    }
-  ];
+  const bids = data?.invitations?.map((inv: any) => ({
+    id: inv.id,
+    employerName: inv.employer?.companyName || "Unknown Client",
+    projectTitle: inv.title,
+    budget: `$${inv.budget}`,
+    deadline: "TBD",
+    status: inv.status,
+    message: inv.description,
+  })) || [];
 
-  const projects = [
-    {
-      id: "proj-1",
-      title: "Full-Stack Dashboard Setup",
-      employerName: "Acme Corp",
-      status: "ACTIVE" as any,
-      progress: 65,
-      dueDate: "Aug 15, 2026",
-      amount: "$3,500"
-    },
-    {
-      id: "proj-2",
-      title: "API Integration & Testing",
-      employerName: "Stark Industries",
-      status: "ACTIVE" as any,
-      progress: 15,
-      dueDate: "Sep 01, 2026",
-      amount: "$1,200"
-    }
-  ];
+  const projects = data?.projects?.map((proj: any) => ({
+    id: proj.id,
+    title: proj.title,
+    employerName: proj.employer?.companyName || "Unknown Client",
+    status: proj.status,
+    progress: proj.status === 'COMPLETED' ? 100 : (proj.status === 'ACCEPTED' ? 50 : 0),
+    dueDate: new Date(proj.updatedAt).toLocaleDateString(),
+    amount: `$${proj.budget}`
+  })) || [];
 
   const earningsData = [
-    { name: 'Jan', amount: 800 },
-    { name: 'Feb', amount: 1200 },
-    { name: 'Mar', amount: 900 },
-    { name: 'Apr', amount: 1500 },
-    { name: 'May', amount: 2100 },
-    { name: 'Jun', amount: 1800 },
-    { name: 'Jul', amount: 2400 },
+    { name: 'Current', amount: stats.earnings }
   ];
 
-  const activities = [
-    { id: "a-1", type: "BID_ACCEPTED", title: "TechCorp accepted your bid for 'Frontend Rebuild'", timestamp: "2 hours ago" },
-    { id: "a-2", type: "PAYMENT_RECEIVED", title: "Received $800 from Stark Industries", timestamp: "1 day ago" },
-    { id: "a-3", type: "NEW_REVIEW", title: "Acme Corp left a 5-star review", timestamp: "3 days ago" }
-  ] as any[];
+  const activities = data?.recentActivity || [];
 
   return (
     <PageContainer>
       <div className="space-y-8 pb-10">
         <FreelancerWelcomeHeader user={user} />
         
-        <BidNotificationBanner count={bids.filter(b => b.status === "PENDING").length} />
+        {stats.pendingBids > 0 && (
+          <BidNotificationBanner count={stats.pendingBids} />
+        )}
         
         <FreelancerStatistics stats={stats} />
 
@@ -122,7 +99,7 @@ export default function FreelancerDashboard() {
           
           {/* Main Column */}
           <div className="lg:col-span-2 space-y-8">
-            <ProjectInvitations bids={bids} />
+            <ProjectInvitations bids={bids} onActionComplete={fetchDashboardData} />
             <RecentProjects projects={projects} />
             <EarningsOverview data={earningsData} />
           </div>

@@ -14,7 +14,22 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ activities }: ActivityFeedProps) {
-  if (!activities || activities.length === 0) return null;
+  if (!activities || activities.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent className="px-6 pb-6 pt-0 flex flex-col items-center justify-center text-center">
+          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center mb-3">
+            <CheckCircle className="w-5 h-5 text-muted-foreground opacity-50" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground">No recent activity</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">Actions on your projects will appear here.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const getIcon = (type: Activity["type"]) => {
     switch (type) {

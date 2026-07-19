@@ -1,60 +1,110 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable } from "@/components/shared/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-
-interface Proposal {
-  id: string;
-  jobTitle: string;
-  submitted: string;
-  amount: string;
-  status: string;
-}
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 
 export default function ProposalsPage() {
-  const data: Proposal[] = useMemo(() => [
-    { id: "1", jobTitle: "Full Stack Next.js Dev needed", submitted: "2 hours ago", amount: "$50/hr", status: "Submitted" },
-    { id: "2", jobTitle: "Figma UI/UX for SaaS", submitted: "1 day ago", amount: "$2,000", status: "Viewed" },
-    { id: "3", jobTitle: "React Native Mobile App", submitted: "3 days ago", amount: "$3,500", status: "Interviewing" },
-    { id: "4", jobTitle: "Python Scripting task", submitted: "1 week ago", amount: "$500", status: "Declined" },
-  ], []);
+  const { user } = useAuth();
+  const [data, setData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const columns: ColumnDef<Proposal>[] = useMemo(() => [
-    { accessorKey: "jobTitle", header: "Job Title" },
-    { accessorKey: "submitted", header: "Submitted" },
-    { accessorKey: "amount", header: "Bid Amount" },
+  const fetchProposals = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/project-requests/freelancer`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        }
+      });
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error(err);
+      toast.error("Error", { description: "Failed to load proposals." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) fetchProposals();
+  }, [user]);
+
+  const handleWithdraw = async (id: string) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/project-requests/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+        body: JSON.stringify({ status: "REJECTED" })
+      });
+      if (!res.ok) throw new Error("Failed");
+      toast.success("Proposal withdrawn successfully");
+      fetchProposals();
+    } catch (err) {
+      toast.error("Error", { description: "Could not withdraw proposal." });
+    }
+  };
+
+  const columns: ColumnDef<any>[] = useMemo(() => [
+    { 
+      accessorKey: "title", 
+      header: "Project Title",
+      cell: ({ row }) => <span className="font-medium">{row.original.title}</span>
+    },
+    { 
+      accessorKey: "createdAt", 
+      header: "Submitted",
+      cell: ({ row }) => formatDistanceToNow(new Date(row.original.createdAt), { addSuffix: true })
+    },
+    { 
+      accessorKey: "budget", 
+      header: "Bid Amount",
+      cell: ({ row }) => `$${row.original.budget}`
+    },
     { 
       accessorKey: "status", 
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("status") as string;
+        const status = row.original.status as string;
         let variant: "default" | "secondary" | "destructive" | "outline" = "default";
-        if (status === "Submitted") variant = "secondary";
-        else if (status === "Declined") variant = "destructive";
-        else if (status === "Interviewing") variant = "default";
+        if (status === "PENDING") variant = "secondary";
+        else if (status === "REJECTED") variant = "destructive";
+        else if (status === "ACCEPTED") variant = "default";
+        else if (status === "COMPLETED") variant = "default";
         return <Badge variant={variant}>{status}</Badge>;
       }
     },
     {
       id: "actions",
       cell: ({ row }) => {
+        const isPending = row.original.status === "PENDING";
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>View Job</DropdownMenuItem>
-              <DropdownMenuItem>Withdraw Proposal</DropdownMenuItem>
+              {isPending && (
+                <DropdownMenuItem onClick={() => handleWithdraw(row.original.id)} className="text-destructive">
+                  Withdraw Proposal
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )

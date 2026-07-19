@@ -6,7 +6,30 @@ interface EarningsOverviewProps {
   data: any[];
 }
 
+import { DollarSign } from "lucide-react";
+
 export function EarningsOverview({ data }: EarningsOverviewProps) {
+  const hasEarnings = data && data.length > 0 && data.some(d => d.amount > 0);
+
+  if (!hasEarnings) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Earnings Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[250px] w-full flex flex-col items-center justify-center text-center">
+          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+            <DollarSign className="w-6 h-6 text-muted-foreground opacity-50" />
+          </div>
+          <h3 className="text-lg font-semibold text-muted-foreground">No earnings yet</h3>
+          <p className="text-sm text-muted-foreground/60 max-w-sm mt-1">
+            Complete projects to start tracking your earnings here.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>

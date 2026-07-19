@@ -236,8 +236,76 @@ export class AnalyticsService {
   }
 
   async getFreelancerDashboard(userId: string) {
-    // Same as candidate for now
-    return this.getCandidateDashboard(userId);
+    const freelancer = await this.prisma.freelancerProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!freelancer) {
+      return this.emptyFreelancerDashboard();
+    }
+
+    const projects = await this.prisma.projectRequest.findMany({
+      where: { freelancerId: freelancer.id },
+      include: { employer: { include: { user: true } } },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    const reviews = await this.prisma.review.findMany({
+      where: { freelancerId: freelancer.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const activeProjects = projects.filter(p => p.status === 'ACCEPTED').length;
+    const completedProjects = projects.filter(p => p.status === 'COMPLETED').length;
+    const pendingBids = projects.filter(p => p.status === 'PENDING').length;
+    
+    const earnings = projects
+      .filter(p => p.status === 'COMPLETED')
+      .reduce((sum, p) => sum + (p.budget || 0), 0);
+
+    const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+    const avgRating = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : 0;
+
+    let profileCompletion = 0;
+    if (freelancer.fullName) profileCompletion += 20;
+    if (freelancer.title) profileCompletion += 20;
+    if (freelancer.bio) profileCompletion += 20;
+    if (freelancer.hourlyRate) profileCompletion += 20;
+    if (freelancer.avatarUrl) profileCompletion += 20;
+
+    return {
+      stats: {
+        activeProjects,
+        completedProjects,
+        pendingBids,
+        earnings,
+        rating: avgRating,
+        profileCompletion,
+        totalReviews: reviews.length,
+      },
+      projects: projects.slice(0, 5),
+      invitations: projects.filter(p => p.status === 'PENDING').slice(0, 5),
+      reviews: reviews.slice(0, 5),
+      recentActivity: []
+    };
+  }
+
+  private emptyFreelancerDashboard() {
+    return {
+      stats: {
+        activeProjects: 0,
+        completedProjects: 0,
+        pendingBids: 0,
+        earnings: 0,
+        rating: 0,
+        profileCompletion: 0,
+        totalReviews: 0,
+      },
+      projects: [],
+      invitations: [],
+      reviews: [],
+      recentActivity: [],
+    };
   }
 
   async getTrainerDashboard(userId: string) {
