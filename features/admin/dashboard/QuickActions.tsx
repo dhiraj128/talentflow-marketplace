@@ -22,9 +22,9 @@ export function QuickActions() {
             <Link key={i} href={action.href} className="w-full focus:outline-none">
               <Button 
                 variant="outline" 
-                className="w-full h-24 flex flex-col gap-3 justify-center items-center rounded-xl transition-all hover:bg-primary/5 hover:border-primary/50 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="w-full h-24 p-4 flex items-center justify-start gap-3 rounded-xl transition-all duration-200 hover:bg-primary/5 hover:border-primary/50 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                <action.icon className="w-6 h-6 text-primary" aria-hidden="true" />
+                <action.icon className="w-6 h-6 shrink-0 text-primary" aria-hidden="true" />
                 <span className="text-sm font-medium">{action.label}</span>
               </Button>
             </Link>
