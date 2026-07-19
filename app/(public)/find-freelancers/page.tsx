@@ -120,7 +120,7 @@ export default function FindFreelancersPage() {
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-6 lg:px-8 xl:px-10 -mt-8 relative z-20">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 -mt-8 relative z-20">
         
         {/* Category Tabs */}
         <div className="bg-white rounded-2xl shadow-sm p-2 mb-8">
