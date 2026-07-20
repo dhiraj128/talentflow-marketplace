@@ -6,7 +6,8 @@ import { MarketplaceSearch } from "@/features/freelancer/marketplace/Marketplace
 import { MarketplaceFilters } from "@/features/freelancer/marketplace/MarketplaceFilters";
 import { MarketplaceSort } from "@/features/freelancer/marketplace/MarketplaceSort";
 import { CategoryTabs } from "@/features/freelancer/marketplace/CategoryTabs";
-import { FreelancerGrid } from "@/features/freelancer/marketplace/FreelancerGrid";
+import { FreelancerCardProps } from "@/features/freelancer/marketplace/FreelancerCard";
+import { SearchResultsGrid } from "@/features/freelancer/marketplace/SearchResultsGrid";
 import { FeaturedFreelancers } from "@/features/freelancer/marketplace/FeaturedFreelancers";
 import { EmptyMarketplaceState } from "@/features/freelancer/marketplace/EmptyMarketplaceState";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -168,7 +169,7 @@ export default function FindFreelancersPage() {
             </div>
 
             {filteredFreelancers.length > 0 ? (
-              <FreelancerGrid freelancers={filteredFreelancers} />
+              <SearchResultsGrid freelancers={filteredFreelancers} />
             ) : (
               <EmptyMarketplaceState onClearFilters={handleClearFilters} />
             )}

@@ -1,6 +1,6 @@
 import React from "react";
 import { FreelancerCardProps } from "./FreelancerCard";
-import { FreelancerGrid } from "./FreelancerGrid";
+import { FeaturedFreelancersGrid } from "./FeaturedFreelancersGrid";
 import { Sparkles } from "lucide-react";
 
 interface FeaturedFreelancersProps {
@@ -16,7 +16,7 @@ export function FeaturedFreelancers({ freelancers }: FeaturedFreelancersProps) {
         <Sparkles className="w-5 h-5 text-amber-500" />
         <h2 className="text-2xl font-bold tracking-tight">Top Rated Professionals</h2>
       </div>
-      <FreelancerGrid freelancers={freelancers} />
+      <FeaturedFreelancersGrid freelancers={freelancers} />
     </div>
   );
 }
