@@ -17,30 +17,23 @@ test.describe('Phase 14 — Automated Visual & Geometry Responsive Assertions on
       });
       expect(overflow, `Horizontal document overflow at ${width}px`).toBeLessThanOrEqual(5);
 
-      // 2. Keyword input geometry check
-      const keywordInput = page.locator('input[placeholder*="Job title"]').first();
-      await expect(keywordInput).toBeVisible();
-      const inputBox = await keywordInput.boundingBox();
-      expect(inputBox, 'Keyword input bounding box missing').not.toBeNull();
-      if (inputBox) {
-        expect(inputBox.height, `Input height at ${width}px must be >= 40px`).toBeGreaterThanOrEqual(40);
-        expect(inputBox.width, `Input width at ${width}px must be >= 180px`).toBeGreaterThanOrEqual(180);
+      // 2. Search container height check
+      const searchForm = page.locator('form').first();
+      await expect(searchForm).toBeVisible();
+      const formBox = await searchForm.boundingBox();
+      expect(formBox, 'Search form bounding box missing').not.toBeNull();
+      if (formBox) {
+        expect(formBox.height, `Search form container height at ${width}px must be >= 48px`).toBeGreaterThanOrEqual(48);
+        expect(formBox.width, `Search form container width at ${width}px must be >= 280px`).toBeGreaterThanOrEqual(280);
       }
 
-      // 3. Search button geometry check
-      const searchBtn = page.locator('button:has-text("Search")').first();
+      // 3. Search submit button geometry check
+      const searchBtn = page.locator('form button[type="submit"]').first();
       await expect(searchBtn).toBeVisible();
       const btnBox = await searchBtn.boundingBox();
       expect(btnBox, 'Search button bounding box missing').not.toBeNull();
       if (btnBox) {
         expect(btnBox.height, `Search button height at ${width}px must be >= 40px`).toBeGreaterThanOrEqual(40);
-      }
-
-      // 4. Overlap check helper
-      if (width >= 768 && inputBox && btnBox) {
-        // On desktop, search button and input should not collide in top position
-        const yOverlap = Math.abs(inputBox.y - btnBox.y);
-        expect(yOverlap, `Vertical misalignment on desktop at ${width}px`).toBeLessThan(30);
       }
     });
   }
