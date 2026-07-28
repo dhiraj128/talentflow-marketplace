@@ -20,12 +20,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, MessageSquare, Menu, LogOut, Briefcase } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
+import { useRouter } from "next/navigation";
+
 interface TopNavBarProps {
   onMenuClick?: () => void;
   showSidebarToggle?: boolean;
 }
 
 export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarProps) {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -56,6 +59,27 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
     }
   };
 
+  const markAllAsRead = async () => {
+    try {
+      await Promise.all(notifications.filter(n => !n.isRead).map(n => notificationService.markAsRead(n.id)));
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleNotificationClick = async (n: any) => {
+    if (!n.isRead) {
+      await markAsRead(n.id);
+    }
+    if (n.link || n.url) {
+      router.push(n.link || n.url);
+    } else {
+      const basePath = getRoleBasePath(user?.role);
+      router.push(`${basePath}/notifications`);
+    }
+  };
+
   const getRoleBasePath = (role?: string | null) => {
     switch (role?.toUpperCase()) {
       case "ADMIN": return "/admin";
@@ -74,38 +98,37 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="w-full min-w-0 px-4 flex h-16 items-center justify-between">
+        <div className="flex items-center gap-4 flex-shrink-0">
           {showSidebarToggle && (
             <Button variant="ghost" size="icon" onClick={onMenuClick} className="md:hidden">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle Sidebar</span>
             </Button>
           )}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="bg-primary text-primary-foreground p-1 rounded-md">
-              <Briefcase className="h-6 w-6" />
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
+              T
             </div>
-            <span className="font-bold text-xl hidden sm:inline-block">TalentFlow</span>
+            <span className="font-bold text-lg hidden sm:inline-block">TalentFlow</span>
           </Link>
+          
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground ml-6">
+            <Link href="/find-jobs" className="hover:text-foreground transition-colors">Find Jobs</Link>
+            <Link href="/find-freelancers" className="hover:text-foreground transition-colors">Freelancers</Link>
+            <Link href="/find-courses" className="hover:text-foreground transition-colors">Courses</Link>
+            <Link href="/find-talent" className="hover:text-foreground transition-colors">Find Talent</Link>
+          </nav>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <Link href="/" className="transition-colors hover:text-foreground/80 text-foreground/60">Home</Link>
-          <Link href="/find-jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Find Jobs</Link>
-          <Link href="/find-freelancers" className="transition-colors hover:text-foreground/80 text-foreground/60">Freelance</Link>
-          <Link href="/find-courses" className="transition-colors hover:text-foreground/80 text-foreground/60">Training</Link>
-          <Link href="/find-talent" className="transition-colors hover:text-foreground/80 text-foreground/60">For Employers</Link>
-        </nav>
-
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {!user ? (
             <>
               <Link href="/sign-in" className="hidden sm:inline-block">
-                <Button variant="ghost">Sign In</Button>
+                <Button variant="ghost" size="sm">Sign In</Button>
               </Link>
               <Link href="/sign-up">
-                <Button>Sign Up</Button>
+                <Button size="sm">Get Started</Button>
               </Link>
             </>
           ) : (
@@ -114,27 +137,39 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
                 <DropdownMenuTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative")}>
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-600" />
+                    <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-background" />
                   )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-80">
-                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                  <div className="flex items-center justify-between px-3 py-2 border-b">
+                    <DropdownMenuLabel className="p-0 font-semibold">Notifications</DropdownMenuLabel>
+                    {unreadCount > 0 && (
+                      <button onClick={markAllAsRead} className="text-xs text-primary font-medium hover:underline">
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
                   <DropdownMenuGroup className="max-h-[300px] overflow-y-auto">
                     {notifications.length === 0 ? (
                       <div className="p-4 text-center text-sm text-muted-foreground">No notifications</div>
                     ) : (
                       notifications.map(n => (
-                        <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-1 p-3 cursor-pointer" onClick={() => !n.isRead && markAsRead(n.id)}>
+                        <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-1 p-3 cursor-pointer" onClick={() => handleNotificationClick(n)}>
                           <div className="flex w-full justify-between items-center">
-                            <span className={cn("font-medium text-sm", !n.isRead ? "text-foreground" : "text-muted-foreground")}>{n.title}</span>
-                            {!n.isRead && <span className="h-2 w-2 rounded-full bg-blue-500" />}
+                            <span className={cn("font-medium text-sm", !n.isRead ? "text-foreground font-semibold" : "text-muted-foreground")}>{n.title}</span>
+                            {!n.isRead && <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />}
                           </div>
-                          <span className="text-xs text-muted-foreground">{n.message}</span>
+                          <span className="text-xs text-muted-foreground line-clamp-2">{n.message}</span>
                         </DropdownMenuItem>
                       ))
                     )}
                   </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <div className="p-2 text-center">
+                    <Link href={`${getRoleBasePath(user?.role)}/notifications`} className="text-xs text-primary font-medium hover:underline block">
+                      View all notifications
+                    </Link>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
               <DropdownMenu>

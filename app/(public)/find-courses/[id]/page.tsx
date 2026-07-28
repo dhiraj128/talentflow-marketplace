@@ -10,11 +10,15 @@ import { RequirementsCard } from "@/features/training/course-detail/Requirements
 import { ReviewsSection } from "@/features/training/course-detail/ReviewsSection";
 import { RelatedCourses } from "@/features/training/course-detail/RelatedCourses";
 import { useState } from "react";
+import { useParams } from "next/navigation";
 
-export default function CourseDetailPage({ params }: { params: { id: string } }) {
+export default function CourseDetailPage() {
+  const routeParams = useParams();
+  const courseId = (routeParams?.id as string) || "react-adv";
+
   // Mock course data
   const course = {
-    id: params.id,
+    id: courseId,
     title: "Advanced React Patterns & Architecture",
     shortDescription: "Master React by learning advanced patterns, performance optimization, and architectural best practices used by top engineering teams.",
     description: "This comprehensive course is designed for intermediate to advanced React developers who want to take their skills to the next level. You'll dive deep into the internal mechanics of React, understand how to architect large-scale applications, and master patterns like Higher-Order Components, Render Props, and Custom Hooks in modern scenarios (React 18+).\n\nWe'll also cover performance optimization techniques, state management strategies, and how to properly integrate with Next.js App Router and Server Components.",

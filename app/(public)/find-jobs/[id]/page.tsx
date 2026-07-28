@@ -37,8 +37,8 @@ export default function JobDetailsPage({ params }: { params: Promise<{ id: strin
   // Mock premium state for this phase
   const hasPremium = false;
 
-  const unwrappedParams = React.use(params);
-  const jobId = unwrappedParams.id;
+  const unwrappedParams = React.use(Promise.resolve(params));
+  const jobId = unwrappedParams?.id;
 
   const { data: job, isLoading, error } = useQuery({
     queryKey: ['job', jobId],

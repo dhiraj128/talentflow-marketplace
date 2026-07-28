@@ -20,7 +20,8 @@ import { MOCK_FREELANCERS } from "./mockData";
 const CATEGORIES = ["All", "Web Development", "Mobile Apps", "UI/UX Design", "Digital Marketing", "Writing"];
 
 export default function FindFreelancersPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInputValue, setSearchInputValue] = useState("");
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [sortValue, setSortValue] = useState("recommended");
   const [filters, setFilters] = useState({
@@ -44,8 +45,8 @@ export default function FindFreelancersPage() {
       result = result.filter(f => f.category === activeCategory);
     }
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    if (appliedSearchQuery) {
+      const q = appliedSearchQuery.toLowerCase();
       result = result.filter(f => 
         f.name.toLowerCase().includes(q) || 
         f.title.toLowerCase().includes(q) ||
@@ -76,10 +77,11 @@ export default function FindFreelancersPage() {
     if (sortValue === "projects") result.sort((a, b) => b.completedProjects - a.completedProjects);
     
     return result;
-  }, [searchQuery, activeCategory, filters, sortValue]);
+  }, [appliedSearchQuery, activeCategory, filters, sortValue]);
 
   const handleClearFilters = () => {
-    setSearchQuery("");
+    setSearchInputValue("");
+    setAppliedSearchQuery("");
     setActiveCategory("All");
     setFilters({ 
       hourlyRate: [150], 
@@ -104,7 +106,15 @@ export default function FindFreelancersPage() {
             Connect with top-rated freelancers and independent professionals for your next project.
           </p>
           <div className="pt-2">
-            <MarketplaceSearch value={searchQuery} onChange={setSearchQuery} onSearch={() => {}} />
+            <MarketplaceSearch 
+              value={searchInputValue} 
+              onChange={setSearchInputValue} 
+              onSearch={() => setAppliedSearchQuery(searchInputValue)}
+              onClear={() => {
+                setSearchInputValue("");
+                setAppliedSearchQuery("");
+              }}
+            />
           </div>
           <div className="pt-1 flex flex-wrap justify-center gap-2 text-xs md:text-sm text-purple-200 max-w-full overflow-hidden">
             <span className="opacity-70 mr-1 flex items-center">Popular:</span>
@@ -112,7 +122,10 @@ export default function FindFreelancersPage() {
               <button
                 key={tag}
                 type="button"
-                onClick={() => setSearchQuery(tag)}
+                onClick={() => {
+                  setSearchInputValue(tag);
+                  setAppliedSearchQuery(tag);
+                }}
                 className="hover:text-white hover:underline transition-colors focus:outline-none focus:text-white"
               >
                 {tag}
@@ -130,7 +143,7 @@ export default function FindFreelancersPage() {
         </div>
 
         {/* Featured Section */}
-        {activeCategory === "All" && !searchQuery && (
+        {activeCategory === "All" && !appliedSearchQuery && (
           <div className="mb-12">
             <FeaturedFreelancers freelancers={featuredFreelancers} />
           </div>
@@ -142,7 +155,7 @@ export default function FindFreelancersPage() {
           {/* Desktop Filters */}
           <div className="hidden lg:block w-72 shrink-0">
             <div className="sticky top-24 bg-white p-6 rounded-2xl shadow-sm border border-border/50">
-              <MarketplaceFilters filters={filters} setFilters={setFilters} />
+              <MarketplaceFilters filters={filters} setFilters={setFilters} onClearAll={handleClearFilters} />
             </div>
           </div>
 
@@ -163,7 +176,7 @@ export default function FindFreelancersPage() {
                     <Filter className="w-4 h-4" />
                   </SheetTrigger>
                   <SheetContent side="right" className="w-full sm:w-[400px] pt-12 overflow-y-auto bg-slate-50">
-                    <MarketplaceFilters filters={filters} setFilters={setFilters} />
+                    <MarketplaceFilters filters={filters} setFilters={setFilters} onClearAll={handleClearFilters} />
                   </SheetContent>
                 </Sheet>
               </div>

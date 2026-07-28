@@ -20,10 +20,11 @@ interface Filters {
 interface MarketplaceFiltersProps {
   filters: Filters;
   setFilters: (filters: Filters) => void;
+  onClearAll?: () => void;
   className?: string;
 }
 
-export function MarketplaceFilters({ filters, setFilters, className }: MarketplaceFiltersProps) {
+export function MarketplaceFilters({ filters, setFilters, onClearAll, className }: MarketplaceFiltersProps) {
   const handleHourlyRateChange = (val: number | readonly number[]) => {
     const rateArray = typeof val === 'number' ? [val] : [...val];
     setFilters({ ...filters, hourlyRate: rateArray });
@@ -51,6 +52,7 @@ export function MarketplaceFilters({ filters, setFilters, className }: Marketpla
       languages: [],
       rating: 0
     });
+    if (onClearAll) onClearAll();
   };
 
   return (
