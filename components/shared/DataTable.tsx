@@ -40,6 +40,11 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -57,6 +62,14 @@ export function DataTable<TData, TValue>({
     },
     meta,
   });
+
+  if (!mounted) {
+    return (
+      <div className="rounded-md border p-8 text-center text-sm text-muted-foreground animate-pulse min-h-[200px] flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div>

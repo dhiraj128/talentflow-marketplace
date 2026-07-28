@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable } from "@/components/shared/DataTable";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Video, Calendar as CalendarIcon, MoreVertical, XCircle, CheckCircle, UserX, Clock } from "lucide-react";
 import { useEmployerInterviews, useCancelInterview, useCompleteInterview, useMarkNoShowInterview } from "@/hooks/useInterviews";
 import { format } from "date-fns";
@@ -91,10 +92,8 @@ export default function InterviewsPage() {
             )}
             
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button variant="ghost" size="icon" type="button">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
+              <DropdownMenuTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}>
+                <MoreVertical className="w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {iv.status === 'SCHEDULED' && (

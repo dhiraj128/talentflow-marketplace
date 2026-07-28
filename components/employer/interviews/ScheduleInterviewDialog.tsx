@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useScheduleInterview } from '@/hooks/useInterviews';
@@ -47,8 +48,8 @@ export function ScheduleInterviewDialog({ children }: { children?: React.ReactNo
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        {children || <Button type="button">Schedule Interview</Button>}
+      <DialogTrigger className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+        {children || "Schedule Interview"}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

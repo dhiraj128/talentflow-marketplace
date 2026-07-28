@@ -32,6 +32,11 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -125,7 +130,9 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          {!user ? (
+          {!mounted ? (
+            <div className="h-8 w-24 bg-muted/30 rounded-md animate-pulse" />
+          ) : !user ? (
             <>
               <Link href="/sign-in" className="hidden sm:inline-block">
                 <Button variant="ghost" size="sm">Sign In</Button>
@@ -137,10 +144,16 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
           ) : (
             <>
               <DropdownMenu>
-                <DropdownMenuTrigger className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative")}>
+                <DropdownMenuTrigger 
+                  id="notification-bell"
+                  aria-label="Notifications"
+                  className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative")}
+                >
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-background" />
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center border-2 border-background">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
                   )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-80">
