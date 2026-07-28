@@ -126,16 +126,17 @@ export class AuthController {
 
   // --- GOOGLE OAUTH ---
   @Get('google')
+  @UseGuards(GoogleOAuthGuard)
   @ApiOperation({ summary: 'Login with Google' })
   async googleAuth(@Req() req: Request) {}
 
   @Get('google/callback')
+  @UseGuards(GoogleOAuthGuard)
   @UseFilters(OAuthExceptionFilter)
   @ApiOperation({ summary: 'Google OAuth callback' })
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginOAuth(req.user);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-    // Redirect back to frontend callback page with tokens
+    const frontendUrl = process.env.FRONTEND_URL || 'https://talentflow-marketplace.vercel.app';
     return res.redirect(
       `${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`,
     );
@@ -143,16 +144,17 @@ export class AuthController {
 
   // --- GITHUB OAUTH ---
   @Get('github')
+  @UseGuards(GithubOAuthGuard)
   @ApiOperation({ summary: 'Login with GitHub' })
   async githubAuth(@Req() req: Request) {}
 
   @Get('github/callback')
+  @UseGuards(GithubOAuthGuard)
   @UseFilters(OAuthExceptionFilter)
   @ApiOperation({ summary: 'GitHub OAuth callback' })
   async githubAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const tokens = await this.authService.loginOAuth(req.user);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-    // Redirect back to frontend callback page with tokens
+    const frontendUrl = process.env.FRONTEND_URL || 'https://talentflow-marketplace.vercel.app';
     return res.redirect(
       `${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`,
     );
