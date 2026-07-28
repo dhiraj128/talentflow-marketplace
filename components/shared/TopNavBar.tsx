@@ -48,23 +48,26 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
     fetchNotifications();
   }, [user]);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const safeNotifications = Array.isArray(notifications) ? notifications.filter(Boolean) : [];
+  const unreadCount = safeNotifications.filter(n => !n.isRead).length;
 
   const markAsRead = async (id: string) => {
+    if (!id) return;
     try {
       await notificationService.markAsRead(id);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setNotifications(prev => (Array.isArray(prev) ? prev : []).map(n => n && n.id === id ? { ...n, isRead: true } : n));
     } catch (e) {
-      console.error(e);
+      console.error("Failed to mark as read", e);
     }
   };
 
   const markAllAsRead = async () => {
     try {
-      await Promise.all(notifications.filter(n => !n.isRead).map(n => notificationService.markAsRead(n.id)));
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      const unreadList = safeNotifications.filter(n => n && n.id && !n.isRead);
+      await Promise.all(unreadList.map(n => notificationService.markAsRead(n.id)));
+      setNotifications(prev => (Array.isArray(prev) ? prev : []).map(n => n ? { ...n, isRead: true } : n));
     } catch (e) {
-      console.error(e);
+      console.error("Failed to mark all as read", e);
     }
   };
 
