@@ -83,12 +83,14 @@ export default function FindCoursesPage() {
         <FeaturedCourses />
 
         {/* Categories & Mobile Filters */}
-        <div className="flex items-center justify-between gap-4 border-b pb-4 sticky top-[4rem] z-30 bg-background">
-          <CategoryTabs 
-            categories={categories} 
-            activeCategory={activeCategory} 
-            onSelect={setActiveCategory} 
-          />
+        <div className="flex items-center justify-between gap-4 border-b pb-4 sticky top-[4rem] z-30 bg-background w-full min-w-0 overflow-hidden">
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <CategoryTabs 
+              categories={categories} 
+              activeCategory={activeCategory} 
+              onSelect={setActiveCategory} 
+            />
+          </div>
           
           <div className="flex items-center gap-3 shrink-0">
             <Sheet>

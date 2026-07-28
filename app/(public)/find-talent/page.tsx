@@ -254,11 +254,11 @@ function TalentSearchContent() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-8">
+            <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-8 w-full max-w-full overflow-x-auto px-2">
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="w-10 h-10" 
+                className="w-9 h-9 sm:w-10 sm:h-10 shrink-0" 
                 onClick={() => handlePageChange(page - 1)} 
                 disabled={page === 1 || isLoading}
               >
@@ -267,12 +267,12 @@ function TalentSearchContent() {
               
               {getVisiblePages().map((p, idx) => (
                 p === "..." ? (
-                  <span key={`dots-${idx}`} className="px-2 text-muted-foreground">...</span>
+                  <span key={`dots-${idx}`} className="px-1 text-muted-foreground text-xs sm:text-sm shrink-0">...</span>
                 ) : (
                   <Button 
                     key={`p-${p}`} 
                     variant={page === p ? "default" : "outline"} 
-                    className="w-10 h-10"
+                    className="w-9 h-9 sm:w-10 sm:h-10 text-xs sm:text-sm shrink-0 p-0"
                     onClick={() => handlePageChange(p as number)}
                     disabled={isLoading}
                   >
@@ -284,7 +284,7 @@ function TalentSearchContent() {
               <Button 
                 variant="outline" 
                 size="icon" 
-                className="w-10 h-10" 
+                className="w-9 h-9 sm:w-10 sm:h-10 shrink-0" 
                 onClick={() => handlePageChange(page + 1)} 
                 disabled={page === totalPages || isLoading}
               >

@@ -125,7 +125,7 @@ export default function FindFreelancersPage() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 -mt-8 relative z-20">
         
         {/* Category Tabs */}
-        <div className="bg-white rounded-2xl shadow-sm p-2 mb-8">
+        <div className="bg-white rounded-2xl shadow-sm p-2 mb-8 overflow-hidden w-full min-w-0">
           <CategoryTabs categories={CATEGORIES} activeCategory={activeCategory} onSelect={setActiveCategory} />
         </div>
 
@@ -149,17 +149,17 @@ export default function FindFreelancersPage() {
           {/* Results Area */}
           <div className="flex-1 space-y-6 min-w-0">
             
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                 {filteredFreelancers.length} {filteredFreelancers.length === 1 ? 'Result' : 'Results'}
               </h2>
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-end">
                 <MarketplaceSort value={sortValue} onChange={setSortValue} />
                 
                 {/* Mobile Filters Trigger */}
                 <Sheet>
-                  <SheetTrigger className="lg:hidden flex h-10 w-10 items-center justify-center rounded-md border border-input bg-white hover:bg-slate-50 transition-colors">
+                  <SheetTrigger className="lg:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-input bg-white hover:bg-slate-50 transition-colors">
                     <Filter className="w-4 h-4" />
                   </SheetTrigger>
                   <SheetContent side="right" className="w-full sm:w-[400px] pt-12 overflow-y-auto bg-slate-50">
@@ -177,13 +177,13 @@ export default function FindFreelancersPage() {
 
             {/* Pagination Placeholder (As Requested) */}
             {filteredFreelancers.length > 0 && (
-              <div className="pt-12 pb-8 flex items-center justify-center gap-2">
-                <Button variant="outline" className="w-24 bg-white">Previous</Button>
-                <Button variant="outline" className="w-10 bg-purple-600 text-white hover:bg-purple-700 hover:text-white">1</Button>
-                <Button variant="outline" className="w-10 bg-white">2</Button>
-                <Button variant="outline" className="w-10 bg-white">3</Button>
-                <span className="px-2 text-muted-foreground">...</span>
-                <Button variant="outline" className="w-24 bg-white">Next</Button>
+              <div className="pt-12 pb-8 flex items-center justify-center gap-1.5 sm:gap-2 w-full max-w-full overflow-x-auto px-2">
+                <Button variant="outline" className="w-20 sm:w-24 bg-white shrink-0 text-xs sm:text-sm">Previous</Button>
+                <Button variant="outline" className="w-8 sm:w-10 bg-purple-600 text-white hover:bg-purple-700 hover:text-white shrink-0 text-xs sm:text-sm p-0">1</Button>
+                <Button variant="outline" className="w-8 sm:w-10 bg-white shrink-0 text-xs sm:text-sm p-0">2</Button>
+                <Button variant="outline" className="w-8 sm:w-10 bg-white shrink-0 text-xs sm:text-sm p-0">3</Button>
+                <span className="px-1 text-muted-foreground text-xs sm:text-sm shrink-0">...</span>
+                <Button variant="outline" className="w-20 sm:w-24 bg-white shrink-0 text-xs sm:text-sm">Next</Button>
               </div>
             )}
 
