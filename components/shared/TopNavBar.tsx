@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
@@ -20,8 +21,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, MessageSquare, Menu, LogOut, Briefcase } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-import { useRouter } from "next/navigation";
-
 interface TopNavBarProps {
   onMenuClick?: () => void;
   showSidebarToggle?: boolean;
@@ -29,14 +28,20 @@ interface TopNavBarProps {
 
 export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    setBellOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -143,7 +148,7 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
             </>
           ) : (
             <>
-              <DropdownMenu>
+              <DropdownMenu open={bellOpen} onOpenChange={setBellOpen}>
                 <DropdownMenuTrigger 
                   id="notification-bell"
                   aria-label="Notifications"
