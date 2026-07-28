@@ -148,7 +148,7 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
             </>
           ) : (
             <>
-              <DropdownMenu open={bellOpen} onOpenChange={setBellOpen}>
+              <DropdownMenu>
                 <DropdownMenuTrigger 
                   id="notification-bell"
                   aria-label="Notifications"
