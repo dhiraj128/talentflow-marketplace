@@ -42,10 +42,10 @@ const ROUTES = [
   '/admin/users'
 ];
 
-const BASE_URL = 'https://talentflow-marketplace-dhiraj128.vercel.app';
+const BASE_URL = 'https://talentflow-marketplace.vercel.app';
 
 for (const route of ROUTES) {
-  test(`Production Crash Check for ${route}`, async ({ page }) => {
+  test(`Active Production Check for ${route}`, async ({ page }) => {
     const pageErrors: string[] = [];
     const consoleErrors: string[] = [];
     const failedRequests: any[] = [];
@@ -67,22 +67,25 @@ for (const route of ROUTES) {
     });
 
     const url = `${BASE_URL}${route}`;
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    const resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
     await page.waitForTimeout(2000);
 
     const bodyText = await page.evaluate(() => document.body?.innerText || '');
     const isErrorPage = bodyText.includes("Something went wrong!");
+    const isDeploymentNotFound = bodyText.includes("DEPLOYMENT_NOT_FOUND");
 
-    if (isErrorPage || pageErrors.length > 0) {
-      console.log(`❌ [LIVE CRASH DETECTED] ${route}`);
+    if (isErrorPage || isDeploymentNotFound || pageErrors.length > 0) {
+      console.log(`❌ [CRASH / ERROR] ${route}`);
       console.log(`   URL: ${url}`);
+      console.log(`   Status Code: ${resp?.status()}`);
       console.log(`   Page Errors:`, JSON.stringify(pageErrors, null, 2));
       console.log(`   Console Errors:`, JSON.stringify(consoleErrors, null, 2));
       console.log(`   Failed Requests:`, JSON.stringify(failedRequests, null, 2));
     } else {
-      console.log(`✅ [PASS] ${route}`);
+      console.log(`✅ [PASS] ${route} -> HTTP ${resp?.status()}`);
     }
 
+    expect(isDeploymentNotFound, `Route ${route} returned DEPLOYMENT_NOT_FOUND`).toBe(false);
     expect(isErrorPage, `Route ${route} rendered global error boundary "Something went wrong!"`).toBe(false);
     expect(pageErrors.length, `Route ${route} threw unhandled page error: ${pageErrors.join('; ')}`).toBe(0);
   });

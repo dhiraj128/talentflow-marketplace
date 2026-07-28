@@ -97,7 +97,7 @@ export default function MyResumePage() {
   };
 
   return (
-    <div className="space-y-8 p-6 max-w-6xl mx-auto">
+    <div className="w-full max-w-full min-w-0 space-y-6 sm:space-y-8">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">My Resumes</h2>

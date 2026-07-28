@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -24,25 +24,43 @@ const navItems = [
 
 export default function ResumeCenterLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const activeTabRef = useRef<HTMLAnchorElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (activeTabRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest"
+      });
+    }
+  }, [pathname]);
 
   return (
-    <PageContainer>
+    <PageContainer className="w-full max-w-full min-w-0 overflow-x-hidden">
       <PageHeader 
         title="Resume Center ⭐" 
         description="Build, manage, and optimize your resume to land your dream job."
       />
-      <div className="flex space-x-1 overflow-x-auto border-b border-border pb-px mb-6 scrollbar-hide">
+      
+      {/* Scrollable Responsive Tabs Bar */}
+      <div 
+        ref={containerRef}
+        className="w-full max-w-full min-w-0 overflow-x-auto whitespace-nowrap border-b border-border pb-1 mb-6 flex items-center gap-1 sm:gap-2 px-1 scrollbar-none"
+      >
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
+              ref={isActive ? activeTabRef : undefined}
               className={cn(
-                "whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors border-b-2 hover:text-primary",
+                "shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors border-b-2 rounded-t-md focus:outline-none",
                 isActive 
-                  ? "border-primary text-primary" 
-                  : "border-transparent text-muted-foreground hover:border-muted"
+                  ? "border-primary text-primary font-semibold bg-primary/5" 
+                  : "border-transparent text-muted-foreground hover:border-muted hover:text-foreground"
               )}
             >
               {item.label}
@@ -50,7 +68,8 @@ export default function ResumeCenterLayout({ children }: { children: React.React
           );
         })}
       </div>
-      <div>{children}</div>
+      
+      <div className="w-full max-w-full min-w-0 overflow-x-hidden">{children}</div>
     </PageContainer>
   );
 }
