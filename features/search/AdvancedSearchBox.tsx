@@ -49,7 +49,6 @@ export function AdvancedSearchBox() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load recent searches
     const stored = localStorage.getItem("talentflow_recent_searches");
     if (stored) {
       try {
@@ -57,13 +56,8 @@ export function AdvancedSearchBox() {
       } catch (e) {}
     }
 
-    // Sticky observer
     const handleScroll = () => {
-      if (window.scrollY > 150) {
-        setIsSticky(true);
-      } else {
-        setIsSticky(false);
-      }
+      setIsSticky(window.scrollY > 150);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -114,13 +108,11 @@ export function AdvancedSearchBox() {
     if (location) params.set("location", location);
     else params.delete("location");
     
-    // Reset page on new search
     params.set("page", "1");
 
     router.push(`${activeCategory.path}?${params.toString()}`);
   };
 
-  // Mock Suggestions based on keyword
   const suggestions = keyword.trim() ? [
     `${keyword} Developer`,
     `Senior ${keyword}`,
@@ -130,50 +122,36 @@ export function AdvancedSearchBox() {
 
   return (
     <>
-      {/* Spacer to prevent layout shift when sticky */}
       {isSticky && <div className="h-24 w-full" />}
       
-      <motion.div
+      <div
         ref={searchContainerRef}
-        initial={false}
-        animate={{
-          y: isSticky ? 0 : 0,
-          position: isSticky ? "fixed" : "relative",
-          top: isSticky ? 0 : "auto",
-          left: isSticky ? 0 : "auto",
-          right: isSticky ? 0 : "auto",
-        }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
-          "w-full z-50 transition-all duration-300",
+          "w-full z-40 transition-all duration-300",
           isSticky 
-            ? "bg-background/80 backdrop-blur-xl border-b shadow-md py-4" 
-            : "max-w-6xl mx-auto py-2"
+            ? "fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-md border-b shadow-md py-3 px-4" 
+            : "max-w-6xl mx-auto py-4 px-4 sm:px-6"
         )}
       >
-        <div className={cn("mx-auto flex flex-col items-center relative", isSticky ? "px-4 max-w-7xl" : "px-0")}>
+        <div className="w-full relative">
           <form 
             onSubmit={executeSearch} 
             className={cn(
-              "w-full bg-card flex flex-col md:flex-row items-center border transition-all duration-300 relative",
-              isSticky ? "rounded-xl shadow-sm h-14" : "rounded-2xl shadow-xl h-auto md:h-16 p-2 md:p-1 md:rounded-full"
+              "w-full bg-card flex flex-col md:flex-row items-stretch md:items-center border border-border shadow-lg transition-all duration-300",
+              isSticky ? "rounded-xl h-auto md:h-14" : "rounded-2xl md:rounded-full h-auto md:h-16"
             )}
-            style={{
-              background: isSticky ? "var(--card)" : "linear-gradient(to right, hsl(var(--card)), hsl(var(--muted)/0.3))"
-            }}
           >
             {/* Category Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger className={cn(
-                  "flex-none justify-between hover:bg-muted text-base border-r-0 md:border-r border-b md:border-b-0 border-border h-14 md:h-16 rounded-t-2xl md:rounded-l-full md:rounded-tr-none px-6",
-                  isSticky ? "w-[140px] px-4" : "w-full md:w-48 px-6",
-                  "inline-flex shrink-0 items-center border bg-clip-padding transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
+                  "flex items-center justify-between hover:bg-muted text-sm md:text-base border-b md:border-b-0 md:border-r border-border h-12 md:h-full px-4 md:px-6 shrink-0 transition-colors",
+                  isSticky ? "w-full md:w-36 rounded-t-xl md:rounded-l-xl md:rounded-tr-none" : "w-full md:w-44 rounded-t-2xl md:rounded-l-full md:rounded-tr-none"
                 )}>
-                  <div className="flex items-center gap-3">
-                    <activeCategory.icon className="w-5 h-5 text-primary" />
-                    <span className="font-semibold">{activeCategory.label}</span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <activeCategory.icon className="w-4 h-4 md:w-5 md:h-5 text-primary shrink-0" />
+                    <span className="font-semibold truncate">{activeCategory.label}</span>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 opacity-50" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 shrink-0 opacity-60" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-48 p-2 rounded-xl">
                 {SEARCH_CATEGORIES.map(category => (
@@ -181,15 +159,14 @@ export function AdvancedSearchBox() {
                     key={category.id}
                     onClick={() => {
                       setActiveCategory(category);
-                      // Trigger search immediately on category change if we have keyword
                       const params = new URLSearchParams(searchParams.toString());
                       if (keyword) params.set("q", keyword);
                       if (location) params.set("location", location);
                       router.push(`${category.path}?${params.toString()}`);
                     }}
-                    className="cursor-pointer py-3 px-4 rounded-lg flex items-center gap-2 text-base font-medium"
+                    className="cursor-pointer py-2.5 px-3 rounded-lg flex items-center gap-2 text-sm font-medium"
                   >
-                    <category.icon className="h-5 w-5 text-muted-foreground" />
+                    <category.icon className="h-4 w-4 text-muted-foreground" />
                     <span>{category.label}</span>
                   </DropdownMenuItem>
                 ))}
@@ -197,11 +174,8 @@ export function AdvancedSearchBox() {
             </DropdownMenu>
 
             {/* Keyword Input */}
-            <div className="relative flex-1 w-full border-b md:border-b-0 border-border group">
-              <Search className={cn(
-                "absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary",
-                isSticky ? "h-4 w-4" : "h-5 w-5"
-              )} />
+            <div className="relative flex-1 w-full min-w-0 border-b md:border-b-0 border-border group flex items-center">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
               <Input
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
@@ -211,10 +185,7 @@ export function AdvancedSearchBox() {
                   activeCategory.id === "freelancers" ? "Freelancer skill or name" :
                   "Course title or topic"
                 }
-                className={cn(
-                  "pl-12 pr-10 border-0 shadow-none focus-visible:ring-0 bg-transparent w-full",
-                  isSticky ? "h-full text-sm" : "h-12 md:h-full text-base"
-                )}
+                className="pl-11 md:pl-12 pr-10 border-0 shadow-none focus-visible:ring-0 bg-transparent w-full min-w-0 h-12 md:h-full text-sm md:text-base text-foreground placeholder:text-muted-foreground"
                 autoComplete="off"
               />
               {keyword && (
@@ -224,29 +195,17 @@ export function AdvancedSearchBox() {
               )}
             </div>
 
-            <div className="hidden md:block w-px h-8 bg-border self-center"></div>
-
             {/* Location Input (Only for Jobs and Freelancers) */}
-            <AnimatePresence>
-              {activeCategory.id !== "courses" && (
-                <motion.div 
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: "auto", opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  className="relative flex-1 w-full group overflow-hidden"
-                >
-                  <MapPin className={cn(
-                    "absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary",
-                    isSticky ? "h-4 w-4" : "h-5 w-5"
-                  )} />
+            {activeCategory.id !== "courses" && (
+              <>
+                <div className="hidden md:block w-px h-8 bg-border self-center shrink-0" />
+                <div className="relative flex-1 w-full min-w-0 border-b md:border-b-0 border-border group flex items-center">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
                   <Input 
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="City, state, or remote" 
-                    className={cn(
-                      "pl-12 pr-10 border-0 shadow-none focus-visible:ring-0 bg-transparent w-full",
-                      isSticky ? "h-full text-sm" : "h-12 md:h-full text-base"
-                    )}
+                    className="pl-11 md:pl-12 pr-10 border-0 shadow-none focus-visible:ring-0 bg-transparent w-full min-w-0 h-12 md:h-full text-sm md:text-base text-foreground placeholder:text-muted-foreground"
                     autoComplete="off"
                   />
                   {location && (
@@ -254,22 +213,22 @@ export function AdvancedSearchBox() {
                       <X className="h-4 w-4" />
                     </button>
                   )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </>
+            )}
 
             {/* Actions */}
-            <div className={cn("flex items-center gap-2 flex-none p-1", isSticky ? "pr-2" : "")}>
+            <div className="flex items-center gap-2 shrink-0 p-2 md:p-1">
               <Button type="button" variant="ghost" size="icon" className="hidden md:flex text-muted-foreground hover:text-primary rounded-full">
-                <Mic className="h-5 w-5" />
+                <Mic className="h-4 w-4 md:h-5 md:w-5" />
                 <span className="sr-only">Voice Search</span>
               </Button>
               <Button 
                 type="submit" 
-                size={isSticky ? "default" : "lg"} 
+                size="lg" 
                 className={cn(
-                  "font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-transform active:scale-95 w-full md:w-auto",
-                  isSticky ? "rounded-lg px-6" : "rounded-xl md:rounded-full px-8 h-12 md:h-14"
+                  "font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-transform active:scale-95 w-full md:w-auto h-12 min-h-[48px]",
+                  isSticky ? "rounded-lg md:rounded-lg px-6" : "rounded-xl md:rounded-full px-8 md:h-14"
                 )}
               >
                 Search
@@ -284,11 +243,9 @@ export function AdvancedSearchBox() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 right-0 mt-2 bg-card border shadow-2xl rounded-2xl overflow-hidden z-[100]"
+                className="absolute top-full left-0 right-0 mt-2 bg-card border border-border shadow-2xl rounded-2xl overflow-hidden z-[100]"
               >
                 <div className="grid md:grid-cols-2 p-4 gap-6 max-h-[400px] overflow-y-auto">
-                  
-                  {/* Left Column: Suggestions */}
                   <div className="space-y-4">
                     {keyword.trim() ? (
                       <div>
@@ -300,75 +257,84 @@ export function AdvancedSearchBox() {
                             <button
                               key={i}
                               type="button"
-                              onClick={() => { setKeyword(s); executeSearch(undefined, s); }}
-                              className="text-left px-3 py-2 text-sm hover:bg-muted rounded-lg transition-colors flex items-center gap-2 group"
+                              onClick={() => {
+                                setKeyword(s);
+                                executeSearch(undefined, s);
+                              }}
+                              className="text-left px-3 py-2 text-sm hover:bg-muted rounded-lg transition-colors flex items-center justify-between group"
                             >
-                              <Search className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                              <span className="font-medium text-foreground">{s}</span>
+                              <span>{s}</span>
+                              <ChevronDown className="h-3 w-3 -rotate-90 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                             </button>
                           ))}
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
                           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                             <Clock className="h-3 w-3" /> Recent Searches
                           </h4>
                           {recentSearches.length > 0 && (
-                            <button onClick={clearRecentSearches} className="text-xs text-muted-foreground hover:text-destructive transition-colors">Clear All</button>
+                            <button type="button" onClick={clearRecentSearches} className="text-xs text-muted-foreground hover:text-primary">
+                              Clear All
+                            </button>
                           )}
                         </div>
-                        {recentSearches.length > 0 ? (
+                        {recentSearches.length === 0 ? (
+                          <p className="text-xs text-muted-foreground py-2">No recent searches</p>
+                        ) : (
                           <div className="flex flex-col">
                             {recentSearches.map((s, i) => (
-                              <div key={i} className="flex items-center justify-between group px-3 py-2 hover:bg-muted rounded-lg transition-colors">
+                              <div key={i} className="flex items-center justify-between px-3 py-2 hover:bg-muted rounded-lg group">
                                 <button
                                   type="button"
-                                  onClick={() => { setKeyword(s); executeSearch(undefined, s); }}
-                                  className="text-left text-sm flex-1 flex items-center gap-2"
+                                  onClick={() => {
+                                    setKeyword(s);
+                                    executeSearch(undefined, s);
+                                  }}
+                                  className="text-left text-sm flex-1"
                                 >
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  <span className="font-medium text-foreground">{s}</span>
+                                  {s}
                                 </button>
-                                <button onClick={(e) => removeRecentSearch(e, s)} className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-all">
+                                <button type="button" onClick={(e) => removeRecentSearch(e, s)} className="text-muted-foreground hover:text-destructive p-1">
                                   <X className="h-3 w-3" />
                                 </button>
                               </div>
                             ))}
                           </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground italic px-3">No recent searches.</p>
                         )}
                       </div>
                     )}
                   </div>
 
-                  {/* Right Column: Trending */}
-                  <div className="space-y-4 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6">
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" /> Trending Searches
+                  {/* Right Column: Trending Searches */}
+                  <div>
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3 text-amber-500" /> Trending Searches
                     </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {TRENDING_SEARCHES.map(tag => (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {TRENDING_SEARCHES.map((term, i) => (
                         <button
-                          key={tag}
+                          key={i}
                           type="button"
-                          onClick={() => { setKeyword(tag); executeSearch(undefined, tag); }}
-                          className="px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors border border-primary/20"
+                          onClick={() => {
+                            setKeyword(term);
+                            executeSearch(undefined, term);
+                          }}
+                          className="px-3 py-1.5 bg-muted/60 hover:bg-primary/10 hover:text-primary rounded-full text-xs font-medium transition-colors"
                         >
-                          {tag}
+                          {term}
                         </button>
                       ))}
                     </div>
                   </div>
-                  
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
+      </div>
     </>
   );
 }

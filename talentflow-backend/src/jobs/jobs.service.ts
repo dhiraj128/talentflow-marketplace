@@ -51,10 +51,11 @@ export class JobsService {
   }
 
   async findAll(filters: any) {
-    const where: any = { deletedAt: null, status: 'PUBLISHED' };
+    const where: any = { deletedAt: null };
     if (filters.employerId) {
       where.employerId = filters.employerId;
-      delete where.status; // allow employer to see draft jobs too
+    } else {
+      where.status = { in: ['PUBLISHED', 'ACTIVE', 'OPEN'] };
     }
     if (filters.q) {
       where.title = { contains: filters.q, mode: 'insensitive' };

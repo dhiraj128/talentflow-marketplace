@@ -152,13 +152,16 @@ function FindJobsContent() {
   const { data: jobsResponse, isLoading, isError } = useQuery({
     queryKey: ['find-jobs', query, location, page, selectedFilters],
     queryFn: async () => {
-      // existing api expects type as string
-      const typeStr = Array.isArray(selectedFilters.type) ? selectedFilters.type.join(",") : "";
+      const typeStr = Array.isArray(selectedFilters.type) ? selectedFilters.type.join(",") : (selectedFilters.type || "");
+      const levelStr = Array.isArray(selectedFilters.level) ? selectedFilters.level.join(",") : (selectedFilters.level || "");
+      const modeStr = Array.isArray(selectedFilters.mode) ? selectedFilters.mode.join(",") : (selectedFilters.mode || "");
       
       return await jobService.getJobs({
         q: query,
         location,
         type: typeStr,
+        level: levelStr,
+        mode: modeStr,
         page,
         limit: 10
       });
