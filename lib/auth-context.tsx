@@ -41,11 +41,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         api.get('/auth/me')
         .then(res => res.data)
         .then(freshUser => {
-          // Normalize role for frontend if needed, or just merge
-          const normalizedRole = freshUser.role.toLowerCase() === 'candidate' ? 'job-seeker' : freshUser.role.toLowerCase().replace('_', '-');
-          const updated = { ...JSON.parse(storedUser), ...freshUser, role: normalizedRole };
-          setUser(updated);
-          localStorage.setItem('user', JSON.stringify(updated));
+          if (freshUser && freshUser.role) {
+            const rawRole = String(freshUser.role).toLowerCase();
+            const normalizedRole = rawRole === 'candidate' ? 'job-seeker' : rawRole.replace('_', '-');
+            const updated = { ...JSON.parse(storedUser), ...freshUser, role: normalizedRole };
+            setUser(updated);
+            localStorage.setItem('user', JSON.stringify(updated));
+          }
         })
         .catch(err => {
           console.error("Failed to fetch fresh user data", err);
@@ -64,7 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('user', JSON.stringify(userData));
     // Set cookies for middleware
     document.cookie = `access_token=${token}; path=/; max-age=86400; SameSite=Lax`;
-    document.cookie = `user_role=${userData.role}; path=/; max-age=86400; SameSite=Lax`;
+    if (userData && userData.role) {
+      document.cookie = `user_role=${userData.role}; path=/; max-age=86400; SameSite=Lax`;
+    }
     setUser(userData);
   };
 
@@ -75,12 +79,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedUserStr = localStorage.getItem('user');
       const res = await api.get('/auth/me');
       const freshUser = res.data;
-      const normalizedRole = freshUser.role.toLowerCase() === 'candidate' ? 'job-seeker' : 
-        freshUser.role.toLowerCase().replace('_', '-');
-      const storedUser = storedUserStr ? JSON.parse(storedUserStr) : {};
-      const updated = { ...storedUser, ...freshUser, role: normalizedRole };
-      setUser(updated);
-      localStorage.setItem('user', JSON.stringify(updated));
+      if (freshUser && freshUser.role) {
+        const rawRole = String(freshUser.role).toLowerCase();
+        const normalizedRole = rawRole === 'candidate' ? 'job-seeker' : rawRole.replace('_', '-');
+        const storedUser = storedUserStr ? JSON.parse(storedUserStr) : {};
+        const updated = { ...storedUser, ...freshUser, role: normalizedRole };
+        setUser(updated);
+        localStorage.setItem('user', JSON.stringify(updated));
+      }
     } catch (err) {
       console.error("Failed to refresh user data", err);
     }

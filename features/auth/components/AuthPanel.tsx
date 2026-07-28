@@ -59,7 +59,7 @@ export function AuthPanel() {
     onSuccess: (res: any) => {
       setErrorMsg(null);
       login(res.access_token, res.refresh_token, res.user);
-      const role = res.user.role.toUpperCase();
+      const role = String(res?.user?.role || '').toUpperCase();
       if (role === 'ADMIN') router.push('/admin/dashboard');
       else if (role === 'EMPLOYER') router.push('/employer/dashboard');
       else if (role === 'FREELANCER') router.push('/freelancer/dashboard');

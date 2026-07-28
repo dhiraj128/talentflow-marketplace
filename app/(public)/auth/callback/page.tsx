@@ -24,7 +24,7 @@ function AuthCallbackContent() {
       authService.getCurrentUser()
         .then((res: any) => {
           login(accessToken, refreshToken, res);
-          const role = res.role.toUpperCase();
+          const role = String(res?.role || '').toUpperCase();
           if (role === 'ADMIN') router.push('/admin/dashboard');
           else if (role === 'EMPLOYER') router.push('/employer/dashboard');
           else if (role === 'FREELANCER') router.push('/freelancer/dashboard');

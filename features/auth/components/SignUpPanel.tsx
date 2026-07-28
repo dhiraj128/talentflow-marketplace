@@ -96,7 +96,7 @@ export function SignUpPanel() {
       setErrorMsg(null);
       login(res.access_token, res.refresh_token, res.user);
       toast.success("Account created successfully!");
-      const userRole = res.user.role.toUpperCase();
+      const userRole = String(res?.user?.role || '').toUpperCase();
       if (userRole === 'ADMIN') router.push('/admin/dashboard');
       else if (userRole === 'EMPLOYER') router.push('/employer/dashboard');
       else if (userRole === 'FREELANCER') router.push('/freelancer/dashboard');
