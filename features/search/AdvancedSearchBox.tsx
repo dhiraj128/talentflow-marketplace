@@ -174,7 +174,7 @@ export function AdvancedSearchBox() {
             </DropdownMenu>
 
             {/* Keyword Input */}
-            <div className="relative flex-1 w-full min-w-0 border-b md:border-b-0 border-border group flex items-center">
+            <div className="relative flex-1 w-full min-w-0 border-b md:border-b-0 border-border group flex items-center h-12 md:h-14 min-h-[48px]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
               <Input
                 value={keyword}
@@ -185,7 +185,7 @@ export function AdvancedSearchBox() {
                   activeCategory.id === "freelancers" ? "Freelancer skill or name" :
                   "Course title or topic"
                 }
-                className="pl-11 md:pl-12 pr-10 border-0 shadow-none focus-visible:ring-0 bg-transparent w-full min-w-0 h-12 md:h-full text-sm md:text-base text-foreground placeholder:text-muted-foreground"
+                className="pl-11 md:pl-12 pr-10 border-0 shadow-none focus-visible:ring-0 bg-transparent w-full min-w-0 h-12 md:h-14 min-h-[48px] text-sm md:text-base text-foreground placeholder:text-muted-foreground"
                 autoComplete="off"
               />
               {keyword && (
@@ -199,13 +199,13 @@ export function AdvancedSearchBox() {
             {activeCategory.id !== "courses" && (
               <>
                 <div className="hidden md:block w-px h-8 bg-border self-center shrink-0" />
-                <div className="relative flex-1 w-full min-w-0 border-b md:border-b-0 border-border group flex items-center">
+                <div className="relative flex-1 w-full min-w-0 border-b md:border-b-0 border-border group flex items-center h-12 md:h-14 min-h-[48px]">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
                   <Input 
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="City, state, or remote" 
-                    className="pl-11 md:pl-12 pr-10 border-0 shadow-none focus-visible:ring-0 bg-transparent w-full min-w-0 h-12 md:h-full text-sm md:text-base text-foreground placeholder:text-muted-foreground"
+                    className="pl-11 md:pl-12 pr-10 border-0 shadow-none focus-visible:ring-0 bg-transparent w-full min-w-0 h-12 md:h-14 min-h-[48px] text-sm md:text-base text-foreground placeholder:text-muted-foreground"
                     autoComplete="off"
                   />
                   {location && (
