@@ -44,7 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (freshUser && freshUser.role) {
             const rawRole = String(freshUser.role).toLowerCase();
             const normalizedRole = rawRole === 'candidate' ? 'job-seeker' : rawRole.replace('_', '-');
-            const updated = { ...JSON.parse(storedUser), ...freshUser, role: normalizedRole };
+            let parsedExisting = {};
+            try {
+              parsedExisting = storedUser ? JSON.parse(storedUser) : {};
+            } catch (e) {
+              parsedExisting = {};
+            }
+            const updated = { ...(typeof parsedExisting === 'object' ? parsedExisting : {}), ...freshUser, role: normalizedRole };
             setUser(updated);
             localStorage.setItem('user', JSON.stringify(updated));
           }

@@ -60,7 +60,10 @@ api.interceptors.response.use(
       if (!refreshToken) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('access_token');
-          window.location.href = '/sign-in';
+          localStorage.removeItem('user');
+          if (!window.location.pathname.startsWith('/sign-in') && !window.location.pathname.startsWith('/sign-up')) {
+            window.location.href = '/sign-in';
+          }
         }
         return Promise.reject(error);
       }
@@ -117,7 +120,10 @@ api.interceptors.response.use(
         if (typeof window !== 'undefined') {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
-          window.location.href = '/sign-in';
+          localStorage.removeItem('user');
+          if (!window.location.pathname.startsWith('/sign-in') && !window.location.pathname.startsWith('/sign-up')) {
+            window.location.href = '/sign-in';
+          }
         }
 
         return Promise.reject(err);

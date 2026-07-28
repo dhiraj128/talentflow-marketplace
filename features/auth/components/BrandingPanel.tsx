@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Users, Building2, MonitorPlay, BookOpen, Briefcase } from "lucide-react";
+import { Star, Users, Building2, MonitorPlay, BookOpen, Briefcase, TrendingUp } from "lucide-react";
 import { AnimatedCounter } from "./AnimatedCounter";
 import { motion } from "framer-motion";
 
@@ -19,7 +19,7 @@ const itemVariants = {
 
 export function BrandingPanel() {
   return (
-    <div className="relative w-full flex-1 bg-[#081526] text-white flex flex-col justify-start pt-8 pb-4 px-8 xl:px-12 overflow-hidden">
+    <div className="relative w-full flex-1 bg-[#081526] text-white flex flex-col justify-start pt-8 pb-4 px-6 sm:px-8 xl:px-12 overflow-hidden">
       
       {/* Decorative Abstract Background */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -32,7 +32,7 @@ export function BrandingPanel() {
       </div>
 
       <motion.div 
-        className="relative z-10 w-full max-w-[520px] mx-auto flex flex-col gap-3 xl:gap-5 my-auto shrink-0"
+        className="relative z-10 w-full max-w-[520px] mx-auto flex flex-col gap-3 xl:gap-4 my-auto shrink-0"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -40,7 +40,7 @@ export function BrandingPanel() {
         
         {/* 1. Hero Section */}
         <motion.div variants={itemVariants} className="shrink-0">
-          <h1 className="text-[2.75rem] lg:text-5xl xl:text-6xl 2xl:text-7xl font-black tracking-tight leading-[0.95] text-white">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-[0.98] text-white">
             Find Better <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-blue-400">Talent.</span><br />
             Build Better <br />
@@ -50,127 +50,125 @@ export function BrandingPanel() {
 
         {/* 2. Subtitle */}
         <motion.div variants={itemVariants} className="shrink-0">
-          <p className="text-[13px] xl:text-sm text-slate-400 font-medium max-w-[520px] leading-relaxed">
-            The complete hiring ecosystem for professionals,<br />
-            employers, freelancers and trainers.
+          <p className="text-xs sm:text-sm text-slate-400 font-medium max-w-[520px] leading-relaxed">
+            The complete hiring ecosystem for professionals, employers, freelancers and trainers.
           </p>
         </motion.div>
 
         {/* 3. Statistics Grid */}
         <motion.div variants={itemVariants} className="grid grid-cols-2 gap-2 xl:gap-3 shrink-0">
-          <div className="bg-[#0F1E33]/80 border border-[#22344F] backdrop-blur-sm rounded-[16px] xl:rounded-[20px] p-2.5 xl:p-3 transition-all hover:border-[#2563EB]/50">
+          <div className="bg-[#0F1E33]/80 border border-[#22344F] backdrop-blur-sm rounded-xl xl:rounded-2xl p-2.5 xl:p-3 transition-all hover:border-[#2563EB]/50">
             <div className="flex items-center gap-1.5 text-slate-400 mb-1">
-              <Users className="w-3 h-3 text-[#2563EB]"/>
+              <Users className="w-3.5 h-3.5 text-[#2563EB]"/>
             </div>
-            <div className="text-xl xl:text-2xl font-bold text-white flex items-baseline leading-none">
+            <div className="text-lg xl:text-2xl font-bold text-white flex items-baseline leading-none">
               <AnimatedCounter value={20000} />
               <span className="text-[#2563EB] ml-0.5">+</span>
             </div>
-            <div className="text-[9px] xl:text-[10px] font-medium text-slate-400 mt-1">Verified Professionals</div>
+            <div className="text-[10px] xl:text-xs font-medium text-slate-400 mt-1">Verified Professionals</div>
           </div>
           
-          <div className="bg-[#0F1E33]/80 border border-[#22344F] backdrop-blur-sm rounded-[16px] xl:rounded-[20px] p-2.5 xl:p-3 transition-all hover:border-[#2563EB]/50">
+          <div className="bg-[#0F1E33]/80 border border-[#22344F] backdrop-blur-sm rounded-xl xl:rounded-2xl p-2.5 xl:p-3 transition-all hover:border-[#2563EB]/50">
             <div className="flex items-center gap-1.5 text-slate-400 mb-1">
-              <Building2 className="w-3 h-3 text-emerald-500"/>
+              <Building2 className="w-3.5 h-3.5 text-emerald-500"/>
             </div>
-            <div className="text-xl xl:text-2xl font-bold text-white flex items-baseline leading-none">
+            <div className="text-lg xl:text-2xl font-bold text-white flex items-baseline leading-none">
               <AnimatedCounter value={5000} />
               <span className="text-emerald-500 ml-0.5">+</span>
             </div>
-            <div className="text-[9px] xl:text-[10px] font-medium text-slate-400 mt-1">Companies</div>
+            <div className="text-[10px] xl:text-xs font-medium text-slate-400 mt-1">Companies</div>
           </div>
 
-          <div className="bg-[#0F1E33]/80 border border-[#22344F] backdrop-blur-sm rounded-[16px] xl:rounded-[20px] p-2.5 xl:p-3 transition-all hover:border-[#2563EB]/50">
+          <div className="bg-[#0F1E33]/80 border border-[#22344F] backdrop-blur-sm rounded-xl xl:rounded-2xl p-2.5 xl:p-3 transition-all hover:border-[#2563EB]/50">
             <div className="flex items-center gap-1.5 text-slate-400 mb-1">
-              <MonitorPlay className="w-3 h-3 text-purple-500"/>
+              <MonitorPlay className="w-3.5 h-3.5 text-purple-500"/>
             </div>
-            <div className="text-xl xl:text-2xl font-bold text-white flex items-baseline leading-none">
+            <div className="text-lg xl:text-2xl font-bold text-white flex items-baseline leading-none">
               <AnimatedCounter value={3000} />
               <span className="text-purple-500 ml-0.5">+</span>
             </div>
-            <div className="text-[9px] xl:text-[10px] font-medium text-slate-400 mt-1">Freelancers</div>
+            <div className="text-[10px] xl:text-xs font-medium text-slate-400 mt-1">Freelancers</div>
           </div>
 
-          <div className="bg-[#0F1E33]/80 border border-[#22344F] backdrop-blur-sm rounded-[16px] xl:rounded-[20px] p-2.5 xl:p-3 transition-all hover:border-[#2563EB]/50">
+          <div className="bg-[#0F1E33]/80 border border-[#22344F] backdrop-blur-sm rounded-xl xl:rounded-2xl p-2.5 xl:p-3 transition-all hover:border-[#2563EB]/50">
             <div className="flex items-center gap-1.5 text-slate-400 mb-1">
-              <BookOpen className="w-3 h-3 text-orange-500"/>
+              <BookOpen className="w-3.5 h-3.5 text-orange-500"/>
             </div>
-            <div className="text-xl xl:text-2xl font-bold text-white flex items-baseline leading-none">
+            <div className="text-lg xl:text-2xl font-bold text-white flex items-baseline leading-none">
               <AnimatedCounter value={800} />
               <span className="text-orange-500 ml-0.5">+</span>
             </div>
-            <div className="text-[9px] xl:text-[10px] font-medium text-slate-400 mt-1">Training Programs</div>
+            <div className="text-[10px] xl:text-xs font-medium text-slate-400 mt-1">Training Programs</div>
           </div>
         </motion.div>
 
-        {/* 4. Dashboard Illustration Mockup */}
-        <motion.div variants={itemVariants} className="relative h-[90px] xl:h-[110px] w-full shrink-0 mx-auto mt-1">
-          {/* Main Chart Card */}
-          <div className="absolute top-0 left-2 right-2 bg-[#0F1E33]/90 border border-[#22344F] backdrop-blur-sm shadow-xl rounded-[16px] p-2 xl:p-3">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <Briefcase className="w-2.5 h-2.5 text-[#2563EB]" />
-                <span className="text-[9px] font-bold text-white">TalentFlow Dashboard</span>
-              </div>
-              <div className="flex gap-1">
-                <div className="w-1 h-1 rounded-full bg-slate-600" />
-                <div className="w-1 h-1 rounded-full bg-slate-600" />
-                <div className="w-1 h-1 rounded-full bg-slate-600" />
-              </div>
+        {/* 4. Fully Responsive Analytics Illustration Mockup */}
+        <motion.div variants={itemVariants} className="w-full max-w-full min-w-0 bg-[#0F1E33]/90 border border-[#22344F] backdrop-blur-sm shadow-xl rounded-xl xl:rounded-2xl p-3 xl:p-4 shrink-0 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Briefcase className="w-4 h-4 text-[#2563EB] shrink-0" />
+              <span className="text-xs font-bold text-white truncate">TalentFlow Analytics Overview</span>
             </div>
-            {/* Line Chart */}
-            <div className="ml-5 h-8 relative">
-              <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                <path d="M0,30 L15,15 L30,25 L50,10 L70,20 L85,5 L100,15" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M0,30 L15,15 L30,25 L50,10 L70,20 L85,5 L100,15 L100,40 L0,40 Z" fill="url(#chart-grad)" stroke="none" />
-                <defs>
-                  <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2563EB" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-              </svg>
+            
+            {/* Inline Integrated +48% Badge */}
+            <div className="flex items-center gap-1.5 bg-[#142640] border border-[#22344F] rounded-lg px-2 py-1 shrink-0">
+              <TrendingUp className="w-3 h-3 text-emerald-400" />
+              <span className="text-[11px] font-extrabold text-emerald-400">+48%</span>
+              <span className="text-[9px] text-slate-400 hidden sm:inline">Hires</span>
             </div>
           </div>
 
-          {/* +48% Floating Card */}
-          <div className="absolute -top-1 right-4 bg-[#142640] border border-[#22344F] shadow-lg rounded-[12px] p-1.5 w-16 z-10">
-            <div className="text-[7px] text-slate-400">New Hires</div>
-            <div className="text-xs font-black text-emerald-400 leading-none mt-0.5">+48%</div>
-            <div className="text-[6px] text-slate-500 mt-0.5">This Month</div>
+          {/* SVG Line Chart */}
+          <div className="w-full h-16 sm:h-20 relative">
+            <svg className="w-full h-full overflow-visible" viewBox="0 0 300 80" preserveAspectRatio="none">
+              <path d="M0,60 L40,35 L80,50 L130,20 L180,40 L230,10 L300,30" fill="none" stroke="#2563EB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M0,60 L40,35 L80,50 L130,20 L180,40 L230,10 L300,30 L300,80 L0,80 Z" fill="url(#brand-chart-grad)" stroke="none" />
+              <defs>
+                <linearGradient id="brand-chart-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2563EB" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
 
-          {/* 92% Ring Floating Card */}
-          <div className="absolute -bottom-1 -right-1 bg-[#142640] border border-[#22344F] shadow-lg rounded-[12px] p-1.5 px-2 z-20 flex items-center gap-1.5">
-            <div className="relative w-5 h-5 rounded-full flex items-center justify-center bg-[#0F1E33]">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="10" cy="10" r="8" fill="none" stroke="#22344F" strokeWidth="2" />
-                <circle cx="10" cy="10" r="8" fill="none" stroke="#2563EB" strokeWidth="2" strokeDasharray="50" strokeDashoffset="4" strokeLinecap="round" />
-              </svg>
+          {/* Bottom Metric Badges Container */}
+          <div className="flex items-center justify-between border-t border-[#22344F]/60 pt-2.5 gap-2">
+            <div className="flex items-center gap-2">
+              <div className="relative w-6 h-6 rounded-full flex items-center justify-center bg-[#142640] border border-[#2563EB]/40 shrink-0">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#22344F" strokeWidth="2" />
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="#2563EB" strokeWidth="2" strokeDasharray="56" strokeDashoffset="5" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] text-slate-400 leading-tight">Talent Match</div>
+                <div className="text-xs font-bold text-white leading-tight">92% Match Score</div>
+              </div>
             </div>
-            <div>
-              <div className="text-[6px] text-slate-400 leading-tight">Talent Match</div>
-              <div className="text-[9px] font-bold text-white leading-tight">92%</div>
+            <div className="text-right shrink-0">
+              <div className="text-[10px] text-slate-400 leading-tight">Active Candidates</div>
+              <div className="text-xs font-bold text-emerald-400 leading-tight">1,420 Live</div>
             </div>
           </div>
         </motion.div>
 
         {/* 5. Testimonial Compact Card */}
-        <motion.div variants={itemVariants} className="bg-[#0F1E33]/60 border border-[#22344F] backdrop-blur-md shadow-lg rounded-[16px] xl:rounded-[20px] p-3 xl:p-4 relative overflow-hidden shrink-0 mt-1">
+        <motion.div variants={itemVariants} className="bg-[#0F1E33]/60 border border-[#22344F] backdrop-blur-md shadow-lg rounded-xl xl:rounded-2xl p-3 xl:p-3.5 relative overflow-hidden shrink-0 mt-0.5">
           <div className="absolute top-0 right-0 w-20 h-20 bg-[#2563EB]/10 rounded-full blur-[20px] -mr-8 -mt-8" />
-          <div className="flex items-center gap-1 mb-1.5">
+          <div className="flex items-center gap-1 mb-1">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-2 w-2 xl:h-2.5 xl:w-2.5 fill-yellow-500 text-yellow-500" />
+              <Star key={i} className="h-2.5 w-2.5 fill-yellow-500 text-yellow-500" />
             ))}
           </div>
-          <p className="text-[11px] xl:text-xs font-medium text-slate-200 leading-snug mb-2 relative z-10 italic">
+          <p className="text-xs font-medium text-slate-200 leading-snug mb-1.5 relative z-10 italic">
             "TalentFlow reduced hiring time by 70%. The verified talent pool is unmatched."
           </p>
           <div className="flex items-center gap-2 relative z-10">
-            <div className="w-4 h-4 xl:w-5 xl:h-5 rounded-full bg-[#2563EB]/20 flex items-center justify-center text-[7px] font-bold text-[#2563EB]">HR</div>
+            <div className="w-5 h-5 rounded-full bg-[#2563EB]/20 flex items-center justify-center text-[8px] font-bold text-[#2563EB]">HR</div>
             <div>
-              <div className="text-[9px] xl:text-[10px] font-bold text-white leading-tight">HR Director</div>
-              <div className="text-[7px] xl:text-[8px] text-slate-400 leading-tight">Enterprise Customer</div>
+              <div className="text-[10px] xl:text-xs font-bold text-white leading-tight">HR Director</div>
+              <div className="text-[8px] xl:text-[9px] text-slate-400 leading-tight">Enterprise Customer</div>
             </div>
           </div>
         </motion.div>
