@@ -3,10 +3,11 @@ import axios from 'axios';
 const api = axios.create({
   baseURL:
     process.env.NEXT_PUBLIC_API_BASE_URL ||
-    'http://localhost:3000/api/v1',
+    'https://talentflow-backend-e2e.onrender.com/api/v1',
 });
 
 let isRefreshing = false;
+let isRedirecting = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
 
 const subscribeTokenRefresh = (cb: (token: string) => void) => {
@@ -18,6 +19,27 @@ const onRefreshed = (token: string) => {
   refreshSubscribers = [];
 };
 
+function safeRedirectToSignIn() {
+  if (typeof window !== 'undefined' && !isRedirecting) {
+    const pathname = window.location.pathname;
+    if (!pathname.startsWith('/sign-in') && !pathname.startsWith('/sign-up')) {
+      isRedirecting = true;
+      try {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'user_role=; path=/; max-age=0; SameSite=Lax';
+      } catch (e) {
+        console.error("Failed clearing local auth storage", e);
+      }
+      setTimeout(() => {
+        window.location.href = '/sign-in';
+      }, 50);
+    }
+  }
+}
+
 // Request interceptor
 api.interceptors.request.use(
   async (config) => {
@@ -26,7 +48,6 @@ api.interceptors.request.use(
 
       if (token) {
         config.headers = config.headers ?? {};
-        // Standard header set for Axios 1.x
         if (typeof config.headers.set === 'function') {
           config.headers.set('Authorization', `Bearer ${token}`);
         } else {
@@ -58,13 +79,7 @@ api.interceptors.response.use(
           : null;
 
       if (!refreshToken) {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('user');
-          if (!window.location.pathname.startsWith('/sign-in') && !window.location.pathname.startsWith('/sign-up')) {
-            window.location.href = '/sign-in';
-          }
-        }
+        safeRedirectToSignIn();
         return Promise.reject(error);
       }
 
@@ -87,7 +102,7 @@ api.interceptors.response.use(
         const res = await axios.post(
           `${
             process.env.NEXT_PUBLIC_API_BASE_URL ||
-            'http://localhost:3000/api/v1'
+            'https://talentflow-backend-e2e.onrender.com/api/v1'
           }/auth/refresh`,
           {
             refresh_token: refreshToken,
@@ -117,14 +132,7 @@ api.interceptors.response.use(
       } catch (err) {
         isRefreshing = false;
         refreshSubscribers = [];
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('user');
-          if (!window.location.pathname.startsWith('/sign-in') && !window.location.pathname.startsWith('/sign-up')) {
-            window.location.href = '/sign-in';
-          }
-        }
+        safeRedirectToSignIn();
 
         return Promise.reject(err);
       }
