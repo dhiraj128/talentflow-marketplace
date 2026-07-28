@@ -52,9 +52,17 @@ function DropdownMenuContent({
     MenuPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset"
   >) {
+  const [isMounted, setIsMounted] = React.useState(false);
+  React.useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+
+  if (!isMounted) return null;
+
   return (
     <SafePositionerBoundary>
-      <MenuPrimitive.Portal>
+      <MenuPrimitive.Portal keepMounted={false}>
         <MenuPrimitive.Positioner
           className="isolate z-50 outline-none"
           align={align}

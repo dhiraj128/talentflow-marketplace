@@ -12,7 +12,12 @@ export default function ErrorBoundary({
 }) {
   useEffect(() => {
     console.error("Global Error Boundary caught:", error);
-  }, [error]);
+    if (error?.message?.includes("Base UI error") || error?.message?.includes("Positioner") || error?.message?.includes("anchor")) {
+      console.warn("Auto-recovering transient Base UI positioner unmount error...");
+      const timer = setTimeout(() => reset(), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [error, reset]);
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
