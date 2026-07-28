@@ -1,10 +1,13 @@
-﻿"use client";
+"use client";
 import React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable } from "@/components/shared/DataTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, MessageSquare } from "lucide-react";
+
+import { ScheduleInterviewDialog } from "@/components/employer/interviews/ScheduleInterviewDialog";
+import Link from "next/link";
 
 export default function ShortlistedPage() {
   const columns = [
@@ -16,8 +19,12 @@ export default function ShortlistedPage() {
       header: "Actions",
       cell: () => (
         <div className="flex gap-2">
-          <Button variant="outline" size="sm"><Calendar className="w-4 h-4 mr-2" /> Schedule</Button>
-          <Button variant="outline" size="sm"><MessageSquare className="w-4 h-4 mr-2" /> Message</Button>
+          <ScheduleInterviewDialog>
+            <Button variant="outline" size="sm"><Calendar className="w-4 h-4 mr-2" /> Schedule</Button>
+          </ScheduleInterviewDialog>
+          <Link href="/employer/messages">
+            <Button variant="outline" size="sm"><MessageSquare className="w-4 h-4 mr-2" /> Message</Button>
+          </Link>
         </div>
       )
     },

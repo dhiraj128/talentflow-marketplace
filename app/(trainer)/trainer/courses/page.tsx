@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { CourseCard } from "@/components/shared/CourseCard"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import Link from "next/link"
 import { useEffect, useState } from "react"
 import { courseService } from "@/lib/services/course.service"
 import { useAuth } from "@/lib/auth-context"
@@ -50,7 +51,11 @@ export default function CoursesPage() {
       <PageHeader 
         title="My Courses" 
         description="Manage your published courses and create new ones." 
-        action={<Button><Plus className="h-4 w-4 mr-2" /> Create Course</Button>}
+        action={
+          <Link href="/trainer/courses/new">
+            <Button><Plus className="h-4 w-4 mr-2" /> Create Course</Button>
+          </Link>
+        }
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8">

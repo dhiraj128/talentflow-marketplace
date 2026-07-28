@@ -3,35 +3,48 @@
 import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Download, File, FileText, FileArchive, Upload, Video } from "lucide-react"
+import { Download, FileText, Video, Archive, Upload } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
+import { useState } from "react"
 
 export default function DownloadsPage() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [resourceTitle, setResourceTitle] = useState("");
+
+  const handleUpload = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resourceTitle) return;
+    setIsDialogOpen(false);
+    setResourceTitle("");
+    toast.success("Resource uploaded successfully!");
+  };
+
   const categories = [
     {
-      title: "PDF Documents",
-      description: "Cheatsheets, guides, and text materials",
+      title: "PDF Guides & E-books",
       icon: <FileText className="h-5 w-5 text-blue-500" />,
-      files: [
-        { id: 1, name: "React Cheat Sheet.pdf", size: "2.4 MB", downloads: 145 },
-        { id: 2, name: "Advanced Patterns.pdf", size: "1.8 MB", downloads: 89 },
+      items: [
+        { name: "React Cheat Sheet 2023.pdf", size: "2.4 MB", downloads: 420 },
+        { name: "Next.js Architecture Guide.pdf", size: "5.1 MB", downloads: 310 },
       ]
     },
     {
-      title: "Video Lessons",
-      description: "Recorded sessions and tutorials",
+      title: "Video Lessons & Assets",
       icon: <Video className="h-5 w-5 text-purple-500" />,
-      files: [
-        { id: 3, name: "State Management Deep Dive.mp4", size: "245 MB", downloads: 420 },
-        { id: 4, name: "Next.js Routing.mp4", size: "180 MB", downloads: 312 },
+      items: [
+        { name: "Module 1 - Intro Video.mp4", size: "124 MB", downloads: 580 },
+        { name: "Figma UI Kit Asset Pack.zip", size: "45 MB", downloads: 290 },
       ]
     },
     {
-      title: "Project Archives",
-      description: "Source code and starter templates",
-      icon: <FileArchive className="h-5 w-5 text-amber-500" />,
-      files: [
-        { id: 5, name: "E-Commerce Starter.zip", size: "15 MB", downloads: 856 },
-        { id: 6, name: "UI Components Library.zip", size: "8.2 MB", downloads: 432 },
+      title: "Source Code & Projects",
+      icon: <Archive className="h-5 w-5 text-emerald-500" />,
+      items: [
+        { name: "Final-Project-Starter.zip", size: "12 MB", downloads: 640 },
+        { name: "TypeScript-Exercises.zip", size: "4.2 MB", downloads: 510 },
       ]
     }
   ]
@@ -41,7 +54,7 @@ export default function DownloadsPage() {
       <PageHeader 
         title="Downloads & Resources" 
         description="Manage the Material Library (PDFs, Videos, ZIP Files) for your students." 
-        action={<Button><Upload className="h-4 w-4 mr-2" /> Upload Resource</Button>}
+        action={<Button onClick={() => setIsDialogOpen(true)}><Upload className="h-4 w-4 mr-2" /> Upload Resource</Button>}
       />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
@@ -53,17 +66,17 @@ export default function DownloadsPage() {
                   {category.icon}
                 </div>
                 <div>
-                  <CardTitle className="text-lg">{category.title}</CardTitle>
-                  <CardDescription>{category.description}</CardDescription>
+                  <CardTitle className="text-base">{category.title}</CardTitle>
+                  <CardDescription>{category.items.length} files available</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="flex-1">
               <div className="space-y-4">
-                {category.files.map((file) => (
-                  <div key={file.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
+                {category.items.map((file, fIdx) => (
+                  <div key={fIdx} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <File className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <div className="truncate">
                         <p className="text-sm font-medium truncate">{file.name}</p>
                         <div className="flex items-center text-xs text-muted-foreground gap-2">
