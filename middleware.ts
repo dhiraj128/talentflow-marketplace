@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, host } = request.nextUrl;
+
+  // Canonical WWW to non-WWW redirect
+  if (host === 'www.sispl.shop') {
+    return NextResponse.redirect(`https://sispl.shop${pathname}${request.nextUrl.search}`, 301);
+  }
 
   if (pathname.startsWith('/candidate')) {
     const newUrl = new URL(pathname.replace('/candidate', '/job-seeker'), request.url);
