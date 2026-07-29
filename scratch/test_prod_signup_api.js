@@ -28,6 +28,7 @@ async function run() {
 
   const res = await post('https://talentflow-backend-qn7b.onrender.com/api/v1/auth/register', {
     email,
+    verificationMethod: 'EMAIL',
     password: 'Password@123',
     role: 'CANDIDATE',
     fullName: 'Test Candidate'

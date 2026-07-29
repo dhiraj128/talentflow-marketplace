@@ -28,6 +28,7 @@ let AppController = class AppController {
         return {
             status: 'ok',
             service: 'talentflow-backend',
+            deploy_hash: 'bca646c-v2',
             aws_region: process.env.AWS_REGION || 'not-set',
             s3_bucket: process.env.AWS_S3_BUCKET || 'not-set',
             creds: {

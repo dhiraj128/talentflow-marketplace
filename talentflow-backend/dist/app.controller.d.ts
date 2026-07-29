@@ -10,6 +10,7 @@ export declare class AppController {
     getHealth(): {
         status: string;
         service: string;
+        deploy_hash: string;
         aws_region: string;
         s3_bucket: string;
         creds: {
