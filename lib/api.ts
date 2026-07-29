@@ -3,7 +3,7 @@ import axios from 'axios';
 const api = axios.create({
   baseURL:
     process.env.NEXT_PUBLIC_API_BASE_URL ||
-    'https://talentflow-backend-e2e.onrender.com/api/v1',
+    'https://talentflow-backend-qn7b.onrender.com/api/v1',
 });
 
 let isRefreshing = false;
@@ -102,7 +102,7 @@ api.interceptors.response.use(
         const res = await axios.post(
           `${
             process.env.NEXT_PUBLIC_API_BASE_URL ||
-            'https://talentflow-backend-e2e.onrender.com/api/v1'
+            'https://talentflow-backend-qn7b.onrender.com/api/v1'
           }/auth/refresh`,
           {
             refresh_token: refreshToken,
