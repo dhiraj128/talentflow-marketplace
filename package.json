@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm --prefix talentflow-backend install && npm --prefix talentflow-backend run build && next build",
+    "build": "next build",
     "build:backend": "npm --prefix talentflow-backend install && npm --prefix talentflow-backend run build",
     "start": "next start",
     "lint": "eslint",
