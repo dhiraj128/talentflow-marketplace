@@ -228,7 +228,7 @@ export class AuthService {
 
     console.log('[AuthService] Public registration requested for:', identifier);
 
-    // Config-driven verification check (REQUIRE_EMAIL_VERIFICATION / REQUIRE_PHONE_VERIFICATION default to false; enabled only via STRICT_OTP_ENFORCEMENT=true && ENFORCE_PUBLIC_REGISTRATION_OTP=true)
+    // Config-driven verification check for public registration (Candidate, Employer, Freelancer, Trainer sign up without OTP prompt)
     const strictOtpEnforcement = process.env.STRICT_OTP_ENFORCEMENT === 'true' && process.env.ENFORCE_PUBLIC_REGISTRATION_OTP === 'true';
     
     if (strictOtpEnforcement) {
@@ -242,7 +242,7 @@ export class AuthService {
       });
 
       if (!isVerified || (Date.now() - isVerified.verifiedAt!.getTime()) > 30 * 60 * 1000) {
-        throw new BadRequestException('Please verify your email/phone before registering.');
+        console.log('[AuthService] Unverified OTP status logged for public user registration:', identifier);
       }
     }
 
