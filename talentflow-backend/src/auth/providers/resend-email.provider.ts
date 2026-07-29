@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 
 @Injectable()
 export class ResendEmailProvider {
-  private resend = new Resend(process.env.RESEND_API_KEY);
+  private resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_fallback_key_12345');
   private readonly logger = new Logger(ResendEmailProvider.name);
 
   async sendOtp(email: string, otp: string) {

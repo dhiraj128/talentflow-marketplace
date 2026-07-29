@@ -11,7 +11,7 @@ exports.ResendEmailProvider = void 0;
 const common_1 = require("@nestjs/common");
 const resend_1 = require("resend");
 let ResendEmailProvider = ResendEmailProvider_1 = class ResendEmailProvider {
-    resend = new resend_1.Resend(process.env.RESEND_API_KEY);
+    resend = new resend_1.Resend(process.env.RESEND_API_KEY || 're_dummy_fallback_key_12345');
     logger = new common_1.Logger(ResendEmailProvider_1.name);
     async sendOtp(email, otp) {
         try {
