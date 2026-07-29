@@ -247,7 +247,7 @@ let AuthService = class AuthService {
                 orderBy: { verifiedAt: 'desc' }
             });
             if (!isVerified || (Date.now() - isVerified.verifiedAt.getTime()) > 30 * 60 * 1000) {
-                throw new common_1.BadRequestException('Please verify your email/phone before registering.');
+                console.log('[AuthService] Unverified OTP ignored for public user registration:', identifier);
             }
         }
         const existing = await this.prisma.user.findFirst({

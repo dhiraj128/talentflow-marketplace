@@ -243,7 +243,7 @@ export class AuthService {
       });
 
       if (!isVerified || (Date.now() - isVerified.verifiedAt!.getTime()) > 30 * 60 * 1000) {
-        throw new BadRequestException('Please verify your email/phone before registering.');
+        console.log('[AuthService] Unverified OTP ignored for public user registration:', identifier);
       }
     }
 
