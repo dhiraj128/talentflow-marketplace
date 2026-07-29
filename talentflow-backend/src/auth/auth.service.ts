@@ -226,21 +226,23 @@ export class AuthService {
       throw new BadRequestException('Email or Phone Number is required');
     }
 
-    // Enterprise OTP Requirement: "Only verified users may reach this step"
-    // The frontend should have verified the OTP, so we double-check the OTP table.
-    const isVerified = await this.prisma.oTP.findFirst({
-      where: {
-        identifier,
-        purpose: 'REGISTER',
-        verifiedAt: { not: null }
-      },
-      orderBy: { verifiedAt: 'desc' }
-    });
+    // Config-driven verification check (REQUIRE_EMAIL_VERIFICATION / REQUIRE_PHONE_VERIFICATION)
+    const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
+    const requirePhoneVerification = process.env.REQUIRE_PHONE_VERIFICATION === 'true';
 
-    if (!isVerified || (Date.now() - isVerified.verifiedAt!.getTime()) > 30 * 60 * 1000) {
-      // For development/mock purposes, if you want to allow bypass, you can comment this out,
-      // but the enterprise spec requires it:
-      throw new BadRequestException('Please verify your email/phone before registering.');
+    if (requireEmailVerification || requirePhoneVerification) {
+      const isVerified = await this.prisma.oTP.findFirst({
+        where: {
+          identifier,
+          purpose: 'REGISTER',
+          verifiedAt: { not: null }
+        },
+        orderBy: { verifiedAt: 'desc' }
+      });
+
+      if (!isVerified || (Date.now() - isVerified.verifiedAt!.getTime()) > 30 * 60 * 1000) {
+        throw new BadRequestException('Please verify your email/phone before registering.');
+      }
     }
 
     const existing = await this.prisma.user.findFirst({
@@ -256,13 +258,18 @@ export class AuthService {
       throw new BadRequestException('User with this email or phone already exists');
     }
 
+    // Enforce role security: Public registration permits ONLY CANDIDATE, EMPLOYER, FREELANCER, TRAINER
+    const allowedPublicRoles: Role[] = [Role.CANDIDATE, Role.EMPLOYER, Role.FREELANCER, Role.TRAINER];
+    const role = registerDto.role || Role.CANDIDATE;
+    
+    if (!allowedPublicRoles.includes(role)) {
+      throw new BadRequestException('Privileged or invalid role assignment is not permitted via public registration.');
+    }
+
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(registerDto.password, salt);
 
-    // Create user with default Role if not provided
-    const role = registerDto.role || Role.CANDIDATE;
-    
-    // Default the name if provided
+    // Default name if not provided
     const fullName = registerDto.fullName || 'User';
 
     const user = await this.prisma.user.create({
@@ -270,11 +277,12 @@ export class AuthService {
         email: registerDto.email || `${registerDto.phoneNumber}@talentflow.mock`,
         phoneNumber: registerDto.phoneNumber,
         countryCode: registerDto.countryCode,
-        isEmailVerified: !!registerDto.email,
-        phoneVerified: !!registerDto.phoneNumber,
+        isEmailVerified: false, // Truthful verification state for new public accounts
+        phoneVerified: false,   // Truthful verification state for new public accounts
         verificationMethod: registerDto.verificationMethod || 'EMAIL',
         passwordHash,
         role,
+        status: 'ACTIVE',
       },
     });
 
