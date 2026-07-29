@@ -226,9 +226,11 @@ export class AuthService {
       throw new BadRequestException('Email or Phone Number is required');
     }
 
+    console.log('[AuthService] Public registration requested for:', identifier);
+
     // Config-driven verification check (Target: REQUIRE_EMAIL_VERIFICATION=false, REQUIRE_PHONE_VERIFICATION=false)
-    const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true' && process.env.PUBLIC_SIGNUP_REQUIRE_OTP === 'true';
-    const requirePhoneVerification = process.env.REQUIRE_PHONE_VERIFICATION === 'true' && process.env.PUBLIC_SIGNUP_REQUIRE_OTP === 'true';
+    const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true' && process.env.ENABLE_REGISTRATION_OTP_GUARD === 'true';
+    const requirePhoneVerification = process.env.REQUIRE_PHONE_VERIFICATION === 'true' && process.env.ENABLE_REGISTRATION_OTP_GUARD === 'true';
 
     if (requireEmailVerification || requirePhoneVerification) {
       const isVerified = await this.prisma.oTP.findFirst({
