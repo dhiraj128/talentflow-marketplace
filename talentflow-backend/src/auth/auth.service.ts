@@ -228,12 +228,11 @@ export class AuthService {
 
     console.log('[AuthService] Public registration requested for:', identifier);
 
-    // Config-driven verification check (REQUIRE_EMAIL_VERIFICATION / REQUIRE_PHONE_VERIFICATION disabled for public signups by default)
-    const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
-    const requirePhoneVerification = process.env.REQUIRE_PHONE_VERIFICATION === 'true';
-    const skipOtpForPublicSignup = process.env.SKIP_OTP_FOR_PUBLIC_SIGNUP !== 'false'; // Defaults to true
+    // Config-driven verification check (REQUIRE_EMAIL_VERIFICATION / REQUIRE_PHONE_VERIFICATION default to false; enabled via REQUIRE_REGISTRATION_OTP_STRICT=true)
+    const requireEmailVerification = process.env.REQUIRE_REGISTRATION_OTP_STRICT === 'true';
+    const requirePhoneVerification = process.env.REQUIRE_REGISTRATION_OTP_STRICT === 'true';
 
-    if (!skipOtpForPublicSignup && (requireEmailVerification || requirePhoneVerification)) {
+    if (requireEmailVerification || requirePhoneVerification) {
       const isVerified = await this.prisma.oTP.findFirst({
         where: {
           identifier,
