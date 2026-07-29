@@ -1,0 +1,423 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AnalyticsService = void 0;
+const common_1 = require("@nestjs/common");
+const prisma_service_1 = require("../prisma/prisma.service");
+let AnalyticsService = class AnalyticsService {
+    prisma;
+    constructor(prisma) {
+        this.prisma = prisma;
+    }
+    async getPlatformStats() {
+        const totalJobs = await this.prisma.job.count();
+        const totalApplications = await this.prisma.application.count();
+        const totalCandidates = await this.prisma.candidateProfile.count();
+        const totalEmployers = await this.prisma.employerProfile.count();
+        return { totalJobs, totalApplications, totalCandidates, totalEmployers };
+    }
+    async getCandidateDashboard(userId) {
+        const candidate = await this.prisma.candidateProfile.findUnique({
+            where: { userId },
+            include: { skills: true },
+        });
+        if (!candidate)
+            return this.emptyCandidateDashboard();
+        const applications = await this.prisma.application.findMany({
+            where: { candidateId: candidate.id },
+            include: { job: { include: { employer: true } } },
+            orderBy: { appliedAt: 'desc' },
+            take: 5,
+        });
+        const activeApps = await this.prisma.application.count({
+            where: { candidateId: candidate.id },
+        });
+        let profileScore = 0;
+        if (candidate.fullName)
+            profileScore += 10;
+        if (candidate.title)
+            profileScore += 10;
+        if (candidate.location)
+            profileScore += 10;
+        if (candidate.avatarUrl)
+            profileScore += 10;
+        if (candidate.resumeUrl)
+            profileScore += 10;
+        if (candidate.bio)
+            profileScore += 10;
+        if (candidate.education)
+            profileScore += 10;
+        if (candidate.experience)
+            profileScore += 10;
+        if (candidate.githubUrl || candidate.linkedinUrl || candidate.portfolioUrl)
+            profileScore += 10;
+        if (candidate.skills && candidate.skills.length > 0)
+            profileScore += 10;
+        const allJobs = await this.prisma.job.findMany({
+            where: { status: 'PUBLISHED' },
+            take: 10,
+            include: { employer: true, requiredSkills: true },
+        });
+        const recommendedJobs = allJobs
+            .map((job) => {
+            let score = 100;
+            if (job.requiredSkills.length > 0) {
+                let matched = 0;
+                for (const reqSkill of job.requiredSkills) {
+                    if (candidate.skills.some((cs) => cs.skillId === reqSkill.skillId))
+                        matched++;
+                }
+                score = Math.round((matched / job.requiredSkills.length) * 100);
+            }
+            return { ...job, matchScore: score };
+        })
+            .sort((a, b) => b.matchScore - a.matchScore)
+            .slice(0, 4);
+        const missingProfileItems = [];
+        if (!candidate.fullName)
+            missingProfileItems.push({ label: "Full Name", actionHref: "/job-seeker/profile" });
+        if (!candidate.title)
+            missingProfileItems.push({ label: "Professional Title", actionHref: "/job-seeker/profile" });
+        if (!candidate.location)
+            missingProfileItems.push({ label: "Location", actionHref: "/job-seeker/profile" });
+        if (!candidate.avatarUrl)
+            missingProfileItems.push({ label: "Profile Photo", actionHref: "/job-seeker/profile" });
+        if (!candidate.resumeUrl)
+            missingProfileItems.push({ label: "Upload Resume", actionHref: "/job-seeker/resume-center/my-resume" });
+        if (!candidate.bio)
+            missingProfileItems.push({ label: "About Me (Bio)", actionHref: "/job-seeker/profile" });
+        if (!candidate.education)
+            missingProfileItems.push({ label: "Education", actionHref: "/job-seeker/profile" });
+        if (!candidate.experience)
+            missingProfileItems.push({ label: "Experience", actionHref: "/job-seeker/profile" });
+        if (!candidate.githubUrl && !candidate.linkedinUrl && !candidate.portfolioUrl) {
+            missingProfileItems.push({ label: "Social Links", actionHref: "/job-seeker/profile" });
+        }
+        if (!candidate.skills || candidate.skills.length === 0)
+            missingProfileItems.push({ label: "Skills", actionHref: "/job-seeker/profile" });
+        return {
+            stats: {
+                activeApplications: activeApps,
+                savedJobs: 0,
+                resumeViews: 0,
+                recruiterInvites: 0,
+            },
+            metrics: {
+                jobMatchScore: recommendedJobs.length > 0 ? recommendedJobs[0].matchScore : 0,
+                profileCompletion: profileScore,
+                recentlyViewed: 12,
+                missingProfileItems,
+            },
+            recentApplications: applications,
+            recommendedJobs,
+            recommendedCourses: await this.prisma.course.findMany({ take: 2 }),
+            upcomingInterviews: [],
+            recentActivity: [],
+        };
+    }
+    emptyCandidateDashboard() {
+        return {
+            stats: {
+                activeApplications: 0,
+                savedJobs: 0,
+                resumeViews: 0,
+                recruiterInvites: 0,
+            },
+            metrics: { jobMatchScore: 0, profileCompletion: 0, recentlyViewed: 0 },
+            recentApplications: [],
+            recommendedJobs: [],
+            recommendedCourses: [],
+            upcomingInterviews: [],
+            recentActivity: [],
+        };
+    }
+    async getEmployerDashboard(userId) {
+        const employer = await this.prisma.employerProfile.findUnique({
+            where: { userId },
+        });
+        if (!employer)
+            return this.emptyEmployerDashboard();
+        const jobs = await this.prisma.job.findMany({
+            where: { employerId: employer.id },
+        });
+        const jobIds = jobs.map((j) => j.id);
+        const activeJobsCount = jobs.filter((j) => j.status === 'PUBLISHED').length;
+        const draftJobsCount = jobs.filter((j) => j.status === 'DRAFT').length;
+        const closedJobsCount = jobs.filter((j) => j.status === 'CLOSED').length;
+        const totalApplications = await this.prisma.application.count({
+            where: { jobId: { in: jobIds } },
+        });
+        const shortlistedCount = await this.prisma.application.count({
+            where: { jobId: { in: jobIds }, status: 'REVIEWING' },
+        });
+        const interviewedCount = await this.prisma.application.count({
+            where: { jobId: { in: jobIds }, status: 'INTERVIEWING' },
+        });
+        const hiredCount = await this.prisma.application.count({
+            where: { jobId: { in: jobIds }, status: 'OFFERED' },
+        });
+        const allCandidates = await this.prisma.candidateProfile.findMany({
+            take: 20,
+            include: { user: true, skills: true },
+        });
+        const activeJobs = jobs.filter((j) => j.status === 'PUBLISHED');
+        const activeJobsWithSkills = await this.prisma.job.findMany({
+            where: { id: { in: activeJobs.map((j) => j.id) } },
+            include: { requiredSkills: true },
+        });
+        const recommendedCandidates = allCandidates
+            .map((candidate) => {
+            let bestMatch = 0;
+            let matchedJobId = null;
+            for (const job of activeJobsWithSkills) {
+                if (job.requiredSkills.length > 0) {
+                    let matched = 0;
+                    for (const reqSkill of job.requiredSkills) {
+                        if (candidate.skills.some((cs) => cs.skillId === reqSkill.skillId))
+                            matched++;
+                    }
+                    const score = Math.round((matched / job.requiredSkills.length) * 100);
+                    if (score > bestMatch) {
+                        bestMatch = score;
+                        matchedJobId = job.id;
+                    }
+                }
+            }
+            return { ...candidate, matchScore: bestMatch, matchedJobId };
+        })
+            .filter((c) => c.matchScore > 0)
+            .sort((a, b) => b.matchScore - a.matchScore)
+            .slice(0, 5);
+        return {
+            stats: {
+                totalJobs: jobs.length,
+                activeJobs: activeJobsCount,
+                draftJobs: draftJobsCount,
+                closedJobs: closedJobsCount,
+                totalApplications,
+                shortlisted: shortlistedCount,
+                interviewsScheduled: interviewedCount,
+                hiredCandidates: hiredCount,
+            },
+            recentJobs: await this.prisma.job.findMany({
+                where: { employerId: employer.id },
+                orderBy: { createdAt: 'desc' },
+                take: 5,
+            }),
+            recentApplications: await this.prisma.application.findMany({
+                where: { jobId: { in: jobIds } },
+                include: { candidate: true, job: true },
+                orderBy: { appliedAt: 'desc' },
+                take: 5,
+            }),
+            recommendedCandidates,
+        };
+    }
+    emptyEmployerDashboard() {
+        return {
+            stats: {
+                totalJobs: 0,
+                activeJobs: 0,
+                draftJobs: 0,
+                closedJobs: 0,
+                totalApplications: 0,
+                shortlisted: 0,
+                interviewsScheduled: 0,
+                hiredCandidates: 0,
+            },
+            recentJobs: [],
+            recentApplications: [],
+            recommendedCandidates: [],
+        };
+    }
+    async getFreelancerDashboard(userId) {
+        const freelancer = await this.prisma.freelancerProfile.findUnique({
+            where: { userId },
+        });
+        if (!freelancer) {
+            return this.emptyFreelancerDashboard();
+        }
+        const projects = await this.prisma.projectRequest.findMany({
+            where: { freelancerId: freelancer.id },
+            include: { employer: { include: { user: true } } },
+            orderBy: { updatedAt: 'desc' },
+        });
+        const reviews = await this.prisma.review.findMany({
+            where: { freelancerId: freelancer.id },
+            orderBy: { createdAt: 'desc' },
+        });
+        const activeProjects = projects.filter(p => p.status === 'ACCEPTED').length;
+        const completedProjects = projects.filter(p => p.status === 'COMPLETED').length;
+        const pendingBids = projects.filter(p => p.status === 'PENDING').length;
+        const earnings = projects
+            .filter(p => p.status === 'COMPLETED')
+            .reduce((sum, p) => sum + (p.budget || 0), 0);
+        const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+        const avgRating = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : 0;
+        let profileCompletion = 0;
+        if (freelancer.fullName)
+            profileCompletion += 20;
+        if (freelancer.title)
+            profileCompletion += 20;
+        if (freelancer.bio)
+            profileCompletion += 20;
+        if (freelancer.hourlyRate)
+            profileCompletion += 20;
+        if (freelancer.avatarUrl)
+            profileCompletion += 20;
+        return {
+            stats: {
+                activeProjects,
+                completedProjects,
+                pendingBids,
+                earnings,
+                rating: avgRating,
+                profileCompletion,
+                totalReviews: reviews.length,
+            },
+            projects: projects.slice(0, 5),
+            invitations: projects.filter(p => p.status === 'PENDING').slice(0, 5),
+            reviews: reviews.slice(0, 5),
+            recentActivity: []
+        };
+    }
+    emptyFreelancerDashboard() {
+        return {
+            stats: {
+                activeProjects: 0,
+                completedProjects: 0,
+                pendingBids: 0,
+                earnings: 0,
+                rating: 0,
+                profileCompletion: 0,
+                totalReviews: 0,
+            },
+            projects: [],
+            invitations: [],
+            reviews: [],
+            recentActivity: [],
+        };
+    }
+    async getTrainerDashboard(userId) {
+        const trainer = await this.prisma.trainerProfile.findUnique({
+            where: { userId },
+        });
+        if (!trainer) {
+            return {
+                publishedCourses: 0,
+                draftCourses: 0,
+                totalStudents: 0,
+                revenue: 0,
+                courseRating: 0,
+                certificatesIssued: 0,
+                courseCompletionRate: 0,
+                recentCourses: [],
+            };
+        }
+        const courses = await this.prisma.course.findMany({
+            where: { trainerId: trainer.id },
+            orderBy: { createdAt: 'desc' },
+            take: 3,
+        });
+        const courseIds = await this.prisma.course
+            .findMany({
+            where: { trainerId: trainer.id },
+            select: { id: true },
+        })
+            .then((res) => res.map((c) => c.id));
+        const totalStudents = await this.prisma.enrollment.count({
+            where: { courseId: { in: courseIds } },
+        });
+        const certificatesIssued = await this.prisma.certificate.count({
+            where: { courseId: { in: courseIds } },
+        });
+        const draftCourses = await this.prisma.course.count({
+            where: { trainerId: trainer.id, status: 'DRAFT' },
+        });
+        const publishedCourses = await this.prisma.course.count({
+            where: { trainerId: trainer.id, status: 'PUBLISHED' },
+        });
+        return {
+            publishedCourses,
+            draftCourses,
+            totalStudents,
+            revenue: 0,
+            courseRating: 4.5,
+            certificatesIssued,
+            courseCompletionRate: 80,
+            recentCourses: courses,
+        };
+    }
+    async getAdminDashboard() {
+        const totalUsers = await this.prisma.user.count();
+        const activeEmployers = await this.prisma.employerProfile.count();
+        const activeFreelancers = await this.prisma.freelancerProfile.count();
+        const activeTrainers = await this.prisma.trainerProfile.count();
+        const activeJobSeekers = await this.prisma.candidateProfile.count();
+        const jobsPosted = await this.prisma.job.count();
+        const courses = await this.prisma.course.count();
+        const activeCoupons = await this.prisma.coupon.count({
+            where: { isActive: true },
+        });
+        const expiringSubscriptions = await this.prisma.subscription.count({
+            where: {
+                endDate: {
+                    lte: new Date(new Date().setDate(new Date().getDate() + 30)),
+                },
+                status: 'ACTIVE',
+            },
+        });
+        const premiumMembers = await this.prisma.subscription.count({
+            where: { status: 'ACTIVE' },
+        });
+        const userGrowthData = [
+            { name: 'Jan', users: Math.floor(totalUsers * 0.5) },
+            { name: 'Feb', users: Math.floor(totalUsers * 0.6) },
+            { name: 'Mar', users: Math.floor(totalUsers * 0.7) },
+            { name: 'Apr', users: Math.floor(totalUsers * 0.8) },
+            { name: 'May', users: Math.floor(totalUsers * 0.9) },
+            { name: 'Jun', users: totalUsers },
+        ];
+        const revenueData = [
+            { name: 'Jan', revenue: 15000 },
+            { name: 'Feb', revenue: 18000 },
+            { name: 'Mar', revenue: 22000 },
+            { name: 'Apr', revenue: 26000 },
+            { name: 'May', revenue: 31000 },
+            { name: 'Jun', revenue: 38500 },
+        ];
+        return {
+            stats: {
+                totalUsers,
+                activeJobSeekers,
+                activeEmployers,
+                activeFreelancers,
+                activeTrainers,
+                jobsPosted,
+                courses,
+                premiumMembers,
+                monthlyRevenue: 38500,
+                activeCoupons,
+                expiringSubscriptions,
+            },
+            charts: {
+                userGrowthData,
+                revenueData,
+            },
+        };
+    }
+};
+exports.AnalyticsService = AnalyticsService;
+exports.AnalyticsService = AnalyticsService = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+], AnalyticsService);
+//# sourceMappingURL=analytics.service.js.map
