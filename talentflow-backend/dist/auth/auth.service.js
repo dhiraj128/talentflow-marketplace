@@ -235,20 +235,6 @@ let AuthService = class AuthService {
             throw new common_1.BadRequestException('Email or Phone Number is required');
         }
         console.log('[AuthService] Public registration requested for:', identifier);
-        const strictOtpEnforcement = process.env.STRICT_OTP_ENFORCEMENT === 'true' && process.env.ENFORCE_PUBLIC_REGISTRATION_OTP === 'true';
-        if (strictOtpEnforcement) {
-            const isVerified = await this.prisma.oTP.findFirst({
-                where: {
-                    identifier,
-                    purpose: 'REGISTER',
-                    verifiedAt: { not: null }
-                },
-                orderBy: { verifiedAt: 'desc' }
-            });
-            if (!isVerified || (Date.now() - isVerified.verifiedAt.getTime()) > 30 * 60 * 1000) {
-                console.log('[AuthService] Unverified OTP status logged for public user registration:', identifier);
-            }
-        }
         const existing = await this.prisma.user.findFirst({
             where: {
                 OR: [

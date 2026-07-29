@@ -228,9 +228,9 @@ export class AuthService {
 
     console.log('[AuthService] Public registration requested for:', identifier);
 
-    // Config-driven verification check for public registration (Candidate, Employer, Freelancer, Trainer sign up without OTP prompt)
+    // Public registration bypasses OTP verification (all underlying OTP infrastructure remains intact)
+    /*
     const strictOtpEnforcement = process.env.STRICT_OTP_ENFORCEMENT === 'true' && process.env.ENFORCE_PUBLIC_REGISTRATION_OTP === 'true';
-    
     if (strictOtpEnforcement) {
       const isVerified = await this.prisma.oTP.findFirst({
         where: {
@@ -245,6 +245,7 @@ export class AuthService {
         console.log('[AuthService] Unverified OTP status logged for public user registration:', identifier);
       }
     }
+    */
 
     const existing = await this.prisma.user.findFirst({
       where: { 
