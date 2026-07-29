@@ -226,9 +226,9 @@ export class AuthService {
       throw new BadRequestException('Email or Phone Number is required');
     }
 
-    // Config-driven verification check (Disabled by default; enable by setting STRICT_OTP_ENFORCEMENT=true)
-    const requireEmailVerification = process.env.STRICT_OTP_ENFORCEMENT === 'true';
-    const requirePhoneVerification = process.env.STRICT_OTP_ENFORCEMENT === 'true';
+    // Config-driven verification check (Target: REQUIRE_EMAIL_VERIFICATION=false, REQUIRE_PHONE_VERIFICATION=false)
+    const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION === 'true' && process.env.PUBLIC_SIGNUP_REQUIRE_OTP === 'true';
+    const requirePhoneVerification = process.env.REQUIRE_PHONE_VERIFICATION === 'true' && process.env.PUBLIC_SIGNUP_REQUIRE_OTP === 'true';
 
     if (requireEmailVerification || requirePhoneVerification) {
       const isVerified = await this.prisma.oTP.findFirst({
