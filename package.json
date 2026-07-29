@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && cd talentflow-backend && npm run build",
-    "build:backend": "cd talentflow-backend && npm run build",
+    "build": "npm --prefix talentflow-backend install && npm --prefix talentflow-backend run build && next build",
+    "build:backend": "npm --prefix talentflow-backend install && npm --prefix talentflow-backend run build",
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test"
