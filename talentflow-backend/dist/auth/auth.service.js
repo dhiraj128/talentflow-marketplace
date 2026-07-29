@@ -235,9 +235,8 @@ let AuthService = class AuthService {
             throw new common_1.BadRequestException('Email or Phone Number is required');
         }
         console.log('[AuthService] Public registration requested for:', identifier);
-        const requireEmailVerification = process.env.STRICT_OTP_ENFORCEMENT === 'true' && process.env.REQUIRE_EMAIL_VERIFICATION === 'true';
-        const requirePhoneVerification = process.env.STRICT_OTP_ENFORCEMENT === 'true' && process.env.REQUIRE_PHONE_VERIFICATION === 'true';
-        if (requireEmailVerification || requirePhoneVerification) {
+        const strictOtpEnforcement = process.env.STRICT_OTP_ENFORCEMENT === 'true';
+        if (strictOtpEnforcement) {
             const isVerified = await this.prisma.oTP.findFirst({
                 where: {
                     identifier,
@@ -247,7 +246,7 @@ let AuthService = class AuthService {
                 orderBy: { verifiedAt: 'desc' }
             });
             if (!isVerified || (Date.now() - isVerified.verifiedAt.getTime()) > 30 * 60 * 1000) {
-                console.log('[AuthService] Unverified OTP ignored for public user registration:', identifier);
+                throw new common_1.BadRequestException('Please verify your email/phone before registering.');
             }
         }
         const existing = await this.prisma.user.findFirst({
