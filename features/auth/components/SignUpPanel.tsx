@@ -49,16 +49,21 @@ export function SignUpPanel() {
       role: role,
       fullName: fullName
     }),
-    onSuccess: (res: any) => {
+    onSuccess: async (createdUser: any) => {
       setErrorMsg(null);
-      login(res.access_token, res.refresh_token, res.user);
       toast.success("Account created successfully!");
-      const userRole = String(res?.user?.role || '').toUpperCase();
-      if (userRole === 'ADMIN') router.push('/admin/dashboard');
-      else if (userRole === 'EMPLOYER') router.push('/employer/dashboard');
-      else if (userRole === 'FREELANCER') router.push('/freelancer/dashboard');
-      else if (userRole === 'TRAINER') router.push('/trainer/dashboard');
-      else router.push('/job-seeker/dashboard');
+      try {
+        const loginRes = await authService.login({ email, password });
+        login(loginRes.access_token, loginRes.refresh_token, loginRes.user);
+        const userRole = String(loginRes?.user?.role || createdUser?.role || role).toUpperCase();
+        if (userRole === 'ADMIN') router.push('/admin/dashboard');
+        else if (userRole === 'EMPLOYER') router.push('/employer/dashboard');
+        else if (userRole === 'FREELANCER') router.push('/freelancer/dashboard');
+        else if (userRole === 'TRAINER') router.push('/trainer/dashboard');
+        else router.push('/job-seeker/dashboard');
+      } catch (err) {
+        router.push('/sign-in');
+      }
     },
     onError: (error: any) => {
       setErrorMsg(error?.response?.data?.message || 'Registration failed. Please try again.');
