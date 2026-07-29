@@ -56,13 +56,13 @@ export function SignUpPanel() {
         const loginRes = await authService.login({ email, password });
         login(loginRes.access_token, loginRes.refresh_token, loginRes.user);
         const userRole = String(loginRes?.user?.role || createdUser?.role || role).toUpperCase();
-        if (userRole === 'ADMIN') router.push('/admin/dashboard');
-        else if (userRole === 'EMPLOYER') router.push('/employer/dashboard');
-        else if (userRole === 'FREELANCER') router.push('/freelancer/dashboard');
-        else if (userRole === 'TRAINER') router.push('/trainer/dashboard');
-        else router.push('/job-seeker/dashboard');
+        if (userRole === 'ADMIN') window.location.href = '/admin/dashboard';
+        else if (userRole === 'EMPLOYER') window.location.href = '/employer/dashboard';
+        else if (userRole === 'FREELANCER') window.location.href = '/freelancer/dashboard';
+        else if (userRole === 'TRAINER') window.location.href = '/trainer/dashboard';
+        else window.location.href = '/job-seeker/dashboard';
       } catch (err) {
-        router.push('/sign-in');
+        window.location.href = '/sign-in';
       }
     },
     onError: (error: any) => {
