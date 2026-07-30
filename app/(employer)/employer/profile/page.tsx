@@ -75,7 +75,7 @@ export default function ProfilePage() {
               <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSaveProfile}>
                 <div className="col-span-1 md:col-span-2 space-y-2">
                   <Label>Company Name</Label>
-                  <Input name="companyName" value={formData.companyName} onChange={handleChange} placeholder="TechCorp Inc." />
+                  <Input name="companyName" value={formData.companyName} onChange={handleChange} placeholder="e.g. Acme Corporation" />
                 </div>
                 <div className="space-y-2">
                   <Label>Industry</Label>

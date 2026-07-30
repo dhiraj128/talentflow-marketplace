@@ -19,18 +19,8 @@ interface ServiceProfileProps {
 export function ServiceProfile({ freelancer }: ServiceProfileProps) {
   if (!freelancer) return null;
 
-  // Mock Portfolio Items
-  const portfolioItems = [
-    { title: "E-Commerce Dashboard", link: "https://github.com/example/ecommerce", type: "github" as const },
-    { title: "SaaS Landing Page", link: "https://dribbble.com/example/saas", type: "image" as const },
-    { title: "Mobile App UI", link: "https://behance.net/example/app", type: "link" as const },
-  ];
-
-  // Mock Reviews
-  const reviews = [
-    { id: "r1", author: "TechCorp Inc.", rating: 5, date: "2 weeks ago", comment: "Excellent work, delivered ahead of schedule with perfect code quality." },
-    { id: "r2", author: "DesignFlow Agency", rating: 4.5, date: "1 month ago", comment: "Great communication and very skilled in React." },
-  ];
+  const portfolioItems = freelancer.portfolio || [];
+  const reviews = freelancer.reviewsList || [];
 
   return (
     <div className="space-y-8">

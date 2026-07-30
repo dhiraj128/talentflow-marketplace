@@ -242,6 +242,55 @@ let JobsService = class JobsService {
         }
         return { hasApplied: false };
     }
+    async saveJob(jobId, userId) {
+        const candidate = await this.prisma.candidateProfile.findUnique({ where: { userId } });
+        if (!candidate)
+            throw new common_1.ForbiddenException('Candidate profile required');
+        const job = await this.prisma.job.findUnique({ where: { id: jobId } });
+        if (!job)
+            throw new common_1.NotFoundException('Job not found');
+        return this.prisma.savedJob.upsert({
+            where: { candidateId_jobId: { candidateId: candidate.id, jobId } },
+            create: { candidateId: candidate.id, jobId },
+            update: {},
+        });
+    }
+    async unsaveJob(jobId, userId) {
+        const candidate = await this.prisma.candidateProfile.findUnique({ where: { userId } });
+        if (!candidate)
+            throw new common_1.ForbiddenException('Candidate profile required');
+        await this.prisma.savedJob.deleteMany({
+            where: { candidateId: candidate.id, jobId },
+        });
+        return { success: true };
+    }
+    async getSavedJobs(userId) {
+        const candidate = await this.prisma.candidateProfile.findUnique({ where: { userId } });
+        if (!candidate)
+            throw new common_1.ForbiddenException('Candidate profile required');
+        const items = await this.prisma.savedJob.findMany({
+            where: { candidateId: candidate.id },
+            include: {
+                job: {
+                    include: {
+                        employer: { select: { companyName: true, logoUrl: true } },
+                        requiredSkills: { include: { skill: true } },
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+        return items.map((sj) => ({
+            id: sj.job.id,
+            savedJobId: sj.id,
+            title: sj.job.title,
+            company: sj.job.employer?.companyName || 'Company',
+            location: sj.job.location || 'Remote',
+            salary: sj.job.salaryRange || 'Competitive',
+            type: sj.job.type || 'Full-time',
+            savedAt: sj.createdAt,
+        }));
+    }
 };
 exports.JobsService = JobsService;
 exports.JobsService = JobsService = __decorate([

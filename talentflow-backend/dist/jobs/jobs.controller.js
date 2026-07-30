@@ -86,6 +86,15 @@ let JobsController = class JobsController {
     async checkApplicationStatus(id, user) {
         return this.jobsService.checkApplicationStatus(id, user.sub || user.userId);
     }
+    saveJob(id, user) {
+        return this.jobsService.saveJob(id, user.sub || user.userId);
+    }
+    unsaveJob(id, user) {
+        return this.jobsService.unsaveJob(id, user.sub || user.userId);
+    }
+    getSavedJobs(user) {
+        return this.jobsService.getSavedJobs(user.sub || user.userId);
+    }
 };
 exports.JobsController = JobsController;
 __decorate([
@@ -205,6 +214,38 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], JobsController.prototype, "checkApplicationStatus", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Post)(':id/save'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "saveJob", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Delete)(':id/save'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "unsaveJob", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Get)('saved/my-saved-jobs'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "getSavedJobs", null);
 exports.JobsController = JobsController = __decorate([
     (0, swagger_1.ApiTags)('jobs'),
     (0, common_1.Controller)('jobs'),

@@ -93,6 +93,7 @@ model CandidateProfile {
   savedByEmployers    SavedCandidate[]
   talentPoolMemberships TalentPoolMember[]
   receivedInvitations CandidateInvitation[]
+  savedJobs           SavedJob[]
   candidateTagAssignments CandidateTagAssignment[]
 }
 
@@ -150,6 +151,7 @@ model Job {
   employer       EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
   requiredSkills JobSkill[]
   invitations    CandidateInvitation[]
+  savedByCandidates SavedJob[]
 }
 
 model Application {
@@ -817,6 +819,20 @@ model CandidateTagAssignment {
 
   @@id([candidateId, tagId])
 }
+
+model SavedJob {
+  id          String           @id @default(uuid())
+  candidateId String
+  jobId       String
+  createdAt   DateTime         @default(now())
+
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job         Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, jobId])
+  @@index([candidateId])
+}
+
 
 
 

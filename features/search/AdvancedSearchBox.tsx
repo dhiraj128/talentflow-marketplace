@@ -22,7 +22,7 @@ const SEARCH_CATEGORIES = [
 
 const TRENDING_SEARCHES = [
   "React Developer",
-  "Full Stack Engineer",
+  "Software Engineer",
   "UI/UX Designer",
   "AWS",
   "Data Scientist",

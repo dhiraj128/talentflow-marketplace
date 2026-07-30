@@ -111,8 +111,8 @@ export class JobsController {
 
   @ApiBearerAuth()
   @Post(':id/apply')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.CANDIDATE, Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CANDIDATE, Role.ADMIN)
   async applyToJob(
     @Param('id') id: string,
     @Body() body: { resumeId?: string },
@@ -151,5 +151,29 @@ export class JobsController {
     @CurrentUser() user: any,
   ) {
     return this.jobsService.checkApplicationStatus(id, user.sub || user.userId);
+  }
+
+  @ApiBearerAuth()
+  @Post(':id/save')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CANDIDATE, Role.ADMIN)
+  saveJob(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.jobsService.saveJob(id, user.sub || user.userId);
+  }
+
+  @ApiBearerAuth()
+  @Delete(':id/save')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CANDIDATE, Role.ADMIN)
+  unsaveJob(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.jobsService.unsaveJob(id, user.sub || user.userId);
+  }
+
+  @ApiBearerAuth()
+  @Get('saved/my-saved-jobs')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CANDIDATE, Role.ADMIN)
+  getSavedJobs(@CurrentUser() user: any) {
+    return this.jobsService.getSavedJobs(user.sub || user.userId);
   }
 }

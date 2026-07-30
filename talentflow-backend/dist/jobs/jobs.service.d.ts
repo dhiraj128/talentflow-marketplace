@@ -261,4 +261,23 @@ export declare class JobsService {
         applicationId: string;
         status: import(".prisma/client").$Enums.ApplicationStatus;
     }>;
+    saveJob(jobId: string, userId: string): Promise<{
+        id: string;
+        candidateId: string;
+        jobId: string;
+        createdAt: Date;
+    }>;
+    unsaveJob(jobId: string, userId: string): Promise<{
+        success: boolean;
+    }>;
+    getSavedJobs(userId: string): Promise<{
+        id: string;
+        savedJobId: string;
+        title: string;
+        company: string;
+        location: string;
+        salary: string;
+        type: string;
+        savedAt: Date;
+    }[]>;
 }

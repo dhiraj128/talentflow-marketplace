@@ -46,5 +46,17 @@ export const jobService = {
     } catch {
       return { hasApplied: false };
     }
+  },
+  saveJob: async (jobId: string) => {
+    const response = await api.post(`/jobs/${jobId}/save`);
+    return response.data;
+  },
+  unsaveJob: async (jobId: string) => {
+    const response = await api.delete(`/jobs/${jobId}/save`);
+    return response.data;
+  },
+  getSavedJobs: async () => {
+    const response = await api.get(`/jobs/saved/my-saved-jobs`);
+    return response.data;
   }
 };
