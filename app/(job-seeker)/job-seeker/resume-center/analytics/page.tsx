@@ -18,9 +18,9 @@ export default function AnalyticsPage() {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">124</div>
-            <p className="text-xs text-green-500 mt-1 flex items-center">
-              +12% from last month
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              No profile views yet
             </p>
           </CardContent>
         </Card>
@@ -31,9 +31,9 @@ export default function AnalyticsPage() {
             <MousePointerClick className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
-            <p className="text-xs text-green-500 mt-1 flex items-center">
-              +5% from last month
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              No resume downloads yet
             </p>
           </CardContent>
         </Card>
@@ -44,9 +44,9 @@ export default function AnalyticsPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">312</div>
-            <p className="text-xs text-green-500 mt-1 flex items-center">
-              +22% from last month
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              No search appearances yet
             </p>
           </CardContent>
         </Card>
@@ -61,7 +61,7 @@ export default function AnalyticsPage() {
           <CardContent className="flex items-center justify-center h-64 border-2 border-dashed border-muted/50 rounded-lg m-6 mt-0 bg-muted/10">
             <div className="flex flex-col items-center text-muted-foreground">
               <LineChart className="h-10 w-10 mb-2 opacity-50" />
-              <p>Chart Data Visualization Placeholder</p>
+              <p>No view analytics available yet</p>
             </div>
           </CardContent>
         </Card>
@@ -74,7 +74,7 @@ export default function AnalyticsPage() {
           <CardContent className="flex items-center justify-center h-64 border-2 border-dashed border-muted/50 rounded-lg m-6 mt-0 bg-muted/10">
             <div className="flex flex-col items-center text-muted-foreground">
               <BarChart className="h-10 w-10 mb-2 opacity-50" />
-              <p>Keywords Chart Visualization Placeholder</p>
+              <p>No keyword search analytics available yet</p>
             </div>
           </CardContent>
         </Card>

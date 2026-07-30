@@ -1,29 +1,42 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { courseService } from "@/lib/services/course.service";
 import { LearningPlayer } from "@/features/training/learning/LearningPlayer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function LearningPlayerPage({ params }: { params: { courseId: string } }) {
-  // Mock course curriculum
-  const courseTitle = "Advanced React Patterns & Architecture";
-  const curriculum = [
-    {
-      title: "Module 1: Introduction to Advanced Patterns",
-      lessons: [
-        { id: "lesson-1", title: "Course Overview & Setup", duration: "10:25", type: "video", completed: true },
-        { id: "lesson-2", title: "Thinking in React: Re-evaluated", duration: "15:30", type: "video", completed: false },
-        { id: "lesson-3", title: "Component Design Principles", duration: "12:45", type: "text", completed: false },
-        { id: "lesson-4", title: "Module 1 Assessment", duration: "15:00", type: "assessment", completed: false }
-      ]
-    },
-    {
-      title: "Module 2: State Management Architecture",
-      lessons: [
-        { id: "lesson-5", title: "Context API Deep Dive", duration: "25:10", type: "video", completed: false },
-        { id: "lesson-6", title: "When to use Redux vs Zustand", duration: "20:15", type: "video", completed: false },
-        { id: "lesson-7", title: "Server State with React Query", duration: "32:40", type: "video", completed: false }
-      ]
+  const { data: course, isLoading } = useQuery({
+    queryKey: ["learningCourse", params.courseId],
+    queryFn: async () => {
+      try {
+        return await courseService.getCourse(params.courseId);
+      } catch (err) {
+        return null;
+      }
     }
-  ];
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pt-24 p-8 max-w-7xl mx-auto space-y-4">
+        <Skeleton className="h-12 w-3/4" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
+
+  const courseTitle = course?.title || "Course Player";
+  const curriculum = (course?.modules || []).map((m: any, idx: number) => ({
+    title: m.title || `Module ${idx + 1}`,
+    lessons: (m.lessons || []).map((l: any) => ({
+      id: l.id,
+      title: l.title || "Lesson",
+      duration: l.duration || "10:00",
+      type: l.type || "video",
+      completed: false
+    }))
+  }));
 
   return (
     <div className="min-h-screen bg-background pt-16">

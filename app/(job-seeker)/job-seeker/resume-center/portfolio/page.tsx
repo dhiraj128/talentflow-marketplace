@@ -6,22 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Briefcase, Plus, ExternalLink, Edit, Trash2 } from "lucide-react";
 
 export default function PortfolioPage() {
-  const projects = [
-    {
-      id: 1,
-      title: "E-commerce Redesign",
-      description: "Led the frontend redesign of a major e-commerce platform, improving conversion rates by 15%.",
-      link: "https://example.com/project-1",
-      tags: ["React", "Next.js", "Tailwind CSS"],
-    },
-    {
-      id: 2,
-      title: "Task Management API",
-      description: "Developed a RESTful API for a task management application with robust authentication.",
-      link: "https://github.com/example/api",
-      tags: ["Node.js", "Express", "MongoDB"],
-    }
-  ];
+  const projects: any[] = [];
 
   return (
     <div className="space-y-6">
@@ -34,34 +19,46 @@ export default function PortfolioPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          {projects.map((project) => (
-            <Card key={project.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{project.title}</CardTitle>
-                    <CardDescription className="mt-2">{project.description}</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tags.map((tag, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-muted rounded-md text-xs font-medium">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <a href={project.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-sm text-primary hover:underline">
-                  <ExternalLink className="mr-1 h-3 w-3" /> View Project
-                </a>
+          {projects.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
+                <Briefcase className="w-12 h-12 text-muted-foreground/40 mb-3" />
+                <h3 className="font-semibold text-lg">No portfolio projects yet</h3>
+                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                  Add projects to showcase your technical skills and experience to employers.
+                </p>
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            projects.map((project) => (
+              <Card key={project.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>{project.title}</CardTitle>
+                      <CardDescription className="mt-2">{project.description}</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {project.tags.map((tag: string, idx: number) => (
+                      <span key={idx} className="px-2 py-1 bg-muted rounded-md text-xs font-medium">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <a href={project.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-sm text-primary hover:underline">
+                    <ExternalLink className="mr-1 h-3 w-3" /> View Project
+                  </a>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         <div>

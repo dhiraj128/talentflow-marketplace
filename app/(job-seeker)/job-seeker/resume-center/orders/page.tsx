@@ -5,11 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ExternalLink } from "lucide-react";
 
 export default function OrdersPage() {
-  const orders = [
-    { id: "ORD-7392", date: "Oct 15, 2023", service: "Resume Rewrite", status: "In Progress", amount: "$149.00" },
-    { id: "ORD-6124", date: "Sep 02, 2023", service: "Resume Review", status: "Completed", amount: "$49.00" },
-    { id: "ORD-5091", date: "Jul 18, 2023", service: "LinkedIn Makeover", status: "Completed", amount: "$89.00" },
-  ];
+  const orders: any[] = [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
