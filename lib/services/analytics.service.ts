@@ -1,6 +1,10 @@
 import api from '../api';
 
 export const analyticsService = {
+  getPublicStats: async () => {
+    const response = await api.get('/analytics/public-stats');
+    return response.data;
+  },
   getStats: async () => {
     const response = await api.get('/analytics/stats');
     return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;

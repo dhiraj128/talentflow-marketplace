@@ -59,7 +59,7 @@ export default function MyResumePage() {
         default: resumes.length === 0,
         published: false,
         isPublic: false,
-        atsScore: Math.floor(Math.random() * 30) + 60,
+        atsScore: 0,
       };
       setResumes([newResume, ...resumes]);
       setVersionHistory([{ version: `v${versionHistory.length + 1}.0`, date: new Date().toLocaleDateString(), changes: `Uploaded ${fileOrResume.name}` }, ...versionHistory]);

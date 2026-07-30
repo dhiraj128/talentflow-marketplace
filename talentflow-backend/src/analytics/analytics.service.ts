@@ -6,12 +6,21 @@ export class AnalyticsService {
   constructor(private prisma: PrismaService) {}
 
   async getPlatformStats() {
-    const totalJobs = await this.prisma.job.count();
-    const totalApplications = await this.prisma.application.count();
-    const totalCandidates = await this.prisma.candidateProfile.count();
+    const totalJobs = await this.prisma.job.count({
+      where: { status: { in: ['PUBLISHED', 'ACTIVE', 'OPEN'] } },
+    });
     const totalEmployers = await this.prisma.employerProfile.count();
+    const totalFreelancers = await this.prisma.freelancerProfile.count();
+    const totalCourses = await this.prisma.course.count();
+    const totalCandidates = await this.prisma.candidateProfile.count();
 
-    return { totalJobs, totalApplications, totalCandidates, totalEmployers };
+    return {
+      totalJobs,
+      totalEmployers,
+      totalFreelancers,
+      totalCourses,
+      totalCandidates,
+    };
   }
 
   async getCandidateDashboard(userId: string) {
@@ -354,14 +363,22 @@ export class AnalyticsService {
       where: { trainerId: trainer.id, status: 'PUBLISHED' },
     });
 
+    const totalEnrollments = await this.prisma.enrollment.count({
+      where: { courseId: { in: courseIds } },
+    });
+    const completedEnrollments = await this.prisma.enrollment.count({
+      where: { courseId: { in: courseIds }, status: 'COMPLETED' },
+    });
+    const courseCompletionRate = totalEnrollments > 0 ? Math.round((completedEnrollments / totalEnrollments) * 100) : 0;
+
     return {
       publishedCourses,
       draftCourses,
       totalStudents,
       revenue: 0,
-      courseRating: 4.5,
+      courseRating: 0,
       certificatesIssued,
-      courseCompletionRate: 80,
+      courseCompletionRate,
       recentCourses: courses,
     };
   }
@@ -389,25 +406,6 @@ export class AnalyticsService {
       where: { status: 'ACTIVE' },
     });
 
-    // Mock historical data since we don't have historical snapshot tables
-    const userGrowthData = [
-      { name: 'Jan', users: Math.floor(totalUsers * 0.5) },
-      { name: 'Feb', users: Math.floor(totalUsers * 0.6) },
-      { name: 'Mar', users: Math.floor(totalUsers * 0.7) },
-      { name: 'Apr', users: Math.floor(totalUsers * 0.8) },
-      { name: 'May', users: Math.floor(totalUsers * 0.9) },
-      { name: 'Jun', users: totalUsers },
-    ];
-
-    const revenueData = [
-      { name: 'Jan', revenue: 15000 },
-      { name: 'Feb', revenue: 18000 },
-      { name: 'Mar', revenue: 22000 },
-      { name: 'Apr', revenue: 26000 },
-      { name: 'May', revenue: 31000 },
-      { name: 'Jun', revenue: 38500 },
-    ];
-
     return {
       stats: {
         totalUsers,
@@ -418,13 +416,13 @@ export class AnalyticsService {
         jobsPosted,
         courses,
         premiumMembers,
-        monthlyRevenue: 38500, // Derived from mock revenueData for current month
+        monthlyRevenue: 0,
         activeCoupons,
         expiringSubscriptions,
       },
       charts: {
-        userGrowthData,
-        revenueData,
+        userGrowthData: [],
+        revenueData: [],
       },
     };
   }

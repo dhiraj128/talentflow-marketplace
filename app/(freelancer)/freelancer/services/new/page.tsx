@@ -5,6 +5,8 @@ import { PageContainer } from "@/components/shared/PageContainer";
 import { ServiceWizard, ServiceFormData } from "@/features/freelancer/services/ServiceWizard";
 import { PublishSuccessDialog } from "@/features/freelancer/services/PublishSuccessDialog";
 import { useRouter } from "next/navigation";
+import { freelancerService } from "@/lib/services/freelancer.service";
+import { toast } from "sonner";
 
 export default function NewServicePage() {
   const router = useRouter();
@@ -14,11 +16,17 @@ export default function NewServicePage() {
   const handleSubmit = async (data: ServiceFormData) => {
     setIsSubmitting(true);
     try {
-      // MOCK API CALL
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await freelancerService.updateMyProfile({
+        title: data.title || "Freelance Service",
+        category: data.category,
+        hourlyRate: parseFloat(data.price as any) || 0,
+        skills: data.skills || [],
+        bio: data.description
+      });
       setShowSuccess(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to submit service:", error);
+      toast.error(error?.response?.data?.message || "Failed to create service profile");
     } finally {
       setIsSubmitting(false);
     }

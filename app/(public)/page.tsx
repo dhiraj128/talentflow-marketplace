@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -24,8 +26,26 @@ import { HeroSearchBox } from "@/features/search/HeroSearchBox";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useQuery } from "@tanstack/react-query";
+import { analyticsService } from "@/lib/services/analytics.service";
 
 export default function LandingPage() {
+  const { data: stats } = useQuery({
+    queryKey: ["homepagePublicStats"],
+    queryFn: async () => {
+      try {
+        return await analyticsService.getPublicStats();
+      } catch (err) {
+        return { totalJobs: 0, totalEmployers: 0, totalFreelancers: 0, totalCourses: 0 };
+      }
+    }
+  });
+
+  const totalJobs = stats?.totalJobs || 0;
+  const totalEmployers = stats?.totalEmployers || 0;
+  const totalFreelancers = stats?.totalFreelancers || 0;
+  const totalCourses = stats?.totalCourses || 0;
+
   return (
     <PageContainer>
       {/* HERO SECTION */}
@@ -69,36 +89,30 @@ export default function LandingPage() {
 
       {/* LIVE PLATFORM METRICS */}
       <section className="py-12 border-y bg-muted/30">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div>
             <div className="text-4xl font-extrabold text-foreground mb-2 flex justify-center items-baseline">
-              <AnimatedCounter end={12480} />
+              <AnimatedCounter end={totalJobs} />
             </div>
             <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Active Jobs</div>
           </div>
           <div>
             <div className="text-4xl font-extrabold text-foreground mb-2 flex justify-center items-baseline">
-              <AnimatedCounter end={3200} suffix="+" />
+              <AnimatedCounter end={totalEmployers} />
             </div>
             <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Verified Employers</div>
           </div>
           <div>
             <div className="text-4xl font-extrabold text-foreground mb-2 flex justify-center items-baseline">
-              <AnimatedCounter end={8900} suffix="+" />
+              <AnimatedCounter end={totalFreelancers} />
             </div>
             <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Freelancers</div>
           </div>
           <div>
             <div className="text-4xl font-extrabold text-foreground mb-2 flex justify-center items-baseline">
-              <AnimatedCounter end={540} suffix="+" />
+              <AnimatedCounter end={totalCourses} />
             </div>
             <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Training Courses</div>
-          </div>
-          <div className="col-span-2 md:col-span-1">
-            <div className="text-4xl font-extrabold text-foreground mb-2 flex justify-center items-baseline">
-              <AnimatedCounter end={96} suffix="%" />
-            </div>
-            <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Placement Rate</div>
           </div>
         </div>
       </section>

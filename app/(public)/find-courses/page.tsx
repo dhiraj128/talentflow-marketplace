@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { CourseGrid } from "@/features/training/courses/CourseGrid";
 import { CourseSearch } from "@/features/training/courses/CourseSearch";
@@ -10,8 +11,8 @@ import { CourseSort } from "@/features/training/courses/CourseSort";
 import { EmptyCoursesState } from "@/features/training/courses/EmptyCoursesState";
 import { FeaturedCourses } from "@/features/training/courses/FeaturedCourses";
 import { Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { courseService } from "@/lib/services/course.service";
 
 export default function FindCoursesPage() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -23,45 +24,29 @@ export default function FindCoursesPage() {
   });
 
   const categories = ["All", "Programming", "AI & Data Science", "Cloud Computing", "UI/UX Design", "Cybersecurity", "Business"];
-  
-  const mockCourses = [
-    {
-      id: "react-adv",
-      title: "Advanced React Patterns & Architecture",
-      instructor: "Sarah Jenkins",
-      rating: 4.8,
-      students: 12400,
-      duration: "18h 30m",
-      level: "Certificate",
-      price: 149.99,
-      thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=600&auto=format&fit=crop",
-      isAiRecommended: true
-    },
-    {
-      id: "node-api",
-      title: "Node.js Microservices Masterclass",
-      instructor: "David Chen",
-      rating: 4.9,
-      students: 8200,
-      duration: "24h 15m",
-      level: "Specialization",
-      price: 199.99,
-      thumbnail: "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=600&auto=format&fit=crop",
-      isAiRecommended: false
-    },
-    {
-      id: "figma-ui",
-      title: "Figma UI/UX Design Fundamentals",
-      instructor: "Elena Rodriguez",
-      rating: 4.7,
-      students: 25100,
-      duration: "10h 45m",
-      level: "Short Course",
-      price: 0,
-      thumbnail: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=600&auto=format&fit=crop",
-      isAiRecommended: true
+
+  const { data: rawCourses, isLoading } = useQuery({
+    queryKey: ["publicCoursesMarketplace", activeCategory, sortValue, filters],
+    queryFn: async () => {
+      const res = await courseService.getCourses({
+        category: activeCategory !== "All" ? activeCategory : undefined,
+      });
+      return Array.isArray(res) ? res : res?.data || [];
     }
-  ];
+  });
+
+  const courses = (rawCourses || []).map((c: any) => ({
+    id: c.id,
+    title: c.title,
+    instructor: c.trainer?.user?.fullName || c.instructor || "Platform Trainer",
+    rating: c.rating || 5.0,
+    students: c.enrollments?.length || 0,
+    duration: c.duration || "Self-paced",
+    level: c.level || "All Levels",
+    price: c.price || 0,
+    thumbnail: c.thumbnailUrl || c.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop",
+    isAiRecommended: !!c.isAiRecommended
+  }));
 
   return (
     <PageContainer className="py-8">
@@ -80,7 +65,7 @@ export default function FindCoursesPage() {
           </div>
         </div>
 
-        <FeaturedCourses />
+        {courses.length > 0 && <FeaturedCourses />}
 
         {/* Categories & Mobile Filters */}
         <div className="flex items-center justify-between gap-4 border-b pb-4 sticky top-[4rem] z-30 bg-background w-full min-w-0 overflow-hidden">
@@ -124,8 +109,10 @@ export default function FindCoursesPage() {
           
           {/* Course Grid */}
           <div className="flex-1 w-full">
-            {mockCourses.length > 0 ? (
-              <CourseGrid courses={mockCourses} />
+            {isLoading ? (
+              <div className="py-12 flex justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>
+            ) : courses.length > 0 ? (
+              <CourseGrid courses={courses} />
             ) : (
               <EmptyCoursesState onClearFilters={() => setFilters({ difficulty: [], price: "all", rating: "3.0" })} />
             )}

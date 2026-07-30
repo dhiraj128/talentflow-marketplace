@@ -20,6 +20,11 @@ export class AnalyticsController {
   // Admin Platform Statistics
   // ==========================
 
+  @Get('public-stats')
+  getPublicPlatformStats() {
+    return this.analyticsService.getPlatformStats();
+  }
+
   @Get('stats')
   @ApiOperation({ summary: 'Get global platform statistics (Admin Only)' })
     @UseGuards(JwtAuthGuard, RolesGuard)

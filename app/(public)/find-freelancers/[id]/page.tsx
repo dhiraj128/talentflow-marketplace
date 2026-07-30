@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { ServiceProfile } from "@/features/freelancer/profile/ServiceProfile";
-import { MOCK_FREELANCERS } from "../mockData";
+import { freelancerService } from "@/lib/services/freelancer.service";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -13,9 +14,24 @@ export default function FreelancerProfilePage() {
   const params = useParams();
   const id = params?.id as string;
 
-  const freelancer = useMemo(() => {
-    return MOCK_FREELANCERS.find(f => f.id === id);
-  }, [id]);
+  const { data: freelancer, isLoading } = useQuery({
+    queryKey: ["freelancerProfile", id],
+    queryFn: async () => {
+      if (!id) return null;
+      return await freelancerService.getProfile(id);
+    },
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </PageContainer>
+    );
+  }
 
   if (!freelancer) {
     return (
@@ -30,6 +46,23 @@ export default function FreelancerProfilePage() {
       </PageContainer>
     );
   }
+
+  const formattedFreelancer = {
+    id: freelancer.id,
+    name: freelancer.fullName || freelancer.title || "Freelancer",
+    isVerified: !!freelancer.isVerified,
+    title: freelancer.title || "Professional Freelancer",
+    category: freelancer.category || "General Services",
+    hourlyRate: freelancer.hourlyRate || 0,
+    rating: freelancer.rating || 5.0,
+    reviews: freelancer.reviews?.length || 0,
+    location: freelancer.location || "Remote",
+    completedProjects: freelancer.completedProjects || 0,
+    skills: (freelancer.skills || []).map((s: any) => s.skill?.name || s.name || s),
+    isAvailable: freelancer.isAvailable !== false,
+    bio: freelancer.bio,
+    avatarUrl: freelancer.avatarUrl,
+  };
 
   return (
     <div className="bg-muted/10 min-h-screen pb-24 md:pb-20">
@@ -46,7 +79,7 @@ export default function FreelancerProfilePage() {
           </Link>
         </div>
         
-        <ServiceProfile freelancer={freelancer} />
+        <ServiceProfile freelancer={formattedFreelancer} />
       </PageContainer>
     </div>
   );

@@ -1,21 +1,19 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PageContainer } from "@/components/shared/PageContainer";
 import { MarketplaceSearch } from "@/features/freelancer/marketplace/MarketplaceSearch";
 import { MarketplaceFilters } from "@/features/freelancer/marketplace/MarketplaceFilters";
 import { MarketplaceSort } from "@/features/freelancer/marketplace/MarketplaceSort";
 import { CategoryTabs } from "@/features/freelancer/marketplace/CategoryTabs";
-import { FreelancerCardProps } from "@/features/freelancer/marketplace/FreelancerCard";
 import { SearchResultsGrid } from "@/features/freelancer/marketplace/SearchResultsGrid";
 import { FeaturedFreelancers } from "@/features/freelancer/marketplace/FeaturedFreelancers";
 import { EmptyMarketplaceState } from "@/features/freelancer/marketplace/EmptyMarketplaceState";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
-
-// Mock Data
-import { MOCK_FREELANCERS } from "./mockData";
+import { freelancerService } from "@/lib/services/freelancer.service";
 
 const CATEGORIES = ["All", "Web Development", "Mobile Apps", "UI/UX Design", "Digital Marketing", "Writing"];
 
@@ -34,35 +32,60 @@ export default function FindFreelancersPage() {
     rating: 0
   });
 
+  const { data: rawFreelancers = [], isLoading } = useQuery({
+    queryKey: ["publicFreelancersMarketplace"],
+    queryFn: async () => {
+      const data = await freelancerService.getMarketplace();
+      return Array.isArray(data) ? data : data?.data || [];
+    }
+  });
+
+  const freelancers = useMemo(() => {
+    return (rawFreelancers || []).map((f: any) => ({
+      id: f.id,
+      name: f.fullName || f.title || "Freelancer",
+      isVerified: !!f.isVerified,
+      title: f.title || "Freelance Specialist",
+      category: f.category || "Web Development",
+      hourlyRate: f.hourlyRate || 0,
+      rating: f.rating || 5.0,
+      reviews: f.reviews?.length || 0,
+      location: f.location || "Remote",
+      completedProjects: f.completedProjects || 0,
+      skills: (f.skills || []).map((s: any) => s.skill?.name || s.name || s),
+      isAvailable: f.isAvailable !== false,
+      avatarUrl: f.avatarUrl
+    }));
+  }, [rawFreelancers]);
+
   const featuredFreelancers = useMemo(() => {
-    return MOCK_FREELANCERS.filter(f => f.rating >= 4.9).slice(0, 4);
-  }, []);
+    return freelancers.filter((f: any) => f.rating >= 4.9).slice(0, 4);
+  }, [freelancers]);
 
   const filteredFreelancers = useMemo(() => {
-    let result = MOCK_FREELANCERS;
+    let result = freelancers;
 
     if (activeCategory !== "All") {
-      result = result.filter(f => f.category === activeCategory);
+      result = result.filter((f: any) => f.category === activeCategory);
     }
 
     if (appliedSearchQuery) {
       const q = appliedSearchQuery.toLowerCase();
-      result = result.filter(f => 
+      result = result.filter((f: any) => 
         f.name.toLowerCase().includes(q) || 
         f.title.toLowerCase().includes(q) ||
-        f.skills.some(s => s.toLowerCase().includes(q))
+        f.skills.some((s: string) => s.toLowerCase().includes(q))
       );
     }
 
     if (filters.verifiedOnly) {
-      result = result.filter(f => f.isVerified);
+      result = result.filter((f: any) => f.isVerified);
     }
 
-    result = result.filter(f => f.hourlyRate <= filters.hourlyRate[0]);
+    result = result.filter((f: any) => f.hourlyRate <= filters.hourlyRate[0]);
 
     if (filters.experienceLevel.length > 0) {
-      // Mock simple matching
-      result = result.filter(f => {
+      result = result.filter((f: any) => {
         if (filters.experienceLevel.includes("Expert") && f.hourlyRate > 80) return true;
         if (filters.experienceLevel.includes("Intermediate") && f.hourlyRate > 30 && f.hourlyRate <= 80) return true;
         if (filters.experienceLevel.includes("Entry Level") && f.hourlyRate <= 30) return true;
@@ -71,13 +94,13 @@ export default function FindFreelancersPage() {
     }
 
     // Sort
-    if (sortValue === "rating") result.sort((a, b) => b.rating - a.rating);
-    if (sortValue === "price_asc") result.sort((a, b) => a.hourlyRate - b.hourlyRate);
-    if (sortValue === "price_desc") result.sort((a, b) => b.hourlyRate - a.hourlyRate);
-    if (sortValue === "projects") result.sort((a, b) => b.completedProjects - a.completedProjects);
+    if (sortValue === "rating") result.sort((a: any, b: any) => b.rating - a.rating);
+    if (sortValue === "price_asc") result.sort((a: any, b: any) => a.hourlyRate - b.hourlyRate);
+    if (sortValue === "price_desc") result.sort((a: any, b: any) => b.hourlyRate - a.hourlyRate);
+    if (sortValue === "projects") result.sort((a: any, b: any) => b.completedProjects - a.completedProjects);
     
     return result;
-  }, [appliedSearchQuery, activeCategory, filters, sortValue]);
+  }, [freelancers, appliedSearchQuery, activeCategory, filters, sortValue]);
 
   const handleClearFilters = () => {
     setSearchInputValue("");
@@ -143,7 +166,7 @@ export default function FindFreelancersPage() {
         </div>
 
         {/* Featured Section */}
-        {activeCategory === "All" && !appliedSearchQuery && (
+        {activeCategory === "All" && !appliedSearchQuery && featuredFreelancers.length > 0 && (
           <div className="mb-12">
             <FeaturedFreelancers freelancers={featuredFreelancers} />
           </div>
@@ -182,22 +205,12 @@ export default function FindFreelancersPage() {
               </div>
             </div>
 
-            {filteredFreelancers.length > 0 ? (
+            {isLoading ? (
+              <div className="py-12 flex justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>
+            ) : filteredFreelancers.length > 0 ? (
               <SearchResultsGrid freelancers={filteredFreelancers} />
             ) : (
               <EmptyMarketplaceState onClearFilters={handleClearFilters} />
-            )}
-
-            {/* Pagination Placeholder (As Requested) */}
-            {filteredFreelancers.length > 0 && (
-              <div className="pt-12 pb-8 flex items-center justify-center gap-1.5 sm:gap-2 w-full max-w-full overflow-x-auto px-2">
-                <Button variant="outline" className="w-20 sm:w-24 bg-white shrink-0 text-xs sm:text-sm">Previous</Button>
-                <Button variant="outline" className="w-8 sm:w-10 bg-purple-600 text-white hover:bg-purple-700 hover:text-white shrink-0 text-xs sm:text-sm p-0">1</Button>
-                <Button variant="outline" className="w-8 sm:w-10 bg-white shrink-0 text-xs sm:text-sm p-0">2</Button>
-                <Button variant="outline" className="w-8 sm:w-10 bg-white shrink-0 text-xs sm:text-sm p-0">3</Button>
-                <span className="px-1 text-muted-foreground text-xs sm:text-sm shrink-0">...</span>
-                <Button variant="outline" className="w-20 sm:w-24 bg-white shrink-0 text-xs sm:text-sm">Next</Button>
-              </div>
             )}
 
           </div>

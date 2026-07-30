@@ -1,13 +1,47 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatsGrid } from "@/components/shared/StatsGrid";
 import { MetricCard } from "@/components/shared/MetricCard";
-import { DollarSign, ArrowUpRight, ArrowDownRight, Wallet } from "lucide-react";
+import { DollarSign, ArrowUpRight, ArrowDownRight, Wallet, Receipt } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { analyticsService } from "@/lib/services/analytics.service";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function EarningsPage() {
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    analyticsService.getFreelancerDashboard()
+      .then((res) => {
+        setData(res);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load earnings", err);
+        setIsLoading(false);
+      });
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto p-8 space-y-8">
+        <Skeleton className="h-12 w-64" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  const earnings = data?.stats?.earnings ?? 0;
+  const transactions = data?.transactions || [];
+
   return (
     <div className="max-w-7xl mx-auto p-8 space-y-8">
       <PageHeader 
@@ -16,63 +50,50 @@ export default function EarningsPage() {
       />
 
       <StatsGrid columns={4}>
-        <MetricCard title="Net Income" value="$34,250" icon={<DollarSign className="w-4 h-4" />} trend="up" trendValue="+12% from last month" />
-        <MetricCard title="Withdrawn" value="$28,000" icon={<ArrowUpRight className="w-4 h-4" />} />
-        <MetricCard title="Pending Clearance" value="$1,250" icon={<ArrowDownRight className="w-4 h-4" />} />
-        <MetricCard title="Available for Withdrawal" value="$5,000" icon={<Wallet className="w-4 h-4" />} />
+        <MetricCard title="Net Income" value={`$${earnings.toLocaleString()}`} icon={<DollarSign className="w-4 h-4" />} />
+        <MetricCard title="Withdrawn" value="$0" icon={<ArrowUpRight className="w-4 h-4" />} />
+        <MetricCard title="Pending Clearance" value="$0" icon={<ArrowDownRight className="w-4 h-4" />} />
+        <MetricCard title="Available for Withdrawal" value={`$${earnings.toLocaleString()}`} icon={<Wallet className="w-4 h-4" />} />
       </StatsGrid>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>Recent Transactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center border-b pb-4">
-                <div>
-                  <p className="font-medium">Milestone Payment - App Design</p>
-                  <p className="text-sm text-muted-foreground">Cleared on Oct 14</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-green-600">+$800</p>
-                </div>
+            {transactions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <Receipt className="w-10 h-10 text-muted-foreground/50 mb-3" />
+                <p className="font-medium text-sm text-muted-foreground">No transactions yet</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Earnings from completed projects will appear here.</p>
               </div>
-              <div className="flex justify-between items-center border-b pb-4">
-                <div>
-                  <p className="font-medium">Withdrawal to Bank Account</p>
-                  <p className="text-sm text-muted-foreground">Processed on Oct 10</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">-$1,500</p>
-                </div>
+            ) : (
+              <div className="space-y-4">
+                {transactions.map((tx: any) => (
+                  <div key={tx.id} className="flex justify-between items-center border-b pb-4">
+                    <div>
+                      <p className="font-medium">{tx.description}</p>
+                      <p className="text-sm text-muted-foreground">{new Date(tx.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-green-600">+${tx.amount}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between items-center pb-4">
-                <div>
-                  <p className="font-medium">Hourly Contract - Next.js Dev</p>
-                  <p className="text-sm text-muted-foreground">Pending clearance (Expected Oct 18)</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-yellow-600">+$450</p>
-                </div>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="w-full flex flex-col justify-center">
           <CardHeader>
-            <CardTitle>Earnings by Category</CardTitle>
+            <CardTitle>Earnings Summary</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center min-h-[250px]">
-             {/* Placeholder for chart */}
-             <div className="w-48 h-48 rounded-full border-8 border-primary border-r-muted flex items-center justify-center">
-                <span className="font-medium text-muted-foreground">Chart Area</span>
-             </div>
-             <div className="flex gap-4 mt-6 text-sm">
-                <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary rounded-full"></div> Web Dev (65%)</div>
-                <div className="flex items-center gap-2"><div className="w-3 h-3 bg-muted rounded-full"></div> UI/UX (35%)</div>
-             </div>
+          <CardContent className="flex flex-col items-center justify-center p-8 text-center">
+            <DollarSign className="w-12 h-12 text-muted-foreground/30 mb-3" />
+            <p className="text-2xl font-bold">${earnings.toLocaleString()}</p>
+            <p className="text-sm text-muted-foreground mt-1">Total cleared earnings across all contracts.</p>
           </CardContent>
         </Card>
       </div>

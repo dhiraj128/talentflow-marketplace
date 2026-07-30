@@ -76,13 +76,13 @@ let AuthController = class AuthController {
     async googleAuth(req) { }
     async googleAuthRedirect(req, res) {
         const tokens = await this.authService.loginOAuth(req.user);
-        const frontendUrl = process.env.FRONTEND_URL || 'https://talentflow-marketplace.vercel.app';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://sispl.shop';
         return res.redirect(`${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
     }
     async githubAuth(req) { }
     async githubAuthRedirect(req, res) {
         const tokens = await this.authService.loginOAuth(req.user);
-        const frontendUrl = process.env.FRONTEND_URL || 'https://talentflow-marketplace.vercel.app';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://sispl.shop';
         return res.redirect(`${frontendUrl}/auth/callback?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
     }
 };

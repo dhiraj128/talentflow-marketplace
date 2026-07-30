@@ -12,6 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://sispl.shop'),
   title: {
     template: "%s | TalentFlow Marketplace",
     default: "TalentFlow Marketplace | Precision Talent System",
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "TalentFlow Marketplace",
     description: "Connect with elite talent and top employers.",
+    url: "https://sispl.shop",
     type: "website",
   }
 };

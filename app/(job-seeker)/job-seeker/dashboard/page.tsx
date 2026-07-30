@@ -106,42 +106,12 @@ export default function CandidateDashboard() {
     status: (i.status === 'SCHEDULED' ? 'Upcoming' : 'Completed') as "Upcoming" | "Completed"
   })) : [];
 
-  // Saved Jobs Mock Data
-  const mockSavedJobs = [
-    {
-      id: "job-123",
-      title: "Senior Full Stack Engineer",
-      companyName: "Netflix",
-      location: "Remote, US",
-      savedAt: "1 day ago"
-    }
-  ];
+  // Saved Jobs Data
+  const savedJobsList = data?.savedJobs || [];
 
-  // Notifications & Activity Mock Data
-  const mockNotifications = [
-    {
-      id: "n1",
-      type: "AI_MATCH",
-      title: "New 95% Match Found!",
-      description: "A new Senior Frontend role at TechCorp perfectly matches your skills.",
-      time: "2h ago",
-      isRead: false,
-      link: "/find-jobs/techcorp-frontend"
-    },
-    {
-      id: "n2",
-      type: "INTERVIEW_REMINDER",
-      title: "Interview Tomorrow",
-      description: "Don't forget your technical interview with Stripe at 10:00 AM.",
-      time: "5h ago",
-      isRead: false
-    }
-  ] as any[];
-
-  const mockActivities = data?.recentActivity?.length ? data.recentActivity : [
-    { id: "a1", title: "Applied to Vercel", timestamp: "1 day ago", type: "application" },
-    { id: "a2", title: "Updated Resume", timestamp: "2 days ago", type: "resume" }
-  ];
+  // Notifications & Activity Data
+  const notificationsList = data?.notifications || [];
+  const activitiesList = data?.recentActivity || [];
 
   // Determine current career step based on data
   let currentStepIndex = 1; // Build profile
@@ -176,10 +146,10 @@ export default function CandidateDashboard() {
           shortlisted: trackerApplications.filter((a: any) => a.status === "REVIEWING" || a.status === "SHORTLISTED").length,
           interviews: trackerApplications.filter((a: any) => a.status === "INTERVIEWING").length,
           offers: trackerApplications.filter((a: any) => a.status === "OFFERED").length,
-          savedJobs: data?.stats?.savedJobs || 1,
-          resumeViews: data?.stats?.resumeViews || 14,
-          profileViews: 42,
-          aiMatchScore: data?.metrics?.jobMatchScore || 85
+          savedJobs: data?.stats?.savedJobs || 0,
+          resumeViews: data?.stats?.resumeViews || 0,
+          profileViews: data?.stats?.profileViews || 0,
+          aiMatchScore: data?.metrics?.jobMatchScore || 0
         }} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -224,21 +194,21 @@ export default function CandidateDashboard() {
           <div className="space-y-6">
             
             <ProfileCompletionMeter 
-              score={data?.metrics?.profileCompletion || 65} 
+              score={data?.metrics?.profileCompletion || 0} 
               missingItems={missingProfileItems} 
             />
 
             <ATSResumeServicesWidget 
-              score={88} 
+              score={0} 
               hasPremium={false} 
             />
             
             <ResumeAnalyticsCard />
 
             <ResumeStrengthWidget 
-              atsScore={82}
-              completeness={90}
-              keywordOptimization="Strong match for 'Frontend Engineer'"
+              atsScore={0}
+              completeness={data?.metrics?.profileCompletion || 0}
+              keywordOptimization="Upload resume to analyze keywords"
               suggestions={[
                 "Add more quantifiable achievements",
                 "Include link to your GitHub profile"
@@ -250,13 +220,13 @@ export default function CandidateDashboard() {
             <CertificatesWidget />
 
             <ActivityAndNotifications 
-              activities={mockActivities} 
-              notifications={mockNotifications} 
+              activities={activitiesList} 
+              notifications={notificationsList} 
             />
 
             <InterviewTimelineWidget interviews={upcomingInterviews} />
 
-            <SavedJobsWidget jobs={mockSavedJobs} />
+            <SavedJobsWidget jobs={savedJobsList} />
             
           </div>
         </div>

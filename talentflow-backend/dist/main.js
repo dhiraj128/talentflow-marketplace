@@ -17,7 +17,6 @@ async function bootstrap() {
             const allowedOrigins = [
                 'https://sispl.shop',
                 'https://www.sispl.shop',
-                'https://talentflow-marketplace.vercel.app',
                 process.env.FRONTEND_URL,
                 'http://localhost:3000',
                 'http://localhost:3001',

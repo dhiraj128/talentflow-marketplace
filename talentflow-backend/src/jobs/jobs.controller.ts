@@ -52,15 +52,25 @@ export class JobsController {
     });
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.jobsService.findOne(id);
+  @ApiBearerAuth()
+  @Get('admin/pending')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
+  findPendingAdmin(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.jobsService.findAdminPending({ page, limit });
   }
 
   @ApiBearerAuth()
   @Get('employer/me')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.EMPLOYER, Role.ADMIN)
   getEmployerJobs(@CurrentUser() user: any) {
     return this.jobsService.findEmployerJobs(user.sub || user.userId);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.jobsService.findOne(id);
   }
 
   @ApiBearerAuth()
@@ -86,15 +96,23 @@ export class JobsController {
   @ApiBearerAuth()
   @Patch(':id/approve')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.EMPLOYER, Role.ADMIN)
+    @Roles(Role.ADMIN)
   approveJob(@Param('id') id: string, @CurrentUser() user: any) {
     return this.jobsService.approveJob(id, user);
   }
 
   @ApiBearerAuth()
+  @Patch(':id/reject')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
+  rejectJob(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.jobsService.rejectJob(id, user);
+  }
+
+  @ApiBearerAuth()
   @Post(':id/apply')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.EMPLOYER, Role.ADMIN)
+    @Roles(Role.CANDIDATE, Role.ADMIN)
   async applyToJob(
     @Param('id') id: string,
     @Body() body: { resumeId?: string },

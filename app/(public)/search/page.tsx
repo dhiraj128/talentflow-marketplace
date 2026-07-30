@@ -12,86 +12,97 @@ import { CourseCard } from "@/components/cards/CourseCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { PageContainer } from "@/components/shared/PageContainer";
+import { EmptySearchState } from "@/components/shared/EmptySearchState";
+import { searchService } from "@/lib/services/search.service";
+import { jobService } from "@/lib/services/job.service";
+import { freelancerService } from "@/lib/services/freelancer.service";
+import { courseService } from "@/lib/services/course.service";
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
-  const type = (searchParams.get("type") || "talent") as "talent" | "jobs" | "freelancers" | "courses";
+  const type = (searchParams.get("type") || "jobs") as "talent" | "jobs" | "freelancers" | "courses";
   const query = searchParams.get("query") || searchParams.get("q") || "";
   const location = searchParams.get("location") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const totalPages = 42; // Hardcoded max pages for the demo
+
+  const { data: searchResponse, isLoading } = useQuery({
+    queryKey: ['search-results', type, query, location, page],
+    queryFn: async () => {
+      if (type === 'jobs') {
+        const res = await jobService.getJobs({ q: query, location, page, limit: 9 });
+        return {
+          items: (res?.data || []).map((j: any) => ({
+            id: j.id,
+            title: j.title,
+            company: j.employer?.companyName || "Company",
+            location: j.location || "Remote",
+            type: j.type || "Full-time",
+            salary: j.salaryRange || "Competitive",
+            skills: (j.requiredSkills || []).map((s: any) => s.skill?.name || s)
+          })),
+          total: res?.total || 0,
+          totalPages: res?.totalPages || 1
+        };
+      }
+      if (type === 'freelancers' || type === 'talent') {
+        const res = await freelancerService.getMarketplace({ location });
+        const list = Array.isArray(res) ? res : res?.data || [];
+        const filtered = list.filter((f: any) => {
+          if (!query) return true;
+          const q = query.toLowerCase();
+          return (f.fullName || "").toLowerCase().includes(q) || (f.title || "").toLowerCase().includes(q);
+        });
+        return {
+          items: filtered.map((f: any) => ({
+            id: f.id,
+            name: f.fullName || f.title || "Freelancer",
+            title: f.title || "Specialist",
+            hourlyRate: `$${f.hourlyRate || 0}`,
+            rating: f.rating || 5.0,
+            reviews: f.reviews?.length || 0,
+            skills: (f.skills || []).map((s: any) => s.skill?.name || s)
+          })),
+          total: filtered.length,
+          totalPages: Math.ceil(filtered.length / 9) || 1
+        };
+      }
+      if (type === 'courses') {
+        const res = await courseService.getCourses({ q: query });
+        const list = Array.isArray(res) ? res : res?.data || [];
+        return {
+          items: list.map((c: any) => ({
+            id: c.id,
+            title: c.title,
+            instructor: c.trainer?.user?.fullName || "Platform Trainer",
+            level: c.level || "All Levels",
+            rating: c.rating || 5.0,
+            students: c.enrollments?.length || 0,
+            duration: c.duration || "Self-paced",
+            tags: [c.category || "General"]
+          })),
+          total: list.length,
+          totalPages: Math.ceil(list.length / 9) || 1
+        };
+      }
+      return { items: [], total: 0, totalPages: 1 };
+    }
+  });
+
+  const items = searchResponse?.items || [];
+  const total = searchResponse?.total || 0;
+  const totalPages = searchResponse?.totalPages || 1;
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
     const current = new URLSearchParams(Array.from(searchParams.entries()));
     current.set("page", newPage.toString());
     const search = current.toString();
-    const newQuery = search ? `?${search}` : "";
-    router.push(`${pathname}${newQuery}`, { scroll: false });
+    router.push(`${pathname}${search ? `?${search}` : ""}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const getVisiblePages = () => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    if (page <= 3) return [1, 2, 3, 4, "...", totalPages];
-    if (page >= totalPages - 2) return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    return [1, "...", page - 1, page, page + 1, "...", totalPages];
-  };
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['search-results', type, query, location, page],
-    queryFn: async () => {
-      // Mocking results based on type for the demo
-      await new Promise(r => setTimeout(r, 800));
-      if (type === 'talent') {
-        return Array(6).fill(null).map((_, i) => ({
-          id: i,
-          name: `Candidate ${i + 1}`,
-          role: "Software Engineer",
-          match: `${90 - i}%`,
-          skills: ["React", "TypeScript", "Node.js"]
-        }));
-      }
-      if (type === 'jobs') {
-        return Array(6).fill(null).map((_, i) => ({
-          id: i,
-          title: `Senior Developer Role ${i + 1}`,
-          company: `TechCorp ${i + 1}`,
-          location: "Remote",
-          type: "Full-time",
-          salary: "$120k - $150k",
-          skills: ["React", "AWS"]
-        }));
-      }
-      if (type === 'freelancers') {
-        return Array(6).fill(null).map((_, i) => ({
-          id: i,
-          name: `Freelancer ${i + 1}`,
-          title: "Expert UI/UX Designer",
-          hourlyRate: "$45",
-          rating: 4.8,
-          reviews: 24 + i,
-          skills: ["Figma", "Web Design"]
-        }));
-      }
-      if (type === 'courses') {
-        return Array(6).fill(null).map((_, i) => ({
-          id: i,
-          title: `Mastering Web Development ${i + 1}`,
-          instructor: "Jane Doe",
-          level: "All Levels",
-          rating: 4.9,
-          students: 1200,
-          duration: "10 hrs",
-          tags: ["Web", "Programming"]
-        }));
-      }
-      return [];
-    }
-  });
 
   return (
     <>
@@ -99,12 +110,12 @@ function SearchResultsContent() {
         <UniversalSearch />
       </div>
 
-      <div>
+      <div className="mt-8">
         <div className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-2xl font-bold text-foreground capitalize">{type} Results</h2>
             <p className="text-muted-foreground mt-1">
-              Showing {isLoading ? "..." : data?.length} results for "{query || 'all'}"
+              Showing {isLoading ? "..." : total} results {query ? `for "${query}"` : ''}
             </p>
           </div>
         </div>
@@ -115,9 +126,11 @@ function SearchResultsContent() {
               <Skeleton key={i} className="h-64 w-full rounded-xl" />
             ))}
           </div>
+        ) : items.length === 0 ? (
+          <EmptySearchState />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.map((item: any) => (
+            {items.map((item: any) => (
               <div key={item.id}>
                 {type === 'talent' && <CandidateCard {...item} />}
                 {type === 'jobs' && <JobCard {...item} />}
@@ -141,20 +154,16 @@ function SearchResultsContent() {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
-            {getVisiblePages().map((p, idx) => (
-              p === "..." ? (
-                <span key={`dots-${idx}`} className="px-2 text-muted-foreground">...</span>
-              ) : (
-                <Button 
-                  key={p} 
-                  variant={page === p ? "default" : "outline"} 
-                  className="w-10 h-10"
-                  onClick={() => handlePageChange(p as number)}
-                  disabled={isLoading}
-                >
-                  {p}
-                </Button>
-              )
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <Button 
+                key={p} 
+                variant={page === p ? "default" : "outline"} 
+                className="w-10 h-10"
+                onClick={() => handlePageChange(p)}
+                disabled={isLoading}
+              >
+                {p}
+              </Button>
             ))}
 
             <Button 

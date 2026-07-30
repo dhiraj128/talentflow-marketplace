@@ -51,11 +51,12 @@ export class JobsService {
   }
 
   async findAll(filters: any) {
-    const where: any = { deletedAt: null };
+    const where: any = {
+      deletedAt: null,
+      status: { in: ['PUBLISHED', 'ACTIVE', 'OPEN'] },
+    };
     if (filters.employerId) {
       where.employerId = filters.employerId;
-    } else {
-      where.status = { in: ['PUBLISHED', 'ACTIVE', 'OPEN'] };
     }
     if (filters.q) {
       where.title = { contains: filters.q, mode: 'insensitive' };
@@ -70,6 +71,36 @@ export class JobsService {
     const page = Number(filters.page) || 1;
     const limit = Number(filters.limit) || 20;
     const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.prisma.job.findMany({
+        where,
+        include: {
+          employer: true,
+          requiredSkills: { include: { skill: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.job.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async findAdminPending(filters: any) {
+    const page = Number(filters.page) || 1;
+    const limit = Number(filters.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const where: any = { deletedAt: null, status: 'DRAFT' };
 
     const [data, total] = await Promise.all([
       this.prisma.job.findMany({
@@ -142,6 +173,16 @@ export class JobsService {
     return this.prisma.job.update({
       where: { id },
       data: { status: 'PUBLISHED' },
+    });
+  }
+
+  async rejectJob(id: string, user: any) {
+    if (user.role !== 'ADMIN') {
+      throw new ForbiddenException('Only Admins can reject jobs');
+    }
+    return this.prisma.job.update({
+      where: { id },
+      data: { status: 'CLOSED' },
     });
   }
 

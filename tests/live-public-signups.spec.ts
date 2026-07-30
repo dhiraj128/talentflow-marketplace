@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const PROD_URL = 'https://talentflow-marketplace.vercel.app';
-const SISPL_URL = 'https://sispl.shop';
+const PROD_URL = 'https://sispl.shop';
 
 test.describe('Live Public Signup & Verification Removal Suite', () => {
 
@@ -59,7 +58,8 @@ test.describe('Live Public Signup & Verification Removal Suite', () => {
   }
 
   test('Security: Public Signup rejects role=ADMIN', async ({ request }) => {
-    const res = await request.post('https://talentflow-backend-qn7b.onrender.com/api/v1/auth/register', {
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://talentflow-backend-qn7b.onrender.com/api/v1';
+    const res = await request.post(`${apiUrl}/auth/register`, {
       data: {
         email: `hacker.${Date.now()}@test.com`,
         password: 'Password@123',

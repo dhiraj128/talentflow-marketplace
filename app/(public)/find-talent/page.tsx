@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { PageContainer } from "@/components/shared/PageContainer";
+import { EmptySearchState } from "@/components/shared/EmptySearchState";
 import { 
   MapPin, 
   Star, 
@@ -22,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { searchService } from "@/lib/services/search.service";
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,7 +36,28 @@ function TalentSearchContent() {
 
   const query = searchParams.get("q") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const totalPages = 42;
+
+  const { data: rawCandidates, isLoading } = useQuery({
+    queryKey: ['find-talent', query, page],
+    queryFn: async () => {
+      const results = await searchService.searchTalent(query, "");
+      return Array.isArray(results) ? results : results?.data || [];
+    }
+  });
+
+  const candidates = (rawCandidates || []).map((c: any) => ({
+    id: c.id,
+    name: c.fullName || c.title || "Candidate",
+    role: c.title || "Professional",
+    location: c.location || "Remote",
+    rating: 5.0,
+    experience: c.experience || "Entry Level",
+    skills: (c.skills || []).map((s: any) => s.skill?.name || s),
+    certification: c.education || "Verified Profile",
+    availableNow: true
+  }));
+
+  const totalPages = Math.max(1, Math.ceil(candidates.length / 6));
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
@@ -46,26 +68,6 @@ function TalentSearchContent() {
     router.push(`${pathname}${newQuery}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const getVisiblePages = () => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    if (page <= 3) return [1, 2, 3, 4, "...", totalPages];
-    if (page >= totalPages - 2) return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    return [1, "...", page - 1, page, page + 1, "...", totalPages];
-  };
-
-  const { data: candidatesData, isLoading } = useQuery({
-    queryKey: ['find-talent', query, page],
-    queryFn: async () => {
-      const results = await searchService.searchTalent(query, "");
-      // simple pagination for mock data
-      const limit = 6;
-      const offset = (page - 1) * limit;
-      return results.slice(offset, offset + limit);
-    }
-  });
-
-  const candidates = candidatesData || [];
 
   return (
     <PageContainer>
@@ -91,15 +93,6 @@ function TalentSearchContent() {
             </div>
           </div>
 
-          {/* Experience Range */}
-          <div className="space-y-3">
-            <Label className="text-base font-bold">Experience (Years)</Label>
-            <div className="flex items-center gap-2">
-              <Input type="number" placeholder="Min" className="bg-muted" />
-              <Input type="number" placeholder="Max" className="bg-muted" />
-            </div>
-          </div>
-
           {/* Location */}
           <div className="space-y-3">
             <Label className="text-base font-bold">Location</Label>
@@ -115,44 +108,6 @@ function TalentSearchContent() {
               </SelectContent>
             </Select>
           </div>
-
-          {/* Salary Range */}
-          <div className="space-y-3">
-            <Label className="text-base font-bold">Expected Salary (USD)</Label>
-            <Slider defaultValue={[50]} max={250} step={1} className="py-4" />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>$50k</span>
-              <span>$250k+</span>
-            </div>
-          </div>
-
-          {/* Training Certificates */}
-          <div className="space-y-3">
-            <Label className="text-base font-bold">Certificates</Label>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="cert1" />
-                <Label htmlFor="cert1" className="font-normal text-muted-foreground">Google UX Professional</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="cert2" defaultChecked />
-                <Label htmlFor="cert2" className="font-normal text-muted-foreground">AWS Certified Architect</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="cert3" />
-                <Label htmlFor="cert3" className="font-normal text-muted-foreground">Scrum Master (CSM)</Label>
-              </div>
-            </div>
-          </div>
-
-          {/* Availability */}
-          <div className="space-y-3">
-            <Label className="text-base font-bold">Availability</Label>
-            <div className="flex flex-col gap-2">
-              <Button variant="outline" className="w-full justify-start bg-primary/10 border-primary text-primary font-semibold">Immediate</Button>
-              <Button variant="outline" className="w-full justify-start bg-muted text-muted-foreground">Within 2 weeks</Button>
-            </div>
-          </div>
         </aside>
 
         {/* Main Content Area */}
@@ -161,7 +116,7 @@ function TalentSearchContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Elite Candidates</h1>
-              <p className="text-muted-foreground mt-1">Showing 1,248 verified professionals</p>
+              <p className="text-muted-foreground mt-1">Showing {isLoading ? "..." : candidates.length} verified professionals</p>
             </div>
             <div className="flex items-center gap-1 bg-muted p-1 rounded-xl border self-start">
               <Button 
@@ -183,74 +138,69 @@ function TalentSearchContent() {
             </div>
           </div>
 
-          {/* Candidate Grid / List */}
-          <div className={cn(
-            viewMode === "grid" 
-              ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" 
-              : "flex flex-col gap-4"
-          )}>
-            {isLoading ? (
-              Array(6).fill(0).map((_, i) => (
+          {isLoading ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {Array(6).fill(0).map((_, i) => (
                 <Skeleton key={`sk-${i}`} className={cn("rounded-xl", viewMode === "grid" ? "h-[300px]" : "h-32")} />
-              ))
-            ) : candidates.map((candidate) => (
-              <Card key={candidate.id} className={cn("overflow-hidden group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg border-border", viewMode === "list" ? "flex flex-row items-center gap-6 p-6" : "flex flex-col p-6 h-full")}>
-                <div className={cn("flex items-start justify-between", viewMode === "grid" ? "mb-4" : "")}>
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted border flex items-center justify-center">
-                       <span className="text-xl font-bold text-muted-foreground">{candidate.name.charAt(0)}</span>
+              ))}
+            </div>
+          ) : candidates.length === 0 ? (
+            <EmptySearchState />
+          ) : (
+            <div className={cn(
+              viewMode === "grid" 
+                ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" 
+                : "flex flex-col gap-4"
+            )}>
+              {candidates.map((candidate: any) => (
+                <Card key={candidate.id} className={cn("overflow-hidden group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg border-border", viewMode === "list" ? "flex flex-row items-center gap-6 p-6" : "flex flex-col p-6 h-full")}>
+                  <div className={cn("flex items-start justify-between", viewMode === "grid" ? "mb-4" : "")}>
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted border flex items-center justify-center">
+                         <span className="text-xl font-bold text-muted-foreground">{candidate.name.charAt(0)}</span>
+                      </div>
+                      {candidate.availableNow && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-background rounded-full" title="Available Now"></div>
+                      )}
                     </div>
-                    {candidate.availableNow && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-secondary border-2 border-background rounded-full" title="Available Now"></div>
-                    )}
-                  </div>
-                  {viewMode === "grid" && (
-                    <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-lg">
-                      <Star className="h-4 w-4 text-orange-400 fill-orange-400" />
-                      <span className="text-sm font-semibold text-foreground">{candidate.rating}</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className={cn("space-y-1", viewMode === "grid" ? "mb-4" : "flex-1")}>
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-xl font-bold text-foreground truncate">{candidate.name}</h3>
-                    {viewMode === "list" && (
-                      <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-lg shrink-0">
+                    {viewMode === "grid" && (
+                      <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-lg">
                         <Star className="h-4 w-4 text-orange-400 fill-orange-400" />
                         <span className="text-sm font-semibold text-foreground">{candidate.rating}</span>
                       </div>
                     )}
                   </div>
-                  <p className="text-sm text-primary font-semibold">{candidate.role}</p>
-                  <div className="flex items-center gap-2 text-muted-foreground text-xs mt-1">
-                    <MapPin className="h-3 w-3" />
-                    <span>{candidate.location}</span>
+                  
+                  <div className={cn("space-y-1", viewMode === "grid" ? "mb-4" : "flex-1")}>
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-xl font-bold text-foreground truncate">{candidate.name}</h3>
+                    </div>
+                    <p className="text-sm text-primary font-semibold">{candidate.role}</p>
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs mt-1">
+                      <MapPin className="h-3 w-3" />
+                      <span>{candidate.location}</span>
+                    </div>
                   </div>
-                </div>
-                
-                <div className={cn("flex flex-wrap gap-2", viewMode === "grid" ? "mb-4 flex-grow" : "flex-1")}>
-                  <Badge variant="outline" className="text-muted-foreground bg-muted/50 rounded">{candidate.experience}</Badge>
-                  {candidate.skills.map((skill: string, idx: number) => (
-                    <Badge key={idx} variant="secondary" className={idx % 2 === 0 ? "bg-secondary/20 text-secondary hover:bg-secondary/20" : "bg-primary/10 text-primary hover:bg-primary/10"}>
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-                
-                <div className={cn("border-t pt-4 mt-auto flex gap-3", viewMode === "grid" ? "flex-col" : "items-center pl-6 border-t-0 border-l")}>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground w-full">
-                    <Verified className="h-4 w-4 text-secondary shrink-0" />
-                    <span className="truncate">{candidate.certification}</span>
+                  
+                  <div className={cn("flex flex-wrap gap-2", viewMode === "grid" ? "mb-4 flex-grow" : "flex-1")}>
+                    <Badge variant="outline" className="text-muted-foreground bg-muted/50 rounded">{candidate.experience}</Badge>
+                    {candidate.skills.map((skill: string, idx: number) => (
+                      <Badge key={idx} variant="secondary" className="bg-secondary/20 text-secondary hover:bg-secondary/20">
+                        {skill}
+                      </Badge>
+                    ))}
                   </div>
-                  <div className={cn("gap-2", viewMode === "grid" ? "grid grid-cols-2 w-full mt-2" : "flex")}>
-                    <Button variant="outline" className="w-full">View Profile</Button>
-                    <Button className="w-full">Shortlist</Button>
+                  
+                  <div className={cn("border-t pt-4 mt-auto flex gap-3", viewMode === "grid" ? "flex-col" : "items-center pl-6 border-t-0 border-l")}>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground w-full">
+                      <Verified className="h-4 w-4 text-secondary shrink-0" />
+                      <span className="truncate">{candidate.certification}</span>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -265,20 +215,16 @@ function TalentSearchContent() {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               
-              {getVisiblePages().map((p, idx) => (
-                p === "..." ? (
-                  <span key={`dots-${idx}`} className="px-1 text-muted-foreground text-xs sm:text-sm shrink-0">...</span>
-                ) : (
-                  <Button 
-                    key={`p-${p}`} 
-                    variant={page === p ? "default" : "outline"} 
-                    className="w-9 h-9 sm:w-10 sm:h-10 text-xs sm:text-sm shrink-0 p-0"
-                    onClick={() => handlePageChange(p as number)}
-                    disabled={isLoading}
-                  >
-                    {p}
-                  </Button>
-                )
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <Button 
+                  key={`p-${p}`} 
+                  variant={page === p ? "default" : "outline"} 
+                  className="w-9 h-9 sm:w-10 sm:h-10 text-xs sm:text-sm shrink-0 p-0"
+                  onClick={() => handlePageChange(p)}
+                  disabled={isLoading}
+                >
+                  {p}
+                </Button>
               ))}
 
               <Button 

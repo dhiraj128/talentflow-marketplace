@@ -36,22 +36,19 @@ export class FreelancersController {
 
   @Get('me')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.ADMIN)
+    @Roles(Role.FREELANCER, Role.ADMIN)
   getMe(@Req() req: any) {
-    // We can reuse updateMe logic or create getMe in service
     return this.freelancersService.getMe(req.user.id);
   }
 
   @Get(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.FREELANCER, Role.ADMIN)
-  findOne(@Param('id') id: string, @CurrentUser() user: any) {
-      return this.freelancersService.findOne(id, user);
-    }
+  findOne(@Param('id') id: string) {
+    return this.freelancersService.findOne(id);
+  }
 
   @Patch('me')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.ADMIN)
+    @Roles(Role.FREELANCER, Role.ADMIN)
   updateMe(@Req() req: any, @Body() updateData: UpdateMeDto) {
     return this.freelancersService.updateMe(req.user.id, updateData);
   }

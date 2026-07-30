@@ -60,12 +60,12 @@ export default function ApplicationsPage() {
           const candidate = app.candidate || {};
           const candidateName = candidate.fullName || "Unknown Candidate";
           const candidateRole = candidate.title || "Applicant";
-          const identityVerified = true; // Mock true for now
+          const identityVerified = candidate.user?.isVerified || candidate.isVerified || false;
           
           // Detect if resume is ATS Optimized
-          const isAtsResume = app.resume?.type === 'ATS' || app.isAtsOptimized; // Support future backend flag
+          const isAtsResume = app.resume?.type === 'ATS' || app.isAtsOptimized;
           const atsOptimized = isAtsResume || false; 
-          const resumeScore = app.matchScore || (atsOptimized ? Math.floor(Math.random() * (99 - 85 + 1) + 85) : Math.floor(Math.random() * (80 - 40 + 1) + 40));
+          const resumeScore = app.matchScore || 0;
           const resumeType = atsOptimized ? "ATS Optimized" : "Original";
 
           

@@ -10,17 +10,5 @@ export declare class AppController {
     getHealth(): {
         status: string;
         service: string;
-        otp_policy: string;
-        deploy_hash: string;
-        aws_region: string;
-        s3_bucket: string;
-        creds: {
-            ACCESS_KEY_ID: boolean;
-            AWS_ACCESS_KEY_ID: boolean;
-            SECRET_ACCESS_KEY: boolean;
-            AWS_SECRET_ACCESS_KEY: boolean;
-            accessKeyLast4: string;
-            secretHasSpace: boolean;
-        };
     };
 }
