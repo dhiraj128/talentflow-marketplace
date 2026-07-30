@@ -149,10 +149,16 @@ Names of required production environment variables (secret values stored in Rend
 ## 8. S3 Storage & Object Versioning Guidelines
 
 - **Access Policy**: Block Public Access enabled. Pre-signed URLs generated via `/api/v1/file-upload/presigned-url` with 15-minute expiration.
-- **Recommended S3 Bucket Versioning**: Run command to protect against accidental object deletion:
-  ```bash
-  aws s3api put-bucket-versioning --bucket <bucket-name> --versioning-configuration Status=Enabled
-  ```
+- **S3 Object Versioning & Recovery Tooling**:
+  - List object version history:
+    ```bash
+    node scripts/s3-list-versions.js --key "resumes/<candidateId>/file.pdf"
+    ```
+  - Safe object version recovery (Dry-run mode by default; add `--execute` to apply):
+    ```bash
+    node scripts/s3-recover-object.js --key "resumes/<candidateId>/file.pdf" --delete-marker "<marker-id>" --execute
+    ```
+- **S3 Disaster Recovery Runbook**: Refer to [S3_DISASTER_RECOVERY.md](file:///c:/Users/dhira_5fqr2uc/Downloads/stitch_talentflow_marketplace/talentflow-marketplace/docs/S3_DISASTER_RECOVERY.md).
 
 ---
 

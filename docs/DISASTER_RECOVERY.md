@@ -17,7 +17,7 @@
 | **Frontend** | Vercel | Next.js App Router (120 Static/Dynamic routes) | Redeploy from Git `main` branch |
 | **Backend API** | Render | NestJS REST API | Redeploy container from Git `main` |
 | **Database** | Render PostgreSQL | Primary Persistent Marketplace Data | `pg_dump` / Prisma Export + Isolated Target Restore |
-| **Storage** | AWS S3 | Candidate Resumes & Documents | Pre-Signed URLs & Bucket Versioning |
+| **Storage** | AWS S3 | Candidate Resumes & Documents | Private Storage, Pre-Signed URLs & Object Versioning (See docs/S3_DISASTER_RECOVERY.md) |
 | **Email Service** | Resend | Transactional Email Notifications | Multi-Domain SMTP Fallback |
 | **DNS / Domain** | Cloudflare | Custom Domain Routing (`sispl.shop`) | Cloudflare DNS Failover / Records Export |
 
