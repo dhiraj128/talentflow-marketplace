@@ -14,13 +14,14 @@ if (fs.existsSync(backendEnvPath)) {
   dotenv.config({ path: backendEnvPath });
 }
 
-const dbUrl = process.env.DATABASE_URL;
+const dbUrl = process.argv[2] || process.env.DATABASE_URL;
 
 if (!dbUrl) {
   console.error('================================================================');
   console.error('ERROR: DATABASE_URL environment variable is not set!');
   console.error('================================================================');
-  console.error('Please set $env:DATABASE_URL or configure talentflow-backend/.env before running backup.');
+  console.error('Please set $env:DATABASE_URL or pass database URL argument:');
+  console.error('  node scripts/backup-pg.js <DATABASE_URL>');
   process.exit(1);
 }
 
