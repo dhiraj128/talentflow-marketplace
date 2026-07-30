@@ -29,7 +29,7 @@ async function bootstrap() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Request-ID'],
   });
 
   // API Versioning
@@ -38,11 +38,7 @@ async function bootstrap() {
     defaultVersion: '1',
   });
   app.setGlobalPrefix('api', {
-    exclude: [
-      { path: '/', method: RequestMethod.GET },
-      { path: 'health', method: RequestMethod.GET },
-      { path: 'health/ready', method: RequestMethod.GET },
-    ],
+    exclude: [{ path: '/', method: RequestMethod.GET }],
   });
 
   // Validation
@@ -69,8 +65,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`[TALENTFLOW BACKEND] v1.0.1 - Deployment commit 879776b initialized on port ${port}`);
+  console.log(`[TALENTFLOW BACKEND] v1.0.2 - Observability deployment active on port ${port}`);
   console.log(`Application is running on: http://localhost:${port}/api/v1`);
-  console.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 bootstrap();
