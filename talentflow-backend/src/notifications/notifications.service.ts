@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
@@ -17,6 +17,101 @@ export class NotificationsService {
     return this.prisma.notification.create({ data: createNotificationDto });
   }
 
+  /**
+   * Secure paginated notification fetch derived strictly from authenticated JWT userId
+   */
+  async findAllForUser(
+    userId: string,
+    options?: { page?: number; limit?: number; unreadOnly?: boolean },
+  ) {
+    const page = Math.max(Number(options?.page) || 1, 1);
+    const limit = Math.max(Number(options?.limit) || 20, 1);
+    const skip = (page - 1) * limit;
+
+    const where: any = { userId };
+    if (options?.unreadOnly) {
+      where.isRead = false;
+    }
+
+    const [data, total, unreadCount] = await Promise.all([
+      this.prisma.notification.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.notification.count({ where }),
+      this.prisma.notification.count({ where: { userId, isRead: false } }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      unreadCount,
+    };
+  }
+
+  /**
+   * Secure unread count derived strictly from authenticated JWT userId
+   */
+  async getUnreadCount(userId: string) {
+    const count = await this.prisma.notification.count({
+      where: { userId, isRead: false },
+    });
+    return { count };
+  }
+
+  /**
+   * Secure single notification find with ownership verification
+   */
+  async findOneForUser(id: string, userId: string) {
+    const notification = await this.prisma.notification.findUnique({
+      where: { id },
+    });
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
+    if (notification.userId !== userId) {
+      throw new ForbiddenException('Forbidden: You do not own this notification');
+    }
+    return notification;
+  }
+
+  /**
+   * Secure mark single notification read with ownership verification
+   */
+  async markAsRead(id: string, userId: string) {
+    await this.findOneForUser(id, userId);
+    return this.prisma.notification.update({
+      where: { id },
+      data: { isRead: true },
+    });
+  }
+
+  /**
+   * Secure mark all notifications read for authenticated JWT user
+   */
+  async markAllAsRead(userId: string) {
+    const result = await this.prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true },
+    });
+    return { success: true, count: result.count };
+  }
+
+  /**
+   * Secure remove notification with ownership verification
+   */
+  async removeForUser(id: string, userId: string) {
+    await this.findOneForUser(id, userId);
+    await this.prisma.notification.delete({ where: { id } });
+    return { success: true, message: 'Notification deleted successfully' };
+  }
+
+  // Legacy fallback methods (kept for backwards compatibility if internal services call them)
   findAll(filters: { userId?: string; skip?: number; take?: number }) {
     const where: any = {};
     if (filters.userId) where.userId = filters.userId;
@@ -79,14 +174,12 @@ export class NotificationsService {
       const employerName = application.job.employer.companyName || this.getDisplayName(employerUser);
       const jobTitle = application.job.title;
 
-      // 1. Create In-App Notification Record
       await this.create({
         userId: employerUser.id,
         title: 'New Application Received',
         message: `${candidateName} applied for your job "${jobTitle}".`,
       });
 
-      // 2. Dispatch Non-Blocking Transactional Email
       if (employerUser.email) {
         await this.emailProvider.sendTransactionalEmail({
           to: employerUser.email,
@@ -140,14 +233,12 @@ export class NotificationsService {
         ? `Great news! Your application for "${jobTitle}" has been shortlisted by ${companyName}.`
         : `Your application for "${jobTitle}" has moved to the interviewing stage.`;
 
-      // 1. Create In-App Notification Record
       await this.create({
         userId: candidateUser.id,
         title: eventTitle,
         message,
       });
 
-      // 2. Dispatch Non-Blocking Transactional Email
       if (candidateUser.email) {
         await this.emailProvider.sendTransactionalEmail({
           to: candidateUser.email,
@@ -209,7 +300,6 @@ export class NotificationsService {
 
       const eventTitle = titleMap[eventType];
 
-      // A. Candidate Notification & Email
       if (interview.candidate?.user) {
         const candidateUser = interview.candidate.user;
         const candidateName = interview.candidate.fullName || this.getDisplayName(candidateUser);
@@ -240,7 +330,6 @@ export class NotificationsService {
         }
       }
 
-      // B. Employer Notification & Email
       if (interview.employer?.user) {
         const employerUser = interview.employer.user;
         const employerName = interview.employer.companyName || this.getDisplayName(employerUser);
@@ -295,14 +384,12 @@ export class NotificationsService {
       const eventTitle = isApproved ? 'Job Posting Approved' : 'Job Posting Rejected';
       const statusText = isApproved ? 'approved and published' : 'rejected by moderation';
 
-      // 1. Create In-App Notification Record
       await this.create({
         userId: employerUser.id,
         title: eventTitle,
         message: `Your job posting "${job.title}" has been ${statusText}.`,
       });
 
-      // 2. Dispatch Non-Blocking Transactional Email
       if (employerUser.email) {
         await this.emailProvider.sendTransactionalEmail({
           to: employerUser.email,
@@ -345,14 +432,12 @@ export class NotificationsService {
       const eventTitle = isApproved ? 'Course Approved' : 'Course Rejected';
       const statusText = isApproved ? 'approved and published live on the marketplace' : 'rejected by moderation';
 
-      // 1. Create In-App Notification Record
       await this.create({
         userId: trainerUser.id,
         title: eventTitle,
         message: `Your course "${course.title}" has been ${statusText}.`,
       });
 
-      // 2. Dispatch Non-Blocking Transactional Email
       if (trainerUser.email) {
         await this.emailProvider.sendTransactionalEmail({
           to: trainerUser.email,
@@ -394,14 +479,12 @@ export class NotificationsService {
       const eventTitle = 'Security Alert: Password Changed';
       const timestampText = new Date().toUTCString();
 
-      // 1. Create In-App Notification Record
       await this.create({
         userId: user.id,
         title: eventTitle,
         message: `Your TalentFlow account password was updated successfully at ${timestampText}.`,
       });
 
-      // 2. Dispatch Non-Blocking Transactional Email
       await this.emailProvider.sendTransactionalEmail({
         to: user.email,
         recipientName: userName,

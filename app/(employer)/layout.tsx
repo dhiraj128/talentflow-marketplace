@@ -10,13 +10,15 @@ import {
   Briefcase, 
   FileText, 
   CreditCard, 
-  Settings 
+  Settings,
+  Bell
 } from "lucide-react";
 
 const employerRoutes: SidebarRoute[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/employer/dashboard" },
   { label: "Post a Job", icon: Briefcase, href: "/employer/post-job" },
   { label: "Applications", icon: FileText, href: "/employer/applications" },
+  { label: "Notifications", icon: Bell, href: "/employer/notifications" },
   { label: "Billing", icon: CreditCard, href: "/employer/billing" },
   { label: "Subscription", icon: CreditCard, href: "/employer/subscription" },
   { label: "Settings", icon: Settings, href: "/employer/settings" },

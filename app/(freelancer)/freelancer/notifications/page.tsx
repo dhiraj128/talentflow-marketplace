@@ -3,10 +3,10 @@
 import React from "react";
 import { NotificationCenter } from "@/components/shared/NotificationCenter";
 
-export default function JobSeekerNotificationsPage() {
+export default function FreelancerNotificationsPage() {
   return (
     <div className="space-y-6">
-      <NotificationCenter role="CANDIDATE" />
+      <NotificationCenter role="FREELANCER" />
     </div>
   );
 }

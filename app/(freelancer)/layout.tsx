@@ -16,7 +16,8 @@ import {
   MessageSquare,
   DollarSign,
   CreditCard,
-  Settings 
+  Settings,
+  Bell 
 } from "lucide-react";
 
 const freelancerRoutes: SidebarRoute[] = [
@@ -24,6 +25,7 @@ const freelancerRoutes: SidebarRoute[] = [
   { label: "Browse Projects", icon: Briefcase, href: "/search?type=jobs" },
   { label: "My Proposals", icon: FileText, href: "/freelancer/proposals" },
   { label: "My Projects", icon: FolderOpen, href: "/freelancer/projects" },
+  { label: "Notifications", icon: Bell, href: "/freelancer/notifications" },
   { label: "Portfolio", icon: Image, href: "/freelancer/portfolio" },
   { label: "Services", icon: Layers, href: "/freelancer/services" },
   { label: "Reviews", icon: Star, href: "/freelancer/reviews" },

@@ -14,11 +14,13 @@ import {
   Network,
   BarChart3,
   ShieldCheck,
-  Settings
+  Settings,
+  Bell
 } from "lucide-react";
 
 const adminRoutes: SidebarRoute[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
+  { label: "Notifications", icon: Bell, href: "/admin/notifications" },
   { label: "Users", icon: Users, href: "/admin/users" },
   { label: "Employers", icon: Building2, href: "/admin/employers" },
   { label: "Candidates", icon: Users, href: "/admin/candidates" },

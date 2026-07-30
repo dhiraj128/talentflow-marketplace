@@ -23,6 +23,7 @@ import {
 
 const trainerRoutes: SidebarRoute[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/trainer/dashboard" },
+  { label: "Notifications", icon: Bell, href: "/trainer/notifications" },
   { label: "Courses", icon: BookOpen, href: "/trainer/courses" },
   { label: "Students", icon: Users, href: "/trainer/students" },
   { label: "Live Classes", icon: Video, href: "/trainer/live" },
