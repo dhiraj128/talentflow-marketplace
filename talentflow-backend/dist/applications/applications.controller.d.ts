@@ -14,7 +14,7 @@ export declare class ApplicationsController {
         appliedAt: Date;
         updatedAt: Date;
     }>;
-    findAll(candidateId?: string, employerId?: string, jobId?: string): Promise<{
+    findAll(candidateId?: string, employerId?: string, jobId?: string, status?: string, page?: string, limit?: string): Promise<{
         data: ({
             job: {
                 employer: {
@@ -44,6 +44,16 @@ export declare class ApplicationsController {
                 updatedAt: Date;
                 deletedAt: Date | null;
             };
+            statusHistory: {
+                id: string;
+                applicationId: string;
+                fromStatus: import(".prisma/client").$Enums.ApplicationStatus;
+                toStatus: import(".prisma/client").$Enums.ApplicationStatus;
+                changedByUserId: string;
+                changedByRole: string;
+                reason: string | null;
+                createdAt: Date;
+            }[];
             candidate: {
                 id: string;
                 userId: string;
@@ -62,6 +72,19 @@ export declare class ApplicationsController {
                 phone: string | null;
                 portfolioUrl: string | null;
             };
+            tags: ({
+                tag: {
+                    id: string;
+                    employerId: string;
+                    name: string;
+                    color: string | null;
+                    createdAt: Date;
+                };
+            } & {
+                applicationId: string;
+                tagId: string;
+                assignedAt: Date;
+            })[];
         } & {
             id: string;
             candidateId: string;
@@ -107,6 +130,40 @@ export declare class ApplicationsController {
                 updatedAt: Date;
                 deletedAt: Date | null;
             };
+            statusHistory: {
+                id: string;
+                applicationId: string;
+                fromStatus: import(".prisma/client").$Enums.ApplicationStatus;
+                toStatus: import(".prisma/client").$Enums.ApplicationStatus;
+                changedByUserId: string;
+                changedByRole: string;
+                reason: string | null;
+                createdAt: Date;
+            }[];
+            interviews: {
+                id: string;
+                applicationId: string;
+                employerId: string;
+                candidateId: string;
+                scheduledAt: Date;
+                duration: number;
+                timezone: string;
+                meetingProvider: string | null;
+                meetingUrl: string | null;
+                notes: string | null;
+                feedback: string | null;
+                status: import(".prisma/client").$Enums.InterviewStatus;
+                createdAt: Date;
+                updatedAt: Date;
+            }[];
+            notes: {
+                id: string;
+                applicationId: string;
+                employerId: string;
+                content: string;
+                createdAt: Date;
+                updatedAt: Date;
+            }[];
             candidate: {
                 id: string;
                 userId: string;
@@ -125,6 +182,19 @@ export declare class ApplicationsController {
                 phone: string | null;
                 portfolioUrl: string | null;
             };
+            tags: ({
+                tag: {
+                    id: string;
+                    employerId: string;
+                    name: string;
+                    color: string | null;
+                    createdAt: Date;
+                };
+            } & {
+                applicationId: string;
+                tagId: string;
+                assignedAt: Date;
+            })[];
         } & {
             id: string;
             candidateId: string;
@@ -139,6 +209,47 @@ export declare class ApplicationsController {
         page: number;
         limit: number;
         totalPages: number;
+    }>;
+    getEmployerPipeline(user: any, query: any): Promise<{
+        pipeline: Record<string, any[]>;
+        counts: {
+            applied: number;
+            shortlisted: number;
+            interviewing: number;
+            offered: number;
+            hired: number;
+            rejected: number;
+            withdrawn: number;
+            total: number;
+        };
+    }>;
+    getEmployerAnalytics(user: any): Promise<{
+        total: number;
+        applied: number;
+        shortlisted: number;
+        interviewing: number;
+        offered: number;
+        hired: number;
+        conversionRates: {
+            appliedToShortlist: number;
+            shortlistToInterview: number;
+            interviewToOffer: number;
+            offerToHire: number;
+        };
+    }>;
+    getTags(user: any): Promise<{
+        id: string;
+        employerId: string;
+        name: string;
+        color: string | null;
+        createdAt: Date;
+    }[]>;
+    createTag(name: string, color: string, user: any): Promise<{
+        id: string;
+        employerId: string;
+        name: string;
+        color: string | null;
+        createdAt: Date;
     }>;
     findOne(id: string, user: any): Promise<{
         job: {
@@ -169,6 +280,45 @@ export declare class ApplicationsController {
             updatedAt: Date;
             deletedAt: Date | null;
         };
+        statusHistory: ({
+            user: {
+                email: string;
+                id: string;
+            };
+        } & {
+            id: string;
+            applicationId: string;
+            fromStatus: import(".prisma/client").$Enums.ApplicationStatus;
+            toStatus: import(".prisma/client").$Enums.ApplicationStatus;
+            changedByUserId: string;
+            changedByRole: string;
+            reason: string | null;
+            createdAt: Date;
+        })[];
+        interviews: {
+            id: string;
+            applicationId: string;
+            employerId: string;
+            candidateId: string;
+            scheduledAt: Date;
+            duration: number;
+            timezone: string;
+            meetingProvider: string | null;
+            meetingUrl: string | null;
+            notes: string | null;
+            feedback: string | null;
+            status: import(".prisma/client").$Enums.InterviewStatus;
+            createdAt: Date;
+            updatedAt: Date;
+        }[];
+        notes: {
+            id: string;
+            applicationId: string;
+            employerId: string;
+            content: string;
+            createdAt: Date;
+            updatedAt: Date;
+        }[];
         candidate: {
             id: string;
             userId: string;
@@ -187,6 +337,19 @@ export declare class ApplicationsController {
             phone: string | null;
             portfolioUrl: string | null;
         };
+        tags: ({
+            tag: {
+                id: string;
+                employerId: string;
+                name: string;
+                color: string | null;
+                createdAt: Date;
+            };
+        } & {
+            applicationId: string;
+            tagId: string;
+            assignedAt: Date;
+        })[];
     } & {
         id: string;
         candidateId: string;
@@ -210,7 +373,7 @@ export declare class ApplicationsController {
     remove(id: string, user: any): Promise<{
         success: boolean;
     }>;
-    updateStatus(id: string, status: string, user: any): Promise<{
+    updateStatus(id: string, status: string, reason: string, user: any): Promise<{
         id: string;
         candidateId: string;
         jobId: string;
@@ -219,5 +382,57 @@ export declare class ApplicationsController {
         matchScore: number;
         appliedAt: Date;
         updatedAt: Date;
+    }>;
+    withdraw(id: string, reason: string, user: any): Promise<{
+        id: string;
+        candidateId: string;
+        jobId: string;
+        resumeId: string | null;
+        status: import(".prisma/client").$Enums.ApplicationStatus;
+        matchScore: number;
+        appliedAt: Date;
+        updatedAt: Date;
+    }>;
+    getStatusHistory(id: string, user: any): Promise<({
+        user: {
+            email: string;
+            id: string;
+        };
+    } & {
+        id: string;
+        applicationId: string;
+        fromStatus: import(".prisma/client").$Enums.ApplicationStatus;
+        toStatus: import(".prisma/client").$Enums.ApplicationStatus;
+        changedByUserId: string;
+        changedByRole: string;
+        reason: string | null;
+        createdAt: Date;
+    })[]>;
+    createNote(id: string, content: string, user: any): Promise<{
+        id: string;
+        applicationId: string;
+        employerId: string;
+        content: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    getNotes(id: string, user: any): Promise<{
+        id: string;
+        applicationId: string;
+        employerId: string;
+        content: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }[]>;
+    deleteNote(noteId: string, user: any): Promise<{
+        success: boolean;
+    }>;
+    assignTag(id: string, tagId: string, user: any): Promise<{
+        applicationId: string;
+        tagId: string;
+        assignedAt: Date;
+    }>;
+    removeTag(id: string, tagId: string, user: any): Promise<{
+        success: boolean;
     }>;
 }

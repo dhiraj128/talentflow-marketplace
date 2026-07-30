@@ -210,7 +210,7 @@ export class NotificationsService {
    */
   async notifyApplicationStatusChanged(applicationId: string, status: string) {
     try {
-      if (!['SHORTLISTED', 'INTERVIEWING'].includes(status)) return;
+      if (!['SHORTLISTED', 'INTERVIEWING', 'OFFERED', 'HIRED', 'REJECTED'].includes(status)) return;
 
       const application = await this.prisma.application.findUnique({
         where: { id: applicationId },
@@ -227,11 +227,38 @@ export class NotificationsService {
       const jobTitle = application.job.title;
       const companyName = application.job.employer?.companyName || 'The Employer';
 
-      const isShortlisted = status === 'SHORTLISTED';
-      const eventTitle = isShortlisted ? 'Application Shortlisted' : 'Interview Stage Started';
-      const message = isShortlisted
-        ? `Great news! Your application for "${jobTitle}" has been shortlisted by ${companyName}.`
-        : `Your application for "${jobTitle}" has moved to the interviewing stage.`;
+      let eventTitle = 'Application Status Updated';
+      let message = `Your application for "${jobTitle}" at ${companyName} is now ${status}.`;
+      let detailText = 'Please check your application dashboard for further details.';
+
+      if (status === 'SHORTLISTED') {
+        eventTitle = 'Application Shortlisted';
+        message = `Great news! Your application for "${jobTitle}" has been shortlisted by ${companyName}.`;
+        detailText = 'The employer was impressed with your profile and has shortlisted you for further evaluation.';
+      } else if (status === 'INTERVIEWING') {
+        eventTitle = 'Interview Stage Started';
+        message = `Your application for "${jobTitle}" has moved to the interviewing stage.`;
+        detailText = 'Please check your schedule and interviews dashboard for upcoming interview requests.';
+      } else if (status === 'OFFERED') {
+        eventTitle = 'Job Offer Received!';
+        message = `Congratulations! ${companyName} has extended a formal job offer for "${jobTitle}".`;
+        detailText = 'Please log into TalentFlow to view your offer details and next steps.';
+      } else if (status === 'HIRED') {
+        eventTitle = 'Congratulations! You are Hired!';
+        message = `Exciting news! You have been officially hired for "${jobTitle}" at ${companyName}.`;
+        detailText = 'Welcome aboard! The employer will reach out with onboarding instructions.';
+      } else if (status === 'REJECTED') {
+        eventTitle = 'Application Status Update';
+        message = `Thank you for applying for "${jobTitle}" at ${companyName}. Unfortunately, your application was not selected.`;
+        detailText = 'We encourage you to explore other matching opportunities on TalentFlow Marketplace.';
+      }
+
+      let emailSubject = `${eventTitle} — ${jobTitle}`;
+      if (status === 'SHORTLISTED') {
+        emailSubject = `Your Application for ${jobTitle} Has Been Shortlisted`;
+      } else if (status === 'INTERVIEWING') {
+        emailSubject = `Interview Stage Update for ${jobTitle}`;
+      }
 
       await this.create({
         userId: candidateUser.id,
@@ -243,23 +270,16 @@ export class NotificationsService {
         await this.emailProvider.sendTransactionalEmail({
           to: candidateUser.email,
           recipientName: candidateName,
-          subject: isShortlisted
-            ? `Your Application for ${jobTitle} Has Been Shortlisted`
-            : `Interview Stage Update for ${jobTitle}`,
+          subject: emailSubject,
           title: eventTitle,
-          bodyParagraphs: [
-            message,
-            isShortlisted
-              ? 'The employer was impressed with your profile and has shortlisted you for further evaluation.'
-              : 'Please check your schedule and interviews dashboard for upcoming interview requests.',
-          ],
+          bodyParagraphs: [message, detailText],
           details: [
             { label: 'Job Title', value: jobTitle },
             { label: 'Company', value: companyName },
             { label: 'New Status', value: status },
           ],
-          ctaText: isShortlisted ? 'View Applications' : 'View Interviews',
-          ctaUrl: isShortlisted
+          ctaText: status === 'SHORTLISTED' ? 'View Applications' : 'View Interviews',
+          ctaUrl: status === 'SHORTLISTED'
             ? 'https://sispl.shop/job-seeker/applications'
             : 'https://sispl.shop/job-seeker/interviews',
         });
