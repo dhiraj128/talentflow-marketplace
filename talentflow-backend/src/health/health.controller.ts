@@ -7,7 +7,7 @@ import { HealthService } from './health.service';
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
-  @Version(VERSION_NEUTRAL)
+  @Version([VERSION_NEUTRAL, '1'])
   @Get()
   @ApiOperation({ summary: 'Get safe application health & dependency metadata' })
   @ApiResponse({ status: 200, description: 'Health check OK' })
@@ -15,7 +15,7 @@ export class HealthController {
     return this.healthService.getHealthStatus();
   }
 
-  @Version(VERSION_NEUTRAL)
+  @Version([VERSION_NEUTRAL, '1'])
   @Get('ready')
   @ApiOperation({ summary: 'Get application readiness status (PostgreSQL check)' })
   @ApiResponse({ status: 200, description: 'Application is ready for production traffic' })
