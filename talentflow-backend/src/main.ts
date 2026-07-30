@@ -65,6 +65,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
+  console.log(`[TALENTFLOW BACKEND] v1.0.1 - Deployment commit 879776b initialized on port ${port}`);
   console.log(`Application is running on: http://localhost:${port}/api/v1`);
   console.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
