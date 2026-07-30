@@ -28,7 +28,7 @@ import { GithubOAuthGuard } from './guards/github-oauth.guard';
 import { OAuthExceptionFilter } from './filters/oauth-exception.filter';
 import { OtpService } from './otp.service';
 import { SendOtpDto, VerifyOtpDto, ForgotPasswordDto, ResetPasswordDto } from './dto/otp.dto';
-import { Role } from "@prisma/client";
+import { Role, OtpPurpose } from "@prisma/client";
 import { Roles } from "../common/decorators/roles.decorator";
 import { RolesGuard } from "../common/guards/roles.guard";
 
@@ -44,8 +44,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Login to the application' })
   @ApiResponse({
     status: 200,
-    description: 'Return access and refresh tokens.',
+    description: 'User successfully logged in.',
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
@@ -90,7 +91,10 @@ export class AuthController {
   @Post('forgot-password')
   @ApiOperation({ summary: 'Initiate Forgot Password' })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
-    return this.authService.forgotPassword(dto.identifier);
+    const res = await this.authService.forgotPassword(dto.identifier);
+    const type = res.type as 'EMAIL' | 'PHONE';
+    await this.otpService.sendOtp(dto.identifier, OtpPurpose.FORGOT_PASSWORD, type);
+    return { message: 'OTP sent successfully', type };
   }
 
   @Post('reset-password')

@@ -59,8 +59,9 @@ export const authService = {
     const response = await api.post('/auth/verify-phone-otp', data);
     return response.data;
   },
-  resendOtp: async (data: { identifier: string; purpose: string; method: string }) => {
-    const response = await api.post('/auth/resend-otp', data);
+  resendOtp: async (data: { identifier: string; purpose: string; method?: string }) => {
+    const { identifier, purpose } = data;
+    const response = await api.post('/auth/resend-otp', { identifier, purpose });
     return response.data;
   },
   forgotPassword: async (data: { identifier: string }) => {

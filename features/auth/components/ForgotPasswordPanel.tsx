@@ -40,13 +40,13 @@ export function ForgotPasswordPanel() {
   const method = identifier.includes('@') ? 'EMAIL' : 'PHONE';
 
   const resendOtpMutation = useMutation({
-    mutationFn: () => authService.resendOtp({ identifier, purpose: 'FORGOT_PASSWORD', method }),
+    mutationFn: () => authService.resendOtp({ identifier, purpose: 'FORGOT_PASSWORD' }),
     onSuccess: () => {
       setErrorMsg(null);
       toast.success(`New OTP sent to ${identifier}`);
     },
     onError: (error: any) => {
-      setErrorMsg(error?.response?.data?.message || 'Failed to resend OTP.');
+      setErrorMsg(error?.response?.data?.message || 'Unable to send verification code. Please try again.');
     },
   });
 
