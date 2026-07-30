@@ -90,7 +90,7 @@ export function MarketplaceFilters({ filters, setFilters, onClearAll, className 
           />
           <div className="flex justify-between mt-3 text-sm text-muted-foreground font-medium">
             <span>$10/hr</span>
-            <span className="text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md">${filters.hourlyRate[0]}/hr</span>
+            <span className="text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md">${filters.hourlyRate[0]}/hr</span>
           </div>
         </div>
       </div>

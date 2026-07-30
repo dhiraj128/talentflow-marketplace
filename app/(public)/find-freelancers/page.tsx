@@ -118,7 +118,7 @@ export default function FindFreelancersPage() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pb-20">
+    <div className="bg-background min-h-screen pb-20">
       
       {/* Hero Header */}
       <div className="bg-gradient-to-b from-purple-900 via-purple-800 to-indigo-900 text-white pt-10 pb-8 px-6 rounded-b-[2rem] shadow-xl relative overflow-hidden">
@@ -161,7 +161,7 @@ export default function FindFreelancersPage() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 -mt-8 relative z-20">
         
         {/* Category Tabs */}
-        <div className="bg-white rounded-2xl shadow-sm p-2 mb-8 overflow-hidden w-full min-w-0">
+        <div className="bg-card rounded-2xl shadow-sm p-2 mb-8 overflow-hidden w-full min-w-0 border border-border/50">
           <CategoryTabs categories={CATEGORIES} activeCategory={activeCategory} onSelect={setActiveCategory} />
         </div>
 
@@ -177,7 +177,7 @@ export default function FindFreelancersPage() {
           
           {/* Desktop Filters */}
           <div className="hidden lg:block w-72 shrink-0">
-            <div className="sticky top-24 bg-white p-6 rounded-2xl shadow-sm border border-border/50">
+            <div className="sticky top-24 bg-card p-6 rounded-2xl shadow-sm border border-border/50 text-card-foreground">
               <MarketplaceFilters filters={filters} setFilters={setFilters} onClearAll={handleClearFilters} />
             </div>
           </div>
@@ -195,10 +195,10 @@ export default function FindFreelancersPage() {
                 
                 {/* Mobile Filters Trigger */}
                 <Sheet>
-                  <SheetTrigger className="lg:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-input bg-white hover:bg-slate-50 transition-colors">
+                  <SheetTrigger className="lg:hidden flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-input bg-card hover:bg-muted transition-colors text-foreground">
                     <Filter className="w-4 h-4" />
                   </SheetTrigger>
-                  <SheetContent side="right" className="w-full sm:w-[400px] pt-12 overflow-y-auto bg-slate-50">
+                  <SheetContent side="right" className="w-full sm:w-[400px] pt-12 overflow-y-auto bg-background text-foreground">
                     <MarketplaceFilters filters={filters} setFilters={setFilters} onClearAll={handleClearFilters} />
                   </SheetContent>
                 </Sheet>

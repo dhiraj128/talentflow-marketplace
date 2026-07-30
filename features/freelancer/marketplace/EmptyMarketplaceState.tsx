@@ -8,7 +8,7 @@ interface EmptyMarketplaceStateProps {
 
 export function EmptyMarketplaceState({ onClearFilters }: EmptyMarketplaceStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-24 px-4 text-center bg-white rounded-2xl border border-border/50 shadow-sm">
+    <div className="flex flex-col items-center justify-center py-24 px-4 text-center bg-card text-card-foreground rounded-2xl border border-border/50 shadow-sm">
       <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6">
         <UserX className="w-12 h-12 text-slate-300" />
       </div>

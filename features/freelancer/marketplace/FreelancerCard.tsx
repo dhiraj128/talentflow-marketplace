@@ -47,13 +47,13 @@ export function FreelancerCard({
       transition={{ duration: 0.2 }} 
       className="h-[480px] w-full max-w-[360px] min-w-0 mx-auto"
     >
-      <Card className="h-full w-full flex flex-col hover:shadow-xl hover:border-purple-500/30 transition-all overflow-hidden relative bg-white">
+      <Card className="h-full w-full flex flex-col hover:shadow-xl hover:border-purple-500/30 transition-all overflow-hidden relative bg-card text-card-foreground border-border">
         
         {/* Absolute Favorite Button */}
         <Button 
           variant="ghost" 
           size="icon" 
-          className="absolute top-4 right-4 text-muted-foreground hover:text-rose-500 rounded-full hover:bg-rose-50 transition-colors z-10"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-rose-500 rounded-full hover:bg-rose-500/10 transition-colors z-10"
           onClick={(e) => { e.preventDefault(); onSave?.(); }}
         >
           <Heart className="w-5 h-5" />
@@ -70,13 +70,13 @@ export function FreelancerCard({
                 <AvatarFallback>{name.substring(0, 2)}</AvatarFallback>
               </Avatar>
               {isAvailable && (
-                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full ring-1 ring-green-600/20" title="Online" />
+                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-card rounded-full ring-1 ring-green-600/20" title="Online" />
               )}
             </div>
             
             <div className="flex flex-col min-w-0 pr-8">
               <div className="flex items-center gap-1.5">
-                <Link href={`/find-freelancers/${id}`} className="font-bold text-[18px] text-foreground hover:text-purple-600 transition-colors truncate">
+                <Link href={`/find-freelancers/${id}`} className="font-bold text-[18px] text-foreground hover:text-purple-600 dark:hover:text-purple-400 transition-colors truncate">
                   {name}
                 </Link>
                 {isVerified && (
@@ -108,12 +108,12 @@ export function FreelancerCard({
           {/* Skills */}
           <div className="flex flex-wrap gap-1.5 mt-3">
             {skills.slice(0, 5).map(skill => (
-              <span key={skill} className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-200 transition-colors">
+              <span key={skill} className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors">
                 {skill}
               </span>
             ))}
             {skills.length > 5 && (
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-700">
+              <span className="inline-flex items-center rounded-full bg-secondary px-2 py-1 text-[11px] font-medium text-secondary-foreground">
                 +{skills.length - 5}
               </span>
             )}
