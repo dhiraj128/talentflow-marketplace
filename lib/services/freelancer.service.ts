@@ -16,6 +16,11 @@ export const freelancerService = {
     return data;
   },
 
+  getMyServices: async () => {
+    const { data } = await api.get('/freelancers/me');
+    return data?.services || (data?.title ? [data] : []);
+  },
+
   getAdminFreelancers: async () => {
     const { data } = await api.get('/freelancers/admin/all');
     return data;

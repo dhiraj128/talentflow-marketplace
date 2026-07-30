@@ -40,7 +40,7 @@ function TalentSearchContent() {
   const { data: rawCandidates, isLoading } = useQuery({
     queryKey: ['find-talent', query, page],
     queryFn: async () => {
-      const results = await searchService.searchTalent(query, "");
+      const results: any = await searchService.searchTalent(query, "");
       return Array.isArray(results) ? results : results?.data || [];
     }
   });

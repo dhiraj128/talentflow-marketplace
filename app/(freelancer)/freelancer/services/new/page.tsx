@@ -19,7 +19,7 @@ export default function NewServicePage() {
       await freelancerService.updateMyProfile({
         title: data.title || "Freelance Service",
         category: data.category,
-        hourlyRate: parseFloat(data.price as any) || 0,
+        hourlyRate: parseFloat(data.hourlyRate || "0") || 0,
         skills: data.skills || [],
         bio: data.description
       });

@@ -1,30 +1,12 @@
-﻿"use client";
+"use client";
 import React from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { DataTable } from "@/components/shared/DataTable";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Download } from "lucide-react";
+import { CreditCard, Plus, Receipt } from "lucide-react";
 
 export default function BillingPage() {
-  const columns = [
-    { accessorKey: "invoice", header: "Invoice" },
-    { accessorKey: "date", header: "Date" },
-    { accessorKey: "amount", header: "Amount" },
-    { accessorKey: "status", header: "Status" },
-    { 
-      id: "actions",
-      header: "Actions",
-      cell: () => (
-        <Button variant="ghost" size="sm"><Download className="w-4 h-4" /></Button>
-      )
-    },
-  ];
-
-  const data = [
-    { invoice: "INV-2023-001", date: "Oct 01, 2023", amount: "$299.00", status: "Paid" },
-    { invoice: "INV-2023-002", date: "Nov 01, 2023", amount: "$299.00", status: "Paid" },
-  ];
+  const data: any[] = [];
 
   return (
     <div className="max-w-7xl mx-auto p-8 space-y-8">
@@ -36,17 +18,11 @@ export default function BillingPage() {
             <CardTitle>Payment Method</CardTitle>
             <CardDescription>Your current primary payment method</CardDescription>
           </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-muted rounded-full">
-                <CreditCard className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="font-medium">Visa ending in 4242</p>
-                <p className="text-sm text-muted-foreground">Expires 12/2025</p>
-              </div>
-            </div>
-            <Button variant="outline">Update</Button>
+          <CardContent className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+            <CreditCard className="w-10 h-10 text-muted-foreground/40 mb-2" />
+            <p className="font-medium text-sm">No payment method on file</p>
+            <p className="text-xs text-muted-foreground/60 mt-1 mb-4">Add a payment method to post promoted job listings.</p>
+            <Button variant="outline" size="sm"><Plus className="w-4 h-4 mr-2" /> Add Payment Method</Button>
           </CardContent>
         </Card>
       </div>
@@ -57,7 +33,15 @@ export default function BillingPage() {
           <CardDescription>Recent invoices and charges</CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable columns={columns} data={data} />
+          {data.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+              <Receipt className="w-10 h-10 text-muted-foreground/40 mb-2" />
+              <p className="font-medium text-sm">No billing history</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Invoices and transaction records will be displayed here.</p>
+            </div>
+          ) : (
+            <div>History</div>
+          )}
         </CardContent>
       </Card>
     </div>

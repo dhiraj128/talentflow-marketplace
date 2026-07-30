@@ -1,15 +1,17 @@
+"use client";
+
 import { PageHeader } from "@/components/shared/PageHeader"
 import { StatsGrid } from "@/components/shared/StatsGrid"
-import { DollarSign, ArrowUpRight, Wallet, History, Building } from "lucide-react"
+import { DollarSign, ArrowUpRight, Wallet, History } from "lucide-react"
 import { DataTable } from "@/components/shared/DataTable"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
 export default function RevenuePage() {
   const stats = [
-    { label: "Total Earnings", value: "$42,500", icon: <DollarSign className="h-4 w-4" />, change: "+$2,400 this month" },
-    { label: "Available Balance", value: "$3,250", icon: <Wallet className="h-4 w-4" />, change: "Ready for withdrawal" },
-    { label: "Next Payout", value: "$1,200", icon: <ArrowUpRight className="h-4 w-4" />, change: "Scheduled for Oct 1st" },
+    { label: "Total Earnings", value: "$0.00", icon: <DollarSign className="h-4 w-4" />, change: "No earnings yet" },
+    { label: "Available Balance", value: "$0.00", icon: <Wallet className="h-4 w-4" />, change: "Ready for withdrawal" },
+    { label: "Next Payout", value: "$0.00", icon: <ArrowUpRight className="h-4 w-4" />, change: "No scheduled payouts" },
   ]
 
   const columns = [
@@ -20,13 +22,7 @@ export default function RevenuePage() {
     { header: "Status", accessor: "status" },
   ]
 
-  const data = [
-    { id: "TX-9823", date: "Sep 28, 2023", description: "Course Sale: Advanced React", amount: "+$149.00", status: "Completed" },
-    { id: "TX-9822", date: "Sep 27, 2023", description: "Live Session: Q&A", amount: "+$45.00", status: "Completed" },
-    { id: "TX-9821", date: "Sep 25, 2023", description: "Withdrawal to Bank Account", amount: "-$2,000.00", status: "Processed" },
-    { id: "TX-9820", date: "Sep 24, 2023", description: "Course Sale: Next.js Mastery", amount: "+$199.00", status: "Completed" },
-    { id: "TX-9819", date: "Sep 22, 2023", description: "Course Sale: Advanced React", amount: "+$149.00", status: "Refunded" },
-  ]
+  const data: any[] = [];
 
   return (
     <>
@@ -50,7 +46,14 @@ export default function RevenuePage() {
             </div>
           </CardHeader>
           <CardContent>
-            <DataTable columns={columns} data={data} />
+            {data.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                <p className="font-medium text-sm">No transactions yet</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Course sales and payouts will appear here.</p>
+              </div>
+            ) : (
+              <DataTable columns={columns} data={data} />
+            )}
           </CardContent>
         </Card>
 
@@ -61,14 +64,8 @@ export default function RevenuePage() {
               <CardDescription>Where your funds are sent</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-4 p-4 border rounded-lg bg-muted/50">
-                <Building className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="font-medium">HDFC Bank</p>
-                  <p className="text-sm text-muted-foreground">Ending in •••• 4589</p>
-                </div>
-              </div>
-              <Button variant="outline" className="w-full">Update Bank Details</Button>
+              <p className="text-sm text-muted-foreground">No payout method added yet.</p>
+              <Button variant="outline" className="w-full">Add Bank Details</Button>
             </CardContent>
           </Card>
           
@@ -79,19 +76,15 @@ export default function RevenuePage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Course Sales</span>
-                <span className="font-medium">$32,000</span>
+                <span className="font-medium">$0.00</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Live Classes</span>
-                <span className="font-medium">$8,500</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">1-on-1 Mentorship</span>
-                <span className="font-medium">$2,000</span>
+                <span className="font-medium">$0.00</span>
               </div>
               <div className="pt-4 border-t flex justify-between items-center">
                 <span className="font-medium">Total</span>
-                <span className="font-bold text-primary">$42,500</span>
+                <span className="font-bold text-primary">$0.00</span>
               </div>
             </CardContent>
           </Card>
