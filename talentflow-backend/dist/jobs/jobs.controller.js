@@ -20,7 +20,6 @@ const update_job_dto_1 = require("./dto/update-job.dto");
 const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../common/guards/jwt-auth.guard");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
-const common_2 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 const roles_decorator_1 = require("../common/decorators/roles.decorator");
 const roles_guard_1 = require("../common/guards/roles.guard");
@@ -41,6 +40,12 @@ let JobsController = class JobsController {
             page,
             limit,
         });
+    }
+    getSavedJobs(user) {
+        return this.jobsService.getSavedJobs(user.sub || user.userId);
+    }
+    getRecommendedJobs(user) {
+        return this.jobsService.getRecommendedJobs(user.sub || user.userId);
     }
     findPendingAdmin(page, limit) {
         return this.jobsService.findAdminPending({ page, limit });
@@ -69,18 +74,18 @@ let JobsController = class JobsController {
         }
         catch (error) {
             if (error.message.includes('not found')) {
-                throw new common_2.HttpException(error.message, common_2.HttpStatus.NOT_FOUND);
+                throw new common_1.HttpException(error.message, common_1.HttpStatus.NOT_FOUND);
             }
             if (error.message.includes('Only registered candidates')) {
-                throw new common_2.HttpException(error.message, common_2.HttpStatus.FORBIDDEN);
+                throw new common_1.HttpException(error.message, common_1.HttpStatus.FORBIDDEN);
             }
             if (error.message.includes('Already applied')) {
-                throw new common_2.HttpException(error.message, common_2.HttpStatus.CONFLICT);
+                throw new common_1.HttpException(error.message, common_1.HttpStatus.CONFLICT);
             }
             if (error.message.includes('not open for applications')) {
-                throw new common_2.HttpException(error.message, common_2.HttpStatus.BAD_REQUEST);
+                throw new common_1.HttpException(error.message, common_1.HttpStatus.BAD_REQUEST);
             }
-            throw new common_2.HttpException('Failed to apply to job', common_2.HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new common_1.HttpException('Failed to apply to job', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async checkApplicationStatus(id, user) {
@@ -91,9 +96,6 @@ let JobsController = class JobsController {
     }
     unsaveJob(id, user) {
         return this.jobsService.unsaveJob(id, user.sub || user.userId);
-    }
-    getSavedJobs(user) {
-        return this.jobsService.getSavedJobs(user.sub || user.userId);
     }
 };
 exports.JobsController = JobsController;
@@ -120,6 +122,26 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], JobsController.prototype, "findAll", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Get)('saved/my-saved-jobs'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "getSavedJobs", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Get)('recommended'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "getRecommendedJobs", null);
 __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Get)('admin/pending'),
@@ -236,16 +258,6 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], JobsController.prototype, "unsaveJob", null);
-__decorate([
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, common_1.Get)('saved/my-saved-jobs'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
-    __param(0, (0, current_user_decorator_1.CurrentUser)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], JobsController.prototype, "getSavedJobs", null);
 exports.JobsController = JobsController = __decorate([
     (0, swagger_1.ApiTags)('jobs'),
     (0, common_1.Controller)('jobs'),

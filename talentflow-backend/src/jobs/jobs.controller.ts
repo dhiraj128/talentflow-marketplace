@@ -8,6 +8,8 @@ import {
   Delete,
   Query,
   UseGuards,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
@@ -15,10 +17,9 @@ import { UpdateJobDto } from './dto/update-job.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { HttpException, HttpStatus } from '@nestjs/common';
-import { Role } from "@prisma/client";
-import { Roles } from "../common/decorators/roles.decorator";
-import { RolesGuard } from "../common/guards/roles.guard";
+import { Role } from '@prisma/client';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
 
 @ApiTags('jobs')
 @Controller('jobs')
@@ -27,8 +28,8 @@ export class JobsController {
 
   @ApiBearerAuth()
   @Post()
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.EMPLOYER, Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.EMPLOYER, Role.ADMIN)
   create(@Body() createJobDto: CreateJobDto, @CurrentUser() user: any) {
     return this.jobsService.create(createJobDto, user.sub || user.userId);
   }
@@ -52,22 +53,40 @@ export class JobsController {
     });
   }
 
+  // STATIC ROUTES DECLARED BEFORE DYNAMIC PARAMETER :id
+  @ApiBearerAuth()
+  @Get('saved/my-saved-jobs')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CANDIDATE, Role.ADMIN)
+  getSavedJobs(@CurrentUser() user: any) {
+    return this.jobsService.getSavedJobs(user.sub || user.userId);
+  }
+
+  @ApiBearerAuth()
+  @Get('recommended')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CANDIDATE, Role.ADMIN)
+  getRecommendedJobs(@CurrentUser() user: any) {
+    return this.jobsService.getRecommendedJobs(user.sub || user.userId);
+  }
+
   @ApiBearerAuth()
   @Get('admin/pending')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   findPendingAdmin(@Query('page') page?: string, @Query('limit') limit?: string) {
     return this.jobsService.findAdminPending({ page, limit });
   }
 
   @ApiBearerAuth()
   @Get('employer/me')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.EMPLOYER, Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.EMPLOYER, Role.ADMIN)
   getEmployerJobs(@CurrentUser() user: any) {
     return this.jobsService.findEmployerJobs(user.sub || user.userId);
   }
 
+  // DYNAMIC PARAMETER ROUTES AFTER ALL STATIC ROUTES
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.jobsService.findOne(id);
@@ -75,8 +94,8 @@ export class JobsController {
 
   @ApiBearerAuth()
   @Patch(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.EMPLOYER, Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.EMPLOYER, Role.ADMIN)
   update(
     @Param('id') id: string,
     @Body() updateJobDto: UpdateJobDto,
@@ -87,24 +106,24 @@ export class JobsController {
 
   @ApiBearerAuth()
   @Delete(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.EMPLOYER, Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.EMPLOYER, Role.ADMIN)
   remove(@Param('id') id: string, @CurrentUser() user: any) {
     return this.jobsService.remove(id, user);
   }
 
   @ApiBearerAuth()
   @Patch(':id/approve')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   approveJob(@Param('id') id: string, @CurrentUser() user: any) {
     return this.jobsService.approveJob(id, user);
   }
 
   @ApiBearerAuth()
   @Patch(':id/reject')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   rejectJob(@Param('id') id: string, @CurrentUser() user: any) {
     return this.jobsService.rejectJob(id, user);
   }
@@ -167,13 +186,5 @@ export class JobsController {
   @Roles(Role.CANDIDATE, Role.ADMIN)
   unsaveJob(@Param('id') id: string, @CurrentUser() user: any) {
     return this.jobsService.unsaveJob(id, user.sub || user.userId);
-  }
-
-  @ApiBearerAuth()
-  @Get('saved/my-saved-jobs')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.CANDIDATE, Role.ADMIN)
-  getSavedJobs(@CurrentUser() user: any) {
-    return this.jobsService.getSavedJobs(user.sub || user.userId);
   }
 }

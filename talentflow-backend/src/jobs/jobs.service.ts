@@ -343,4 +343,80 @@ export class JobsService {
       savedAt: sj.createdAt,
     }));
   }
+
+  async getRecommendedJobs(userId: string) {
+    const candidate = await this.prisma.candidateProfile.findUnique({
+      where: { userId },
+      include: { skills: { include: { skill: true } } },
+    });
+
+    if (!candidate) {
+      throw new ForbiddenException('Candidate profile required');
+    }
+
+    const candidateSkillNames = new Set(
+      (candidate.skills || [])
+        .map((s: any) => s.skill?.name?.toLowerCase())
+        .filter(Boolean),
+    );
+
+    const jobs: any[] = await this.prisma.job.findMany({
+      where: { deletedAt: null, status: { in: ['PUBLISHED' as any] } },
+      include: {
+        employer: { select: { companyName: true, logoUrl: true } },
+        requiredSkills: { include: { skill: true } },
+      },
+      take: 50,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const recommended = jobs.map((job: any) => {
+      let score = 50; // Base score for active open job
+      const matchingReasons: string[] = [];
+
+      const jobSkillNames = (job.requiredSkills || [])
+        .map((rs: any) => rs.skill?.name?.toLowerCase())
+        .filter(Boolean);
+
+      let matchedSkills = 0;
+      jobSkillNames.forEach((sk: string) => {
+        if (candidateSkillNames.has(sk)) matchedSkills++;
+      });
+
+      if (matchedSkills > 0) {
+        const skillScore = Math.min(40, matchedSkills * 15);
+        score += skillScore;
+        matchingReasons.push(`${matchedSkills} matching skill${matchedSkills > 1 ? 's' : ''}`);
+      }
+
+      if (
+        job.location &&
+        candidate.location &&
+        job.location.toLowerCase().includes(candidate.location.toLowerCase())
+      ) {
+        score += 10;
+        matchingReasons.push('Location match');
+      } else if (job.location && job.location.toLowerCase().includes('remote')) {
+        score += 5;
+        matchingReasons.push('Remote flexibility');
+      }
+
+      const matchScore = Math.min(99, Math.max(50, score));
+
+      return {
+        id: job.id,
+        title: job.title,
+        company: job.employer?.companyName || 'Company',
+        location: job.location || 'Remote',
+        salary: job.salaryRange || 'Competitive',
+        type: job.type || 'Full-time',
+        matchScore,
+        matchingReasons: matchingReasons.length > 0 ? matchingReasons : ['Active Marketplace Role'],
+      };
+    });
+
+    recommended.sort((a, b) => b.matchScore - a.matchScore);
+
+    return { data: recommended, total: recommended.length };
+  }
 }

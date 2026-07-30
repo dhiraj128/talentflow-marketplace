@@ -63,6 +63,29 @@ export declare class JobsController {
         limit: number;
         totalPages: number;
     }>;
+    getSavedJobs(user: any): Promise<{
+        id: string;
+        savedJobId: string;
+        title: string;
+        company: string;
+        location: string;
+        salary: string;
+        type: string;
+        savedAt: Date;
+    }[]>;
+    getRecommendedJobs(user: any): Promise<{
+        data: {
+            id: any;
+            title: any;
+            company: any;
+            location: any;
+            salary: any;
+            type: any;
+            matchScore: number;
+            matchingReasons: string[];
+        }[];
+        total: number;
+    }>;
     findPendingAdmin(page?: string, limit?: string): Promise<{
         data: ({
             employer: {
@@ -270,14 +293,4 @@ export declare class JobsController {
     unsaveJob(id: string, user: any): Promise<{
         success: boolean;
     }>;
-    getSavedJobs(user: any): Promise<{
-        id: string;
-        savedJobId: string;
-        title: string;
-        company: string;
-        location: string;
-        salary: string;
-        type: string;
-        savedAt: Date;
-    }[]>;
 }

@@ -280,4 +280,17 @@ export declare class JobsService {
         type: string;
         savedAt: Date;
     }[]>;
+    getRecommendedJobs(userId: string): Promise<{
+        data: {
+            id: any;
+            title: any;
+            company: any;
+            location: any;
+            salary: any;
+            type: any;
+            matchScore: number;
+            matchingReasons: string[];
+        }[];
+        total: number;
+    }>;
 }

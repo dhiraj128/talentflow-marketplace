@@ -4,30 +4,42 @@ import React, { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { JobCard } from "@/components/shared/JobCard";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Bookmark, Search } from "lucide-react";
+import { Bookmark, Search, Lock, ShieldAlert, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { jobService } from "@/lib/services/job.service";
+import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
 export default function SavedJobsPage() {
+  const { user } = useAuth();
   const [savedJobs, setSavedJobs] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [statusState, setStatusState] = useState<"IDLE" | "SUCCESS" | "UNAUTH" | "FORBIDDEN" | "ERROR">("IDLE");
 
   useEffect(() => {
     fetchSavedJobs();
-  }, []);
+  }, [user]);
 
   const fetchSavedJobs = async () => {
     setIsLoading(true);
-    setError(null);
+    setStatusState("IDLE");
     try {
       const data = await jobService.getSavedJobs();
-      setSavedJobs(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : data?.data || [];
+      setSavedJobs(list);
+      setStatusState("SUCCESS");
     } catch (err: any) {
       console.error("Failed to load saved jobs", err);
-      setError("Unable to load saved jobs. Please sign in as candidate.");
+      const statusCode = err?.response?.status;
+      if (statusCode === 401) {
+        setStatusState("UNAUTH");
+      } else if (statusCode === 403) {
+        setStatusState("FORBIDDEN");
+      } else {
+        setStatusState("ERROR");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -75,15 +87,31 @@ export default function SavedJobsPage() {
             <div key={i} className="h-48 rounded-xl border bg-muted/20 animate-pulse p-4" />
           ))}
         </div>
-      ) : error ? (
-        <div className="p-8 text-center text-red-600 border rounded-xl bg-red-50/50">
-          <p>{error}</p>
-          <button
-            onClick={fetchSavedJobs}
-            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md text-xs font-semibold"
-          >
-            Retry
-          </button>
+      ) : statusState === "UNAUTH" ? (
+        <div className="p-12 text-center border rounded-xl bg-card space-y-4">
+          <Lock className="w-12 h-12 text-muted-foreground mx-auto" />
+          <h3 className="text-xl font-bold">Sign in to view your saved jobs</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Please sign in with your candidate account to manage your bookmarked positions.
+          </p>
+          <Button onClick={() => window.location.href = "/sign-in"} className="mt-2">
+            Sign In
+          </Button>
+        </div>
+      ) : statusState === "FORBIDDEN" ? (
+        <div className="p-12 text-center border rounded-xl bg-card space-y-4">
+          <ShieldAlert className="w-12 h-12 text-amber-500 mx-auto" />
+          <h3 className="text-xl font-bold">Candidate Account Required</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Saving jobs is a Candidate feature. Please log in as a candidate to access saved jobs.
+          </p>
+        </div>
+      ) : statusState === "ERROR" ? (
+        <div className="p-8 text-center text-red-600 border border-red-200 rounded-xl bg-red-50/50 space-y-3">
+          <p className="font-semibold">Unable to load saved jobs. Please try again.</p>
+          <Button variant="outline" size="sm" onClick={fetchSavedJobs} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> Retry
+          </Button>
         </div>
       ) : filteredJobs.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
@@ -92,7 +120,7 @@ export default function SavedJobsPage() {
               <JobCard job={job} />
               <button
                 onClick={() => handleUnsave(job.id)}
-                className="absolute top-3 right-3 text-xs text-red-500 bg-background/80 hover:bg-red-50 p-1.5 rounded-md border"
+                className="absolute top-3 right-3 text-xs text-red-500 bg-background/90 hover:bg-red-50 p-1.5 rounded-md border shadow-xs"
                 title="Remove saved job"
               >
                 Unsave
@@ -103,8 +131,8 @@ export default function SavedJobsPage() {
       ) : (
         <EmptyState
           icon={<Bookmark className="h-10 w-10 text-muted-foreground" />}
-          title="No saved jobs"
-          description="You haven't saved any jobs yet. Start browsing to find your next opportunity."
+          title="No saved jobs yet"
+          description="You haven't bookmarked any jobs yet. Browse marketplace jobs to save your favorites."
           action={{ label: "Browse Jobs", href: "/find-jobs" }}
         />
       )}

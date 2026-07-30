@@ -58,5 +58,9 @@ export const jobService = {
   getSavedJobs: async () => {
     const response = await api.get(`/jobs/saved/my-saved-jobs`);
     return response.data;
+  },
+  getRecommendedJobs: async () => {
+    const response = await api.get(`/jobs/recommended`);
+    return response.data;
   }
 };

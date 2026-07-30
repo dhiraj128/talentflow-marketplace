@@ -291,6 +291,67 @@ let JobsService = class JobsService {
             savedAt: sj.createdAt,
         }));
     }
+    async getRecommendedJobs(userId) {
+        const candidate = await this.prisma.candidateProfile.findUnique({
+            where: { userId },
+            include: { skills: { include: { skill: true } } },
+        });
+        if (!candidate) {
+            throw new common_1.ForbiddenException('Candidate profile required');
+        }
+        const candidateSkillNames = new Set((candidate.skills || [])
+            .map((s) => s.skill?.name?.toLowerCase())
+            .filter(Boolean));
+        const jobs = await this.prisma.job.findMany({
+            where: { deletedAt: null, status: { in: ['PUBLISHED'] } },
+            include: {
+                employer: { select: { companyName: true, logoUrl: true } },
+                requiredSkills: { include: { skill: true } },
+            },
+            take: 50,
+            orderBy: { createdAt: 'desc' },
+        });
+        const recommended = jobs.map((job) => {
+            let score = 50;
+            const matchingReasons = [];
+            const jobSkillNames = (job.requiredSkills || [])
+                .map((rs) => rs.skill?.name?.toLowerCase())
+                .filter(Boolean);
+            let matchedSkills = 0;
+            jobSkillNames.forEach((sk) => {
+                if (candidateSkillNames.has(sk))
+                    matchedSkills++;
+            });
+            if (matchedSkills > 0) {
+                const skillScore = Math.min(40, matchedSkills * 15);
+                score += skillScore;
+                matchingReasons.push(`${matchedSkills} matching skill${matchedSkills > 1 ? 's' : ''}`);
+            }
+            if (job.location &&
+                candidate.location &&
+                job.location.toLowerCase().includes(candidate.location.toLowerCase())) {
+                score += 10;
+                matchingReasons.push('Location match');
+            }
+            else if (job.location && job.location.toLowerCase().includes('remote')) {
+                score += 5;
+                matchingReasons.push('Remote flexibility');
+            }
+            const matchScore = Math.min(99, Math.max(50, score));
+            return {
+                id: job.id,
+                title: job.title,
+                company: job.employer?.companyName || 'Company',
+                location: job.location || 'Remote',
+                salary: job.salaryRange || 'Competitive',
+                type: job.type || 'Full-time',
+                matchScore,
+                matchingReasons: matchingReasons.length > 0 ? matchingReasons : ['Active Marketplace Role'],
+            };
+        });
+        recommended.sort((a, b) => b.matchScore - a.matchScore);
+        return { data: recommended, total: recommended.length };
+    }
 };
 exports.JobsService = JobsService;
 exports.JobsService = JobsService = __decorate([
