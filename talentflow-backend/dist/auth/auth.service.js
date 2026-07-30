@@ -333,7 +333,7 @@ let AuthService = class AuthService {
         if (!user) {
             throw new common_1.BadRequestException('User not found');
         }
-        return { message: 'User found', type: user.phoneNumber === identifier ? 'PHONE' : 'EMAIL' };
+        return { message: 'OTP sent successfully', type: user.phoneNumber === identifier ? 'PHONE' : 'EMAIL' };
     }
     async resetPassword(identifier, code, newPassword) {
         const user = await this.prisma.user.findFirst({

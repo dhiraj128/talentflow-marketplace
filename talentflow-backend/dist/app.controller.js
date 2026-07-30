@@ -28,6 +28,8 @@ let AppController = class AppController {
         return {
             status: 'ok',
             service: 'talentflow-backend',
+            version: '1.0.1',
+            commit: process.env.RENDER_GIT_COMMIT || '12c0373-v5',
         };
     }
 };

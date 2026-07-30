@@ -41,6 +41,7 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var OtpService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OtpService = void 0;
 const common_1 = require("@nestjs/common");
@@ -48,9 +49,10 @@ const prisma_service_1 = require("../prisma/prisma.service");
 const crypto = __importStar(require("crypto"));
 const bcrypt = __importStar(require("bcrypt"));
 const resend_email_provider_1 = require("./providers/resend-email.provider");
-let OtpService = class OtpService {
+let OtpService = OtpService_1 = class OtpService {
     prisma;
     emailProvider;
+    logger = new common_1.Logger(OtpService_1.name);
     constructor(prisma, emailProvider) {
         this.prisma = prisma;
         this.emailProvider = emailProvider;
@@ -77,11 +79,12 @@ let OtpService = class OtpService {
                 expiresAt,
             },
         });
+        this.logger.log(`[OTP] OTP record created for ${purpose} (${type})`);
         if (type === 'EMAIL') {
             await this.emailProvider.sendOtp(identifier, code);
         }
         else {
-            console.log(`[MOCK SMS PROVIDER] Sending OTP ${code} to ${identifier} for ${purpose}`);
+            this.logger.log(`[MOCK SMS PROVIDER] Sending OTP to ${identifier} for ${purpose}`);
         }
         return { message: 'OTP sent successfully' };
     }
@@ -131,7 +134,7 @@ let OtpService = class OtpService {
     }
 };
 exports.OtpService = OtpService;
-exports.OtpService = OtpService = __decorate([
+exports.OtpService = OtpService = OtpService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         resend_email_provider_1.ResendEmailProvider])

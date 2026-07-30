@@ -4,6 +4,7 @@ import { ResendEmailProvider } from './providers/resend-email.provider';
 export declare class OtpService {
     private readonly prisma;
     private readonly emailProvider;
+    private readonly logger;
     constructor(prisma: PrismaService, emailProvider: ResendEmailProvider);
     private generateSecureCode;
     sendOtp(identifier: string, purpose: OtpPurpose, type: 'EMAIL' | 'PHONE'): Promise<{

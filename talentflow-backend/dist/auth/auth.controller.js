@@ -26,6 +26,7 @@ const github_oauth_guard_1 = require("./guards/github-oauth.guard");
 const oauth_exception_filter_1 = require("./filters/oauth-exception.filter");
 const otp_service_1 = require("./otp.service");
 const otp_dto_1 = require("./dto/otp.dto");
+const client_1 = require("@prisma/client");
 let AuthController = class AuthController {
     authService;
     otpService;
@@ -56,7 +57,18 @@ let AuthController = class AuthController {
         return this.otpService.sendOtp(dto.identifier, dto.purpose, type);
     }
     async forgotPassword(dto) {
-        return this.authService.forgotPassword(dto.identifier);
+        const type = dto.identifier.includes('@') ? 'EMAIL' : 'PHONE';
+        try {
+            const res = await this.authService.forgotPassword(dto.identifier);
+            await this.otpService.sendOtp(dto.identifier, client_1.OtpPurpose.FORGOT_PASSWORD, res.type);
+        }
+        catch (err) {
+            if (err instanceof common_1.BadRequestException && err.message === 'User not found') {
+                return { message: 'OTP sent successfully', type };
+            }
+            throw err;
+        }
+        return { message: 'OTP sent successfully', type };
     }
     async resetPassword(dto) {
         return this.authService.resetPassword(dto.identifier, dto.code, dto.newPassword);
@@ -92,8 +104,9 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Login to the application' }),
     (0, swagger_1.ApiResponse)({
         status: 200,
-        description: 'Return access and refresh tokens.',
+        description: 'User successfully logged in.',
     }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized.' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [login_dto_1.LoginDto]),

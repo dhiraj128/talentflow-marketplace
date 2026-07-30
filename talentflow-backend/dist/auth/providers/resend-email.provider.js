@@ -15,8 +15,10 @@ let ResendEmailProvider = ResendEmailProvider_1 = class ResendEmailProvider {
     logger = new common_1.Logger(ResendEmailProvider_1.name);
     async sendOtp(email, otp) {
         try {
+            this.logger.log(`[EMAIL] Resend email provider invoked for ${email}`);
+            const sender = process.env.FROM_EMAIL || 'TalentFlow <noreply@sispl.shop>';
             const result = await this.resend.emails.send({
-                from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+                from: sender,
                 to: email,
                 subject: 'TalentFlow Marketplace Verification Code',
                 html: `
@@ -42,14 +44,14 @@ let ResendEmailProvider = ResendEmailProvider_1 = class ResendEmailProvider {
         `
             });
             if (result.error) {
-                this.logger.error(`Failed to send email via Resend: ${result.error.message}`);
+                this.logger.error(`[EMAIL] Failed to send email via Resend: ${result.error.message}`);
                 throw new common_1.InternalServerErrorException('Failed to send verification email');
             }
-            this.logger.log(`Email successfully sent via Resend to ${email}`);
+            this.logger.log(`[EMAIL] Resend accepted email message ID: ${result.data?.id}`);
             return result;
         }
         catch (error) {
-            this.logger.error(`Failed to send email via Resend: ${error.message}`);
+            this.logger.error(`[EMAIL] Failed to send email via Resend: ${error.message}`);
             throw new common_1.InternalServerErrorException('Failed to send verification email');
         }
     }
