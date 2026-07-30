@@ -2,10 +2,12 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 export declare class AuthService {
     private readonly prisma;
     private readonly jwtService;
-    constructor(prisma: PrismaService, jwtService: JwtService);
+    private readonly notificationsService;
+    constructor(prisma: PrismaService, jwtService: JwtService, notificationsService: NotificationsService);
     validateUser(identifier: string, pass: string): Promise<any>;
     validateOAuthUser(oauthUser: any): Promise<{
         id: string;

@@ -47,7 +47,12 @@ const plans_module_1 = require("./plans/plans.module");
 const subscriptions_module_1 = require("./subscriptions/subscriptions.module");
 const trainers_module_1 = require("./trainers/trainers.module");
 const storage_module_1 = require("./storage/storage.module");
+const health_module_1 = require("./health/health.module");
+const request_logger_middleware_1 = require("./common/middleware/request-logger.middleware");
 let AppModule = class AppModule {
+    configure(consumer) {
+        consumer.apply(request_logger_middleware_1.RequestLoggerMiddleware).forRoutes('*');
+    }
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
@@ -60,6 +65,7 @@ exports.AppModule = AppModule = __decorate([
                 },
             ]),
             prisma_module_1.PrismaModule,
+            health_module_1.HealthModule,
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             employers_module_1.EmployersModule,

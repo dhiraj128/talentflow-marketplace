@@ -31,21 +31,40 @@ let NotificationsController = class NotificationsController {
     create(createNotificationDto) {
         return this.notificationsService.create(createNotificationDto);
     }
-    findAll(userId, skip, take) {
-        return this.notificationsService.findAll({
-            userId,
-            skip: skip ? +skip : undefined,
-            take: take ? +take : undefined,
+    findAll(user, page, limit, unreadOnly) {
+        const userId = user.sub || user.userId;
+        return this.notificationsService.findAllForUser(userId, {
+            page: page ? +page : 1,
+            limit: limit ? +limit : 20,
+            unreadOnly: unreadOnly === 'true',
         });
     }
+    getUnreadCount(user) {
+        const userId = user.sub || user.userId;
+        return this.notificationsService.getUnreadCount(userId);
+    }
+    markAllAsRead(user) {
+        const userId = user.sub || user.userId;
+        return this.notificationsService.markAllAsRead(userId);
+    }
+    markAsRead(id, user) {
+        const userId = user.sub || user.userId;
+        return this.notificationsService.markAsRead(id, userId);
+    }
     findOne(id, user) {
-        return this.notificationsService.findOne(id, user);
+        const userId = user.sub || user.userId;
+        return this.notificationsService.findOneForUser(id, userId);
     }
     update(id, updateNotificationDto, user) {
-        return this.notificationsService.update(id, updateNotificationDto, user);
+        const userId = user.sub || user.userId;
+        if (updateNotificationDto.isRead) {
+            return this.notificationsService.markAsRead(id, userId);
+        }
+        return this.notificationsService.findOneForUser(id, userId);
     }
     remove(id, user) {
-        return this.notificationsService.remove(id, user);
+        const userId = user.sub || user.userId;
+        return this.notificationsService.removeForUser(id, userId);
     }
 };
 exports.NotificationsController = NotificationsController;
@@ -61,13 +80,42 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __param(0, (0, common_1.Query)('userId')),
-    __param(1, (0, common_1.Query)('skip')),
-    __param(2, (0, common_1.Query)('take')),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false }),
+    (0, swagger_1.ApiQuery)({ name: 'unreadOnly', required: false }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __param(3, (0, common_1.Query)('unreadOnly')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, String]),
     __metadata("design:returntype", void 0)
 ], NotificationsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('unread-count'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "getUnreadCount", null);
+__decorate([
+    (0, common_1.Patch)('read-all'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "markAllAsRead", null);
+__decorate([
+    (0, common_1.Patch)(':id/read'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "markAsRead", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
@@ -89,8 +137,7 @@ __decorate([
 ], NotificationsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),

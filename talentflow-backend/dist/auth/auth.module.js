@@ -18,6 +18,7 @@ const google_strategy_1 = require("./strategies/google.strategy");
 const github_strategy_1 = require("./strategies/github.strategy");
 const prisma_module_1 = require("../prisma/prisma.module");
 const resend_email_provider_1 = require("./providers/resend-email.provider");
+const notifications_module_1 = require("../notifications/notifications.module");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -26,6 +27,7 @@ exports.AuthModule = AuthModule = __decorate([
         imports: [
             prisma_module_1.PrismaModule,
             passport_1.PassportModule,
+            notifications_module_1.NotificationsModule,
             jwt_1.JwtModule.register({
                 secret: process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',
                 signOptions: { expiresIn: '15m' },

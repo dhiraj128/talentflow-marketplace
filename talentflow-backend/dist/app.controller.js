@@ -11,25 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppController = void 0;
 const common_1 = require("@nestjs/common");
-const app_service_1 = require("./app.service");
 let AppController = class AppController {
-    appService;
-    constructor(appService) {
-        this.appService = appService;
-    }
     getRoot() {
         return {
             status: 'ok',
             service: 'TalentFlow Backend',
-            version: '1.0.0',
-        };
-    }
-    getHealth() {
-        return {
-            status: 'ok',
-            service: 'talentflow-backend',
-            version: '1.0.1',
-            commit: process.env.RENDER_GIT_COMMIT || '12c0373-v5',
+            version: '1.0.2',
         };
     }
 };
@@ -41,14 +28,7 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "getRoot", null);
-__decorate([
-    (0, common_1.Get)('health'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], AppController.prototype, "getHealth", null);
 exports.AppController = AppController = __decorate([
-    (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [app_service_1.AppService])
+    (0, common_1.Controller)()
 ], AppController);
 //# sourceMappingURL=app.controller.js.map

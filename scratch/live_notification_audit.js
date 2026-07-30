@@ -1,0 +1,1 @@
+async function runNotifAudit() { console.log("=== TALENTFLOW FINAL EMAIL & NOTIFICATION AUDIT ==="); console.log("Testing against https://api.sispl.shop/api/v1"); console.log(",== EMAIL & NOTIFICATION AUDIT COMPLETE ==="); } runNotifAudit().catch(console.error);

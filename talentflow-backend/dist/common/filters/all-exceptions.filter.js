@@ -10,34 +10,45 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AllExceptionsFilter = void 0;
 const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
+const redact_util_1 = require("../utils/redact.util");
 let AllExceptionsFilter = AllExceptionsFilter_1 = class AllExceptionsFilter {
     logger = new common_1.Logger(AllExceptionsFilter_1.name);
     catch(exception, host) {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse();
         const request = ctx.getRequest();
+        const requestId = request.id ||
+            request.headers['x-request-id'] ||
+            `req-unknown-${Date.now()}`;
+        response.setHeader('X-Request-ID', requestId);
         let statusCode = common_1.HttpStatus.INTERNAL_SERVER_ERROR;
         let message = 'Internal Server Error';
         let error = 'Internal Server Error';
         if (exception instanceof common_1.HttpException) {
             statusCode = exception.getStatus();
             const responsePayload = exception.getResponse();
-            message = responsePayload.message || exception.message;
-            error = responsePayload.error || exception.name;
+            if (typeof responsePayload === 'string') {
+                message = responsePayload;
+            }
+            else if (typeof responsePayload === 'object' && responsePayload !== null) {
+                message = responsePayload.message || exception.message;
+                error = responsePayload.error || exception.name;
+            }
+            else {
+                message = exception.message;
+            }
         }
         else if (exception instanceof client_1.Prisma.PrismaClientKnownRequestError) {
-            this.logger.error(`Prisma Error: ${exception.code} - ${exception.message}`);
+            this.logger.error(`[PRISMA ERROR] requestId: ${requestId} - Code: ${exception.code}`);
             switch (exception.code) {
                 case 'P2002':
                     statusCode = common_1.HttpStatus.CONFLICT;
-                    message =
-                        'A record with this value already exists (Unique constraint failed).';
+                    message = 'A record with this value already exists.';
                     error = 'Conflict';
                     break;
                 case 'P2003':
                     statusCode = common_1.HttpStatus.BAD_REQUEST;
-                    message =
-                        'A related record does not exist (Foreign key constraint failed).';
+                    message = 'Foreign key constraint validation failed.';
                     error = 'Bad Request';
                     break;
                 case 'P2025':
@@ -47,27 +58,26 @@ let AllExceptionsFilter = AllExceptionsFilter_1 = class AllExceptionsFilter {
                     break;
                 default:
                     statusCode = common_1.HttpStatus.BAD_REQUEST;
-                    message = 'Database request error.';
+                    message = 'Database request validation failed.';
                     error = 'Bad Request';
                     break;
             }
         }
         else {
-            this.logger.error(exception);
+            const rawErrorMsg = exception instanceof Error ? exception.message : String(exception);
+            this.logger.error(`[UNHANDLED ERROR] requestId: ${requestId} - ${rawErrorMsg}`, exception instanceof Error ? exception.stack : undefined);
+            statusCode = common_1.HttpStatus.INTERNAL_SERVER_ERROR;
+            message = 'Internal server error';
+            error = 'Internal Server Error';
         }
-        const errorResponse = {
+        const errorResponse = (0, redact_util_1.redactSensitiveData)({
             statusCode,
             message,
             error,
+            requestId,
             timestamp: new Date().toISOString(),
             path: request.url,
-        };
-        if (exception instanceof common_1.HttpException) {
-            const responsePayload = exception.getResponse();
-            if (typeof responsePayload === 'object') {
-                Object.assign(errorResponse, responsePayload);
-            }
-        }
+        });
         response.status(statusCode).json(errorResponse);
     }
 };

@@ -12,10 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CoursesService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 let CoursesService = class CoursesService {
     prisma;
-    constructor(prisma) {
+    notificationsService;
+    constructor(prisma, notificationsService) {
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
     }
     async create(createCourseDto, trainerId) {
         const trainer = await this.prisma.trainerProfile.findUnique({
@@ -88,10 +91,15 @@ let CoursesService = class CoursesService {
         if (!course || course.trainerId !== trainerId) {
             throw new common_1.ForbiddenException('You can only update your own courses');
         }
-        return this.prisma.course.update({
+        const updated = await this.prisma.course.update({
             where: { id },
             data: updateCourseDto,
         });
+        const status = updateCourseDto.status;
+        if (status && ['PUBLISHED', 'APPROVED', 'REJECTED'].includes(status)) {
+            await this.notificationsService.notifyCourseModeration(id, status);
+        }
+        return updated;
     }
     async remove(id, trainerId) {
         const course = await this.prisma.course.findUnique({ where: { id } });
@@ -104,12 +112,23 @@ let CoursesService = class CoursesService {
         const course = await this.prisma.course.findUnique({ where: { id } });
         if (!course)
             throw new common_1.NotFoundException('Course not found');
-        if (course.status !== 'PENDING')
-            throw new common_1.BadRequestException('Only PENDING courses can be approved');
-        return this.prisma.course.update({
+        const updated = await this.prisma.course.update({
             where: { id },
             data: { status: 'PUBLISHED' },
         });
+        await this.notificationsService.notifyCourseModeration(id, 'PUBLISHED');
+        return updated;
+    }
+    async reject(id) {
+        const course = await this.prisma.course.findUnique({ where: { id } });
+        if (!course)
+            throw new common_1.NotFoundException('Course not found');
+        const updated = await this.prisma.course.update({
+            where: { id },
+            data: { status: 'REJECTED' },
+        });
+        await this.notificationsService.notifyCourseModeration(id, 'REJECTED');
+        return updated;
     }
     async submit(id, trainerId) {
         const course = await this.prisma.course.findUnique({ where: { id } });
@@ -217,6 +236,7 @@ let CoursesService = class CoursesService {
 exports.CoursesService = CoursesService;
 exports.CoursesService = CoursesService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], CoursesService);
 //# sourceMappingURL=courses.service.js.map

@@ -12,10 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApplicationsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 let ApplicationsService = class ApplicationsService {
     prisma;
-    constructor(prisma) {
+    notificationsService;
+    constructor(prisma, notificationsService) {
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
     }
     async create(createApplicationDto) {
         const { candidateId, jobId } = createApplicationDto;
@@ -33,12 +36,14 @@ let ApplicationsService = class ApplicationsService {
             }
             matchScore = Math.round((matched / jobSkills.length) * 100);
         }
-        return this.prisma.application.create({
+        const application = await this.prisma.application.create({
             data: {
                 ...createApplicationDto,
                 matchScore,
             },
         });
+        await this.notificationsService.notifyApplicationSubmitted(application.id);
+        return application;
     }
     async findAll(filters) {
         const where = {};
@@ -91,10 +96,14 @@ let ApplicationsService = class ApplicationsService {
             if (!isCandidate && !isEmployer)
                 throw new common_1.ForbiddenException('Forbidden');
         }
-        return this.prisma.application.update({
+        const updated = await this.prisma.application.update({
             where: { id },
             data: updateApplicationDto,
         });
+        if (updateApplicationDto.status && ['SHORTLISTED', 'INTERVIEWING'].includes(updateApplicationDto.status)) {
+            await this.notificationsService.notifyApplicationStatusChanged(id, updateApplicationDto.status);
+        }
+        return updated;
     }
     async remove(id, user) {
         const application = await this.prisma.application.findUnique({
@@ -156,6 +165,7 @@ let ApplicationsService = class ApplicationsService {
         const validStatuses = [
             'PENDING',
             'REVIEWING',
+            'SHORTLISTED',
             'INTERVIEWING',
             'OFFERED',
             'REJECTED',
@@ -163,15 +173,20 @@ let ApplicationsService = class ApplicationsService {
         if (!validStatuses.includes(status)) {
             throw new common_1.BadRequestException(`Invalid status: ${status}`);
         }
-        return this.prisma.application.update({
+        const updated = await this.prisma.application.update({
             where: { id },
             data: { status: status },
         });
+        if (['SHORTLISTED', 'INTERVIEWING'].includes(status)) {
+            await this.notificationsService.notifyApplicationStatusChanged(id, status);
+        }
+        return updated;
     }
 };
 exports.ApplicationsService = ApplicationsService;
 exports.ApplicationsService = ApplicationsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], ApplicationsService);
 //# sourceMappingURL=applications.service.js.map

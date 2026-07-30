@@ -85,11 +85,7 @@ let InterviewsService = class InterviewsService {
             action: 'INTERVIEW_SCHEDULED',
             resource: interview.id,
         });
-        await this.notificationsService.create({
-            userId: application.candidate.userId,
-            title: 'Interview Scheduled',
-            message: `An interview has been scheduled for your application to ${application.job.title}`,
-        });
+        await this.notificationsService.notifyInterviewEvent(interview.id, 'SCHEDULED');
         return interview;
     }
     async findAllByEmployer(userId) {
@@ -167,11 +163,7 @@ let InterviewsService = class InterviewsService {
             action: 'INTERVIEW_RESCHEDULED',
             resource: id,
         });
-        await this.notificationsService.create({
-            userId: interview.candidate.userId,
-            title: 'Interview Rescheduled',
-            message: `Your interview for ${interview.application.job.title} has been rescheduled.`,
-        });
+        await this.notificationsService.notifyInterviewEvent(id, 'RESCHEDULED');
         return updated;
     }
     async cancel(id, userId, role) {
@@ -185,15 +177,7 @@ let InterviewsService = class InterviewsService {
             action: 'INTERVIEW_CANCELLED',
             resource: id,
         });
-        const notifyUserId = role === 'EMPLOYER'
-            ? interview.candidate.userId
-            : interview.employer.userId;
-        const notifierRole = role === 'EMPLOYER' ? 'Employer' : 'Candidate';
-        await this.notificationsService.create({
-            userId: notifyUserId,
-            title: 'Interview Cancelled',
-            message: `The ${notifierRole} has cancelled the interview for ${interview.application.job.title}.`,
-        });
+        await this.notificationsService.notifyInterviewEvent(id, 'CANCELLED');
         return updated;
     }
     async complete(id, feedback, userId) {

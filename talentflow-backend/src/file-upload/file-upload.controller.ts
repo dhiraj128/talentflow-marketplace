@@ -62,7 +62,8 @@ export class FileUploadController {
   }
 
   @Post('aws-test')
-    @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   async testAws() {
     return this.fileUploadService.testAws();
   }

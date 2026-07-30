@@ -1,9 +1,11 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 export declare class CoursesService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private notificationsService;
+    constructor(prisma: PrismaService, notificationsService: NotificationsService);
     create(createCourseDto: CreateCourseDto, trainerId: string): Promise<{
         id: string;
         title: string;
@@ -147,6 +149,22 @@ export declare class CoursesService {
         status: import(".prisma/client").$Enums.CourseStatus;
     }>;
     approve(id: string): Promise<{
+        id: string;
+        title: string;
+        category: string;
+        description: string;
+        thumbnailUrl: string | null;
+        rating: number | null;
+        studentCount: number;
+        createdAt: Date;
+        updatedAt: Date;
+        trainerId: string;
+        duration: string | null;
+        level: string | null;
+        price: number;
+        status: import(".prisma/client").$Enums.CourseStatus;
+    }>;
+    reject(id: string): Promise<{
         id: string;
         title: string;
         category: string;

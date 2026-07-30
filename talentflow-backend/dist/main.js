@@ -26,12 +26,12 @@ async function bootstrap() {
                 callback(null, true);
             }
             else {
-                callback(null, true);
+                callback(new Error('Not allowed by CORS'));
             }
         },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Request-ID'],
     });
     app.enableVersioning({
         type: common_1.VersioningType.URI,
@@ -56,8 +56,8 @@ async function bootstrap() {
     swagger_1.SwaggerModule.setup('api/docs', app, document);
     const port = process.env.PORT || 3001;
     await app.listen(port);
+    console.log(`[TALENTFLOW BACKEND] v1.0.2 - Observability deployment active on port ${port}`);
     console.log(`Application is running on: http://localhost:${port}/api/v1`);
-    console.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

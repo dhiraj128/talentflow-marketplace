@@ -48,12 +48,15 @@ const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../prisma/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
 const client_1 = require("@prisma/client");
+const notifications_service_1 = require("../notifications/notifications.service");
 let AuthService = class AuthService {
     prisma;
     jwtService;
-    constructor(prisma, jwtService) {
+    notificationsService;
+    constructor(prisma, jwtService, notificationsService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
+        this.notificationsService = notificationsService;
     }
     async validateUser(identifier, pass) {
         const user = await this.prisma.user.findFirst({
@@ -359,6 +362,7 @@ let AuthService = class AuthService {
         await this.prisma.auditLog.create({
             data: { actionBy: user.id, action: 'PASSWORD_RESET_SUCCESS', resource: 'Auth' }
         });
+        await this.notificationsService.notifyPasswordReset(user.id);
         return { message: 'Password reset successfully' };
     }
     async logout(userId) {
@@ -399,6 +403,7 @@ exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        notifications_service_1.NotificationsService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

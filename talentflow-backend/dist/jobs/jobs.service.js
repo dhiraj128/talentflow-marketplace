@@ -12,10 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 let JobsService = class JobsService {
     prisma;
-    constructor(prisma) {
+    notificationsService;
+    constructor(prisma, notificationsService) {
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
     }
     async create(createJobDto, userId) {
         const employer = await this.prisma.employerProfile.findUnique({
@@ -133,7 +136,12 @@ let JobsService = class JobsService {
                 throw new common_1.ForbiddenException('You do not have permission to modify this job');
             }
         }
-        return this.prisma.job.update({ where: { id }, data: updateJobDto });
+        const updated = await this.prisma.job.update({ where: { id }, data: updateJobDto });
+        const status = updateJobDto.status;
+        if (status && ['PUBLISHED', 'APPROVED', 'REJECTED', 'CLOSED'].includes(status)) {
+            await this.notificationsService.notifyJobModeration(id, status);
+        }
+        return updated;
     }
     async remove(id, user) {
         if (user.role === 'EMPLOYER') {
@@ -153,19 +161,23 @@ let JobsService = class JobsService {
         if (user.role !== 'ADMIN') {
             throw new common_1.ForbiddenException('Only Admins can approve jobs');
         }
-        return this.prisma.job.update({
+        const updated = await this.prisma.job.update({
             where: { id },
             data: { status: 'PUBLISHED' },
         });
+        await this.notificationsService.notifyJobModeration(id, 'PUBLISHED');
+        return updated;
     }
     async rejectJob(id, user) {
         if (user.role !== 'ADMIN') {
             throw new common_1.ForbiddenException('Only Admins can reject jobs');
         }
-        return this.prisma.job.update({
+        const updated = await this.prisma.job.update({
             where: { id },
             data: { status: 'CLOSED' },
         });
+        await this.notificationsService.notifyJobModeration(id, 'REJECTED');
+        return updated;
     }
     async applyToJob(jobId, userId, resumeId) {
         const user = await this.prisma.user.findUnique({
@@ -197,7 +209,7 @@ let JobsService = class JobsService {
         if (existing) {
             throw new common_1.BadRequestException('Already applied to this job');
         }
-        return this.prisma.application.create({
+        const application = await this.prisma.application.create({
             data: {
                 candidateId,
                 jobId,
@@ -205,6 +217,8 @@ let JobsService = class JobsService {
                 status: 'PENDING',
             },
         });
+        await this.notificationsService.notifyApplicationSubmitted(application.id);
+        return application;
     }
     async checkApplicationStatus(jobId, userId) {
         const user = await this.prisma.user.findUnique({
@@ -232,6 +246,7 @@ let JobsService = class JobsService {
 exports.JobsService = JobsService;
 exports.JobsService = JobsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], JobsService);
 //# sourceMappingURL=jobs.service.js.map
