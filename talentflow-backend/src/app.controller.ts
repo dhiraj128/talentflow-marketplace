@@ -1,9 +1,9 @@
 import { Controller, Get, Version, VERSION_NEUTRAL } from '@nestjs/common';
-import { AppService } from './app.service';
+import { HealthService } from './health/health.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly healthService: HealthService) {}
 
   @Version(VERSION_NEUTRAL)
   @Get()
@@ -11,17 +11,13 @@ export class AppController {
     return {
       status: 'ok',
       service: 'TalentFlow Backend',
-      version: '1.0.0',
+      version: '1.0.2',
     };
   }
 
+  @Version(VERSION_NEUTRAL)
   @Get('health')
   getHealth() {
-    return {
-      status: 'ok',
-      service: 'talentflow-backend',
-      version: '1.0.1',
-      commit: process.env.RENDER_GIT_COMMIT || '12c0373-v5',
-    };
+    return this.healthService.getHealthStatus();
   }
 }

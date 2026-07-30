@@ -43,11 +43,11 @@ function safeRedirectToSignIn() {
 // Request interceptor
 api.interceptors.request.use(
   async (config) => {
+    config.headers = config.headers ?? {};
+
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('access_token');
-
       if (token) {
-        config.headers = config.headers ?? {};
         if (typeof config.headers.set === 'function') {
           config.headers.set('Authorization', `Bearer ${token}`);
         } else {
@@ -66,6 +66,15 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Attach request correlation ID from headers or error payload
+    const requestId =
+      error.response?.headers?.['x-request-id'] ||
+      error.response?.data?.requestId;
+
+    if (requestId && error.response) {
+      error.requestId = requestId;
+    }
 
     if (
       error.response?.status === 401 &&
