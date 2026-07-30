@@ -2,11 +2,19 @@ import { AnalyticsService } from './analytics.service';
 export declare class AnalyticsController {
     private readonly analyticsService;
     constructor(analyticsService: AnalyticsService);
+    getPublicPlatformStats(): Promise<{
+        totalJobs: number;
+        totalEmployers: number;
+        totalFreelancers: number;
+        totalCourses: number;
+        totalCandidates: number;
+    }>;
     getPlatformStats(): Promise<{
         totalJobs: number;
-        totalApplications: number;
-        totalCandidates: number;
         totalEmployers: number;
+        totalFreelancers: number;
+        totalCourses: number;
+        totalCandidates: number;
     }>;
     getCandidateDashboard(user: any): Promise<{
         stats: {
@@ -392,21 +400,44 @@ export declare class AnalyticsController {
             activeFreelancers: number;
             activeTrainers: number;
             jobsPosted: number;
+            pendingJobs: number;
+            publishedJobs: number;
             courses: number;
+            pendingCourses: number;
+            totalApplications: number;
             premiumMembers: number;
             monthlyRevenue: number;
             activeCoupons: number;
             expiringSubscriptions: number;
+            totalRevenue: number;
         };
+        recentUsers: {
+            email: string;
+            role: import(".prisma/client").$Enums.Role;
+            id: string;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.UserStatus;
+        }[];
+        recentJobs: ({
+            employer: {
+                companyName: string;
+            };
+        } & {
+            id: string;
+            employerId: string;
+            title: string;
+            location: string | null;
+            type: string | null;
+            salaryRange: string | null;
+            description: string;
+            status: import(".prisma/client").$Enums.JobStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            deletedAt: Date | null;
+        })[];
         charts: {
-            userGrowthData: {
-                name: string;
-                users: number;
-            }[];
-            revenueData: {
-                name: string;
-                revenue: number;
-            }[];
+            userGrowthData: never[];
+            revenueData: never[];
         };
     }>;
 }

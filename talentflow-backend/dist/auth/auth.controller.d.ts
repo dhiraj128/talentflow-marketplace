@@ -81,6 +81,17 @@ export declare class AuthController {
             id: string;
             userId: string;
             fullName: string;
+            bio: string | null;
+            expertise: string | null;
+            avatarUrl: string | null;
+            rating: number | null;
+            isVerified: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+        } | {
+            id: string;
+            userId: string;
+            fullName: string;
             title: string | null;
             bio: string | null;
             hourlyRate: number | null;
@@ -94,17 +105,6 @@ export declare class AuthController {
             location: string | null;
             rating: number;
             reviewCount: number;
-        } | {
-            id: string;
-            userId: string;
-            fullName: string;
-            bio: string | null;
-            expertise: string | null;
-            avatarUrl: string | null;
-            rating: number | null;
-            isVerified: boolean;
-            createdAt: Date;
-            updatedAt: Date;
         } | ({
             certificates: ({
                 course: {
@@ -161,10 +161,10 @@ export declare class AuthController {
             phone: string | null;
             portfolioUrl: string | null;
         }) | null;
-        id: string;
         email: string;
         role: import(".prisma/client").$Enums.Role;
         isEmailVerified: boolean;
+        id: string;
         createdAt: Date;
     }>;
     refresh(body: RefreshDto): Promise<{

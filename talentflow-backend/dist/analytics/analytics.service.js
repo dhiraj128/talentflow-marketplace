@@ -18,11 +18,20 @@ let AnalyticsService = class AnalyticsService {
         this.prisma = prisma;
     }
     async getPlatformStats() {
-        const totalJobs = await this.prisma.job.count();
-        const totalApplications = await this.prisma.application.count();
-        const totalCandidates = await this.prisma.candidateProfile.count();
+        const totalJobs = await this.prisma.job.count({
+            where: { status: 'PUBLISHED' },
+        });
         const totalEmployers = await this.prisma.employerProfile.count();
-        return { totalJobs, totalApplications, totalCandidates, totalEmployers };
+        const totalFreelancers = await this.prisma.freelancerProfile.count();
+        const totalCourses = await this.prisma.course.count();
+        const totalCandidates = await this.prisma.candidateProfile.count();
+        return {
+            totalJobs,
+            totalEmployers,
+            totalFreelancers,
+            totalCourses,
+            totalCandidates,
+        };
     }
     async getCandidateDashboard(userId) {
         const candidate = await this.prisma.candidateProfile.findUnique({
@@ -345,14 +354,21 @@ let AnalyticsService = class AnalyticsService {
         const publishedCourses = await this.prisma.course.count({
             where: { trainerId: trainer.id, status: 'PUBLISHED' },
         });
+        const totalEnrollments = await this.prisma.enrollment.count({
+            where: { courseId: { in: courseIds } },
+        });
+        const completedEnrollments = await this.prisma.enrollment.count({
+            where: { courseId: { in: courseIds }, completedAt: { not: null } },
+        });
+        const courseCompletionRate = totalEnrollments > 0 ? Math.round((completedEnrollments / totalEnrollments) * 100) : 0;
         return {
             publishedCourses,
             draftCourses,
             totalStudents,
             revenue: 0,
-            courseRating: 4.5,
+            courseRating: 0,
             certificatesIssued,
-            courseCompletionRate: 80,
+            courseCompletionRate,
             recentCourses: courses,
         };
     }
@@ -363,10 +379,14 @@ let AnalyticsService = class AnalyticsService {
         const activeTrainers = await this.prisma.trainerProfile.count();
         const activeJobSeekers = await this.prisma.candidateProfile.count();
         const jobsPosted = await this.prisma.job.count();
+        const pendingJobs = await this.prisma.job.count({ where: { status: 'DRAFT' } });
+        const publishedJobs = await this.prisma.job.count({ where: { status: 'PUBLISHED' } });
         const courses = await this.prisma.course.count();
+        const pendingCourses = await this.prisma.course.count({ where: { status: 'DRAFT' } });
+        const totalApplications = await this.prisma.application.count();
         const activeCoupons = await this.prisma.coupon.count({
             where: { isActive: true },
-        });
+        }).catch(() => 0);
         const expiringSubscriptions = await this.prisma.subscription.count({
             where: {
                 endDate: {
@@ -374,26 +394,20 @@ let AnalyticsService = class AnalyticsService {
                 },
                 status: 'ACTIVE',
             },
-        });
+        }).catch(() => 0);
         const premiumMembers = await this.prisma.subscription.count({
             where: { status: 'ACTIVE' },
+        }).catch(() => 0);
+        const recentUsers = await this.prisma.user.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            select: { id: true, email: true, role: true, createdAt: true, status: true },
         });
-        const userGrowthData = [
-            { name: 'Jan', users: Math.floor(totalUsers * 0.5) },
-            { name: 'Feb', users: Math.floor(totalUsers * 0.6) },
-            { name: 'Mar', users: Math.floor(totalUsers * 0.7) },
-            { name: 'Apr', users: Math.floor(totalUsers * 0.8) },
-            { name: 'May', users: Math.floor(totalUsers * 0.9) },
-            { name: 'Jun', users: totalUsers },
-        ];
-        const revenueData = [
-            { name: 'Jan', revenue: 15000 },
-            { name: 'Feb', revenue: 18000 },
-            { name: 'Mar', revenue: 22000 },
-            { name: 'Apr', revenue: 26000 },
-            { name: 'May', revenue: 31000 },
-            { name: 'Jun', revenue: 38500 },
-        ];
+        const recentJobs = await this.prisma.job.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: { employer: { select: { companyName: true } } },
+        });
         return {
             stats: {
                 totalUsers,
@@ -402,15 +416,22 @@ let AnalyticsService = class AnalyticsService {
                 activeFreelancers,
                 activeTrainers,
                 jobsPosted,
+                pendingJobs,
+                publishedJobs,
                 courses,
+                pendingCourses,
+                totalApplications,
                 premiumMembers,
-                monthlyRevenue: 38500,
+                monthlyRevenue: 0,
                 activeCoupons,
                 expiringSubscriptions,
+                totalRevenue: 0,
             },
+            recentUsers,
+            recentJobs,
             charts: {
-                userGrowthData,
-                revenueData,
+                userGrowthData: [],
+                revenueData: [],
             },
         };
     }

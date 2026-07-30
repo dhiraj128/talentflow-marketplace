@@ -42,11 +42,14 @@ let JobsController = class JobsController {
             limit,
         });
     }
-    findOne(id) {
-        return this.jobsService.findOne(id);
+    findPendingAdmin(page, limit) {
+        return this.jobsService.findAdminPending({ page, limit });
     }
     getEmployerJobs(user) {
         return this.jobsService.findEmployerJobs(user.sub || user.userId);
+    }
+    findOne(id) {
+        return this.jobsService.findOne(id);
     }
     update(id, updateJobDto, user) {
         return this.jobsService.update(id, updateJobDto, user);
@@ -56,6 +59,9 @@ let JobsController = class JobsController {
     }
     approveJob(id, user) {
         return this.jobsService.approveJob(id, user);
+    }
+    rejectJob(id, user) {
+        return this.jobsService.rejectJob(id, user);
     }
     async applyToJob(id, body, user) {
         try {
@@ -106,20 +112,33 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], JobsController.prototype, "findAll", null);
 __decorate([
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Get)('admin/pending'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    __param(0, (0, common_1.Query)('page')),
+    __param(1, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "findPendingAdmin", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Get)('employer/me'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "getEmployerJobs", null);
+__decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], JobsController.prototype, "findOne", null);
-__decorate([
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, common_1.Get)('employer/me'),
-    __param(0, (0, current_user_decorator_1.CurrentUser)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], JobsController.prototype, "getEmployerJobs", null);
 __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Patch)(':id'),
@@ -147,7 +166,7 @@ __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Patch)(':id/approve'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
@@ -156,9 +175,20 @@ __decorate([
 ], JobsController.prototype, "approveJob", null);
 __decorate([
     (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Patch)(':id/reject'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], JobsController.prototype, "rejectJob", null);
+__decorate([
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Post)(':id/apply'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, current_user_decorator_1.CurrentUser)()),

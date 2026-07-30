@@ -20,7 +20,6 @@ const jwt_auth_guard_1 = require("../common/guards/jwt-auth.guard");
 const roles_guard_1 = require("../common/guards/roles.guard");
 const roles_decorator_1 = require("../common/decorators/roles.decorator");
 const client_1 = require("@prisma/client");
-const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
 let FreelancersController = class FreelancersController {
     freelancersService;
     constructor(freelancersService) {
@@ -35,8 +34,8 @@ let FreelancersController = class FreelancersController {
     getMe(req) {
         return this.freelancersService.getMe(req.user.id);
     }
-    findOne(id, user) {
-        return this.freelancersService.findOne(id, user);
+    findOne(id) {
+        return this.freelancersService.findOne(id);
     }
     updateMe(req, updateData) {
         return this.freelancersService.updateMe(req.user.id, updateData);
@@ -64,7 +63,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('me'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.FREELANCER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -72,18 +71,15 @@ __decorate([
 ], FreelancersController.prototype, "getMe", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.FREELANCER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], FreelancersController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)('me'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.FREELANCER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),

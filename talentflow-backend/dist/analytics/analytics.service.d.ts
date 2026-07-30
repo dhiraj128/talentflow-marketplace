@@ -4,9 +4,10 @@ export declare class AnalyticsService {
     constructor(prisma: PrismaService);
     getPlatformStats(): Promise<{
         totalJobs: number;
-        totalApplications: number;
-        totalCandidates: number;
         totalEmployers: number;
+        totalFreelancers: number;
+        totalCourses: number;
+        totalCandidates: number;
     }>;
     getCandidateDashboard(userId: string): Promise<{
         stats: {
@@ -395,21 +396,44 @@ export declare class AnalyticsService {
             activeFreelancers: number;
             activeTrainers: number;
             jobsPosted: number;
+            pendingJobs: number;
+            publishedJobs: number;
             courses: number;
+            pendingCourses: number;
+            totalApplications: number;
             premiumMembers: number;
             monthlyRevenue: number;
             activeCoupons: number;
             expiringSubscriptions: number;
+            totalRevenue: number;
         };
+        recentUsers: {
+            email: string;
+            role: import(".prisma/client").$Enums.Role;
+            id: string;
+            createdAt: Date;
+            status: import(".prisma/client").$Enums.UserStatus;
+        }[];
+        recentJobs: ({
+            employer: {
+                companyName: string;
+            };
+        } & {
+            id: string;
+            employerId: string;
+            title: string;
+            location: string | null;
+            type: string | null;
+            salaryRange: string | null;
+            description: string;
+            status: import(".prisma/client").$Enums.JobStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            deletedAt: Date | null;
+        })[];
         charts: {
-            userGrowthData: {
-                name: string;
-                users: number;
-            }[];
-            revenueData: {
-                name: string;
-                revenue: number;
-            }[];
+            userGrowthData: never[];
+            revenueData: never[];
         };
     }>;
 }

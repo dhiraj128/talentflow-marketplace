@@ -26,6 +26,9 @@ let AnalyticsController = class AnalyticsController {
     constructor(analyticsService) {
         this.analyticsService = analyticsService;
     }
+    getPublicPlatformStats() {
+        return this.analyticsService.getPlatformStats();
+    }
     getPlatformStats() {
         return this.analyticsService.getPlatformStats();
     }
@@ -46,6 +49,12 @@ let AnalyticsController = class AnalyticsController {
     }
 };
 exports.AnalyticsController = AnalyticsController;
+__decorate([
+    (0, common_1.Get)('public-stats'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AnalyticsController.prototype, "getPublicPlatformStats", null);
 __decorate([
     (0, common_1.Get)('stats'),
     (0, swagger_1.ApiOperation)({ summary: 'Get global platform statistics (Admin Only)' }),

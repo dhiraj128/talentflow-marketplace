@@ -102,6 +102,52 @@ export declare class JobsService {
         limit: number;
         totalPages: number;
     }>;
+    findAdminPending(filters: any): Promise<{
+        data: ({
+            employer: {
+                id: string;
+                userId: string;
+                companyName: string;
+                industry: string | null;
+                logoUrl: string | null;
+                subscription: import(".prisma/client").$Enums.SubscriptionTier;
+                createdAt: Date;
+                updatedAt: Date;
+                bio: string | null;
+                location: string | null;
+                phone: string | null;
+                websiteUrl: string | null;
+            };
+            requiredSkills: ({
+                skill: {
+                    id: string;
+                    name: string;
+                    category: string | null;
+                    createdAt: Date;
+                };
+            } & {
+                jobId: string;
+                skillId: string;
+                isMandatory: boolean;
+            })[];
+        } & {
+            id: string;
+            employerId: string;
+            title: string;
+            location: string | null;
+            type: string | null;
+            salaryRange: string | null;
+            description: string;
+            status: import(".prisma/client").$Enums.JobStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            deletedAt: Date | null;
+        })[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__JobClient<({
         employer: {
             id: string;
@@ -169,6 +215,19 @@ export declare class JobsService {
         deletedAt: Date | null;
     }>;
     approveJob(id: string, user: any): Promise<{
+        id: string;
+        employerId: string;
+        title: string;
+        location: string | null;
+        type: string | null;
+        salaryRange: string | null;
+        description: string;
+        status: import(".prisma/client").$Enums.JobStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+    }>;
+    rejectJob(id: string, user: any): Promise<{
         id: string;
         employerId: string;
         title: string;

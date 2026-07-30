@@ -49,12 +49,12 @@ let JobsService = class JobsService {
         return { data, total: data.length };
     }
     async findAll(filters) {
-        const where = { deletedAt: null };
+        const where = {
+            deletedAt: null,
+            status: { in: ['PUBLISHED', 'ACTIVE', 'OPEN'] },
+        };
         if (filters.employerId) {
             where.employerId = filters.employerId;
-        }
-        else {
-            where.status = { in: ['PUBLISHED', 'ACTIVE', 'OPEN'] };
         }
         if (filters.q) {
             where.title = { contains: filters.q, mode: 'insensitive' };
@@ -68,6 +68,32 @@ let JobsService = class JobsService {
         const page = Number(filters.page) || 1;
         const limit = Number(filters.limit) || 20;
         const skip = (page - 1) * limit;
+        const [data, total] = await Promise.all([
+            this.prisma.job.findMany({
+                where,
+                include: {
+                    employer: true,
+                    requiredSkills: { include: { skill: true } },
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.job.count({ where }),
+        ]);
+        return {
+            data,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
+    async findAdminPending(filters) {
+        const page = Number(filters.page) || 1;
+        const limit = Number(filters.limit) || 20;
+        const skip = (page - 1) * limit;
+        const where = { deletedAt: null, status: 'DRAFT' };
         const [data, total] = await Promise.all([
             this.prisma.job.findMany({
                 where,
@@ -130,6 +156,15 @@ let JobsService = class JobsService {
         return this.prisma.job.update({
             where: { id },
             data: { status: 'PUBLISHED' },
+        });
+    }
+    async rejectJob(id, user) {
+        if (user.role !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only Admins can reject jobs');
+        }
+        return this.prisma.job.update({
+            where: { id },
+            data: { status: 'CLOSED' },
         });
     }
     async applyToJob(jobId, userId, resumeId) {

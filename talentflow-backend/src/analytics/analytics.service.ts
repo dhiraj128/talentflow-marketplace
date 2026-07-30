@@ -7,7 +7,7 @@ export class AnalyticsService {
 
   async getPlatformStats() {
     const totalJobs = await this.prisma.job.count({
-      where: { status: { in: ['PUBLISHED', 'ACTIVE', 'OPEN'] } },
+      where: { status: 'PUBLISHED' },
     });
     const totalEmployers = await this.prisma.employerProfile.count();
     const totalFreelancers = await this.prisma.freelancerProfile.count();
@@ -367,7 +367,7 @@ export class AnalyticsService {
       where: { courseId: { in: courseIds } },
     });
     const completedEnrollments = await this.prisma.enrollment.count({
-      where: { courseId: { in: courseIds }, status: 'COMPLETED' },
+      where: { courseId: { in: courseIds }, completedAt: { not: null } },
     });
     const courseCompletionRate = totalEnrollments > 0 ? Math.round((completedEnrollments / totalEnrollments) * 100) : 0;
 
@@ -390,10 +390,14 @@ export class AnalyticsService {
     const activeTrainers = await this.prisma.trainerProfile.count();
     const activeJobSeekers = await this.prisma.candidateProfile.count();
     const jobsPosted = await this.prisma.job.count();
+    const pendingJobs = await this.prisma.job.count({ where: { status: 'DRAFT' } });
+    const publishedJobs = await this.prisma.job.count({ where: { status: 'PUBLISHED' } });
     const courses = await this.prisma.course.count();
+    const pendingCourses = await this.prisma.course.count({ where: { status: 'DRAFT' } });
+    const totalApplications = await this.prisma.application.count();
     const activeCoupons = await this.prisma.coupon.count({
       where: { isActive: true },
-    });
+    }).catch(() => 0);
     const expiringSubscriptions = await this.prisma.subscription.count({
       where: {
         endDate: {
@@ -401,9 +405,21 @@ export class AnalyticsService {
         },
         status: 'ACTIVE',
       },
-    });
+    }).catch(() => 0);
     const premiumMembers = await this.prisma.subscription.count({
       where: { status: 'ACTIVE' },
+    }).catch(() => 0);
+
+    const recentUsers = await this.prisma.user.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, email: true, role: true, createdAt: true, status: true },
+    });
+
+    const recentJobs = await this.prisma.job.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: { employer: { select: { companyName: true } } },
     });
 
     return {
@@ -414,12 +430,19 @@ export class AnalyticsService {
         activeFreelancers,
         activeTrainers,
         jobsPosted,
+        pendingJobs,
+        publishedJobs,
         courses,
+        pendingCourses,
+        totalApplications,
         premiumMembers,
         monthlyRevenue: 0,
         activeCoupons,
         expiringSubscriptions,
+        totalRevenue: 0,
       },
+      recentUsers,
+      recentJobs,
       charts: {
         userGrowthData: [],
         revenueData: [],

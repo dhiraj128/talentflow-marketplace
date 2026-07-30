@@ -140,7 +140,7 @@ export declare class FreelancersController {
         rating: number;
         reviewCount: number;
     }>;
-    findOne(id: string, user: any): Promise<{
+    findOne(id: string): Promise<{
         reviews: ({
             employer: {
                 id: string;
