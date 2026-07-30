@@ -49,6 +49,7 @@ const trainers_module_1 = require("./trainers/trainers.module");
 const storage_module_1 = require("./storage/storage.module");
 const health_module_1 = require("./health/health.module");
 const request_logger_middleware_1 = require("./common/middleware/request-logger.middleware");
+const talent_crm_module_1 = require("./talent-crm/talent-crm.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(request_logger_middleware_1.RequestLoggerMiddleware).forRoutes('*');
@@ -72,6 +73,7 @@ exports.AppModule = AppModule = __decorate([
             candidates_module_1.CandidatesModule,
             jobs_module_1.JobsModule,
             applications_module_1.ApplicationsModule,
+            talent_crm_module_1.TalentCrmModule,
             courses_module_1.CoursesModule,
             enrollments_module_1.EnrollmentsModule,
             certificates_module_1.CertificatesModule,

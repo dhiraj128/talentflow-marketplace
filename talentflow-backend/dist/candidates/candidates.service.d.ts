@@ -11,6 +11,7 @@ export declare class CandidatesService {
         location: string | null;
         avatarUrl: string | null;
         resumeUrl: string | null;
+        profileDiscoverable: boolean;
         createdAt: Date;
         updatedAt: Date;
         bio: string | null;
@@ -67,6 +68,7 @@ export declare class CandidatesService {
         location: string | null;
         avatarUrl: string | null;
         resumeUrl: string | null;
+        profileDiscoverable: boolean;
         createdAt: Date;
         updatedAt: Date;
         bio: string | null;
@@ -128,6 +130,7 @@ export declare class CandidatesService {
         location: string | null;
         avatarUrl: string | null;
         resumeUrl: string | null;
+        profileDiscoverable: boolean;
         createdAt: Date;
         updatedAt: Date;
         bio: string | null;
@@ -146,6 +149,7 @@ export declare class CandidatesService {
         location: string | null;
         avatarUrl: string | null;
         resumeUrl: string | null;
+        profileDiscoverable: boolean;
         createdAt: Date;
         updatedAt: Date;
         bio: string | null;

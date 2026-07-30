@@ -42,6 +42,8 @@ import { StorageModule } from './storage/storage.module';
 import { HealthModule } from './health/health.module';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 
+import { TalentCrmModule } from './talent-crm/talent-crm.module';
+
 @Module({
   imports: [
     ThrottlerModule.forRoot([
@@ -58,6 +60,7 @@ import { RequestLoggerMiddleware } from './common/middleware/request-logger.midd
     CandidatesModule,
     JobsModule,
     ApplicationsModule,
+    TalentCrmModule,
     CoursesModule,
     EnrollmentsModule,
     CertificatesModule,

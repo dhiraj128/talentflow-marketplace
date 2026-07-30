@@ -59,33 +59,41 @@ model EmployerProfile {
   interviews     Interview[]
   notes          EmployerCandidateNote[]
   candidateTags  CandidateTag[]
+  savedCandidates SavedCandidate[]
+  talentPools    TalentPool[]
+  sentInvitations CandidateInvitation[]
 }
 
 model CandidateProfile {
-  id           String           @id @default(uuid())
-  userId       String           @unique
-  fullName     String
-  title        String?
-  location     String?
-  avatarUrl    String?
-  resumeUrl    String?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  bio          String?
-  education    Json?
-  experience   Json?
-  githubUrl    String?
-  linkedinUrl  String?
-  phone        String?
-  portfolioUrl String?
-  applications Application[]
+  id                  String           @id @default(uuid())
+  userId              String           @unique
+  fullName            String
+  title               String?
+  location            String?
+  avatarUrl           String?
+  resumeUrl           String?
+  profileDiscoverable Boolean          @default(true)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  bio                 String?
+  education           Json?
+  experience          Json?
+  githubUrl           String?
+  linkedinUrl         String?
+  phone               String?
+  portfolioUrl        String?
+  applications        Application[]
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skills       CandidateSkill[]
-  certificates Certificate[]
-  coverLetters CoverLetter[]
-  enrollments  Enrollment[]
-  resumes      Resume[]
-  interviews   Interview[]
+  skills              CandidateSkill[]
+  certificates        Certificate[]
+  coverLetters        CoverLetter[]
+  enrollments         Enrollment[]
+  resumes             Resume[]
+  interviews          Interview[]
+  savedByEmployers    SavedCandidate[]
+  talentPoolMemberships TalentPoolMember[]
+  receivedInvitations CandidateInvitation[]
+  candidateTagAssignments CandidateTagAssignment[]
 }
 
 model TrainerProfile {
@@ -141,6 +149,7 @@ model Job {
   applications   Application[]
   employer       EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
   requiredSkills JobSkill[]
+  invitations    CandidateInvitation[]
 }
 
 model Application {
@@ -703,14 +712,15 @@ model EmployerCandidateNote {
 }
 
 model CandidateTag {
-  id          String                   @id @default(uuid())
-  employerId  String
-  name        String
-  color       String?                  @default("blue")
-  createdAt   DateTime                 @default(now())
+  id                   String                   @id @default(uuid())
+  employerId           String
+  name                 String
+  color                String?                  @default("blue")
+  createdAt            DateTime                 @default(now())
 
-  employer    EmployerProfile          @relation(fields: [employerId], references: [id], onDelete: Cascade)
-  assignments ApplicationTagAssignment[]
+  employer             EmployerProfile          @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  assignments          ApplicationTagAssignment[]
+  candidateAssignments CandidateTagAssignment[]
 
   @@unique([employerId, name])
 }
@@ -725,5 +735,88 @@ model ApplicationTagAssignment {
 
   @@id([applicationId, tagId])
 }
+
+enum InvitationStatus {
+  PENDING
+  VIEWED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  CANCELLED
+}
+
+model SavedCandidate {
+  id          String           @id @default(uuid())
+  employerId  String
+  candidateId String
+  isFavorite  Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  employer    EmployerProfile  @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([employerId, candidateId])
+  @@index([employerId])
+}
+
+model TalentPool {
+  id          String             @id @default(uuid())
+  employerId  String
+  name        String
+  description String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  employer    EmployerProfile    @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  members     TalentPoolMember[]
+
+  @@index([employerId])
+}
+
+model TalentPoolMember {
+  id            String           @id @default(uuid())
+  talentPoolId  String
+  candidateId   String
+  addedAt       DateTime         @default(now())
+
+  talentPool    TalentPool       @relation(fields: [talentPoolId], references: [id], onDelete: Cascade)
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@unique([talentPoolId, candidateId])
+  @@index([talentPoolId])
+}
+
+model CandidateInvitation {
+  id            String           @id @default(uuid())
+  employerId    String
+  candidateId   String
+  jobId         String
+  status        InvitationStatus @default(PENDING)
+  message       String?
+  expiresAt     DateTime?
+  applicationId String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  employer      EmployerProfile  @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  candidate     CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job           Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([employerId, candidateId])
+  @@index([candidateId])
+  @@index([jobId])
+}
+
+model CandidateTagAssignment {
+  candidateId String
+  tagId       String
+  assignedAt  DateTime     @default(now())
+
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  tag         CandidateTag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([candidateId, tagId])
+}
+
 
 
