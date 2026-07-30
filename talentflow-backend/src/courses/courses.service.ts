@@ -7,10 +7,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CoursesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(createCourseDto: CreateCourseDto, trainerId: string) {
     const trainer = await this.prisma.trainerProfile.findUnique({
@@ -40,10 +44,6 @@ export class CoursesService {
     }
     if (filters.trainerId) {
       where.trainerId = filters.trainerId;
-      // If it's a trainer fetching their own courses, we shouldn't restrict to PUBLISHED if they want to see all
-      // For now, public searches use this. We'll stick to PUBLISHED.
-      // If trainer dashboard needs it, they should have a separate endpoint or we bypass status.
-      // But let's assume public API.
     }
     const page = Number(filters.page) || 1;
     const limit = Number(filters.limit) || 20;
@@ -97,10 +97,17 @@ export class CoursesService {
     if (!course || course.trainerId !== trainerId) {
       throw new ForbiddenException('You can only update your own courses');
     }
-    return this.prisma.course.update({
+    const updated = await this.prisma.course.update({
       where: { id },
       data: updateCourseDto as any,
     });
+
+    const status = (updateCourseDto as any).status;
+    if (status && ['PUBLISHED', 'APPROVED', 'REJECTED'].includes(status)) {
+      await this.notificationsService.notifyCourseModeration(id, status as any);
+    }
+
+    return updated;
   }
 
   async remove(id: string, trainerId: string) {
@@ -114,12 +121,27 @@ export class CoursesService {
   async approve(id: string) {
     const course = await this.prisma.course.findUnique({ where: { id } });
     if (!course) throw new NotFoundException('Course not found');
-    if (course.status !== 'PENDING')
-      throw new BadRequestException('Only PENDING courses can be approved');
-    return this.prisma.course.update({
+    const updated = await this.prisma.course.update({
       where: { id },
       data: { status: 'PUBLISHED' },
     });
+
+    await this.notificationsService.notifyCourseModeration(id, 'PUBLISHED');
+
+    return updated;
+  }
+
+  async reject(id: string) {
+    const course = await this.prisma.course.findUnique({ where: { id } });
+    if (!course) throw new NotFoundException('Course not found');
+    const updated = await this.prisma.course.update({
+      where: { id },
+      data: { status: 'REJECTED' },
+    });
+
+    await this.notificationsService.notifyCourseModeration(id, 'REJECTED');
+
+    return updated;
   }
 
   async submit(id: string, trainerId: string) {

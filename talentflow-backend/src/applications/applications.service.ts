@@ -7,10 +7,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ApplicationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(createApplicationDto: CreateApplicationDto) {
     const { candidateId, jobId } = createApplicationDto;
@@ -31,12 +35,17 @@ export class ApplicationsService {
       matchScore = Math.round((matched / jobSkills.length) * 100);
     }
 
-    return this.prisma.application.create({
+    const application = await this.prisma.application.create({
       data: {
         ...createApplicationDto,
         matchScore,
       },
     });
+
+    // Non-blocking notification & email trigger
+    await this.notificationsService.notifyApplicationSubmitted(application.id);
+
+    return application;
   }
 
   async findAll(filters: any) {
@@ -88,10 +97,17 @@ export class ApplicationsService {
       const isEmployer = application.job.employer.userId === (user.sub || user.userId);
       if (!isCandidate && !isEmployer) throw new ForbiddenException('Forbidden');
     }
-    return this.prisma.application.update({
+
+    const updated = await this.prisma.application.update({
       where: { id },
       data: updateApplicationDto,
     });
+
+    if (updateApplicationDto.status && ['SHORTLISTED', 'INTERVIEWING'].includes(updateApplicationDto.status)) {
+      await this.notificationsService.notifyApplicationStatusChanged(id, updateApplicationDto.status);
+    }
+
+    return updated;
   }
 
   async remove(id: string, user?: any) {
@@ -118,7 +134,7 @@ export class ApplicationsService {
     }
 
     const page = 1;
-    const limit = 50; // default for now, could add filters if needed
+    const limit = 50;
     const skip = 0;
 
     const [data, total] = await Promise.all([
@@ -165,6 +181,7 @@ export class ApplicationsService {
     const validStatuses = [
       'PENDING',
       'REVIEWING',
+      'SHORTLISTED',
       'INTERVIEWING',
       'OFFERED',
       'REJECTED',
@@ -173,9 +190,15 @@ export class ApplicationsService {
       throw new BadRequestException(`Invalid status: ${status}`);
     }
 
-    return this.prisma.application.update({
+    const updated = await this.prisma.application.update({
       where: { id },
       data: { status: status as any },
     });
+
+    if (['SHORTLISTED', 'INTERVIEWING'].includes(status)) {
+      await this.notificationsService.notifyApplicationStatusChanged(id, status);
+    }
+
+    return updated;
   }
 }

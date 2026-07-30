@@ -7,10 +7,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class JobsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(createJobDto: CreateJobDto, userId: string) {
     const employer = await this.prisma.employerProfile.findUnique({
@@ -146,7 +150,15 @@ export class JobsService {
         );
       }
     }
-    return this.prisma.job.update({ where: { id }, data: updateJobDto });
+
+    const updated = await this.prisma.job.update({ where: { id }, data: updateJobDto });
+
+    const status = (updateJobDto as any).status;
+    if (status && ['PUBLISHED', 'APPROVED', 'REJECTED', 'CLOSED'].includes(status)) {
+      await this.notificationsService.notifyJobModeration(id, status as any);
+    }
+
+    return updated;
   }
 
   async remove(id: string, user: any) {
@@ -170,20 +182,28 @@ export class JobsService {
     if (user.role !== 'ADMIN') {
       throw new ForbiddenException('Only Admins can approve jobs');
     }
-    return this.prisma.job.update({
+    const updated = await this.prisma.job.update({
       where: { id },
       data: { status: 'PUBLISHED' },
     });
+
+    await this.notificationsService.notifyJobModeration(id, 'PUBLISHED');
+
+    return updated;
   }
 
   async rejectJob(id: string, user: any) {
     if (user.role !== 'ADMIN') {
       throw new ForbiddenException('Only Admins can reject jobs');
     }
-    return this.prisma.job.update({
+    const updated = await this.prisma.job.update({
       where: { id },
       data: { status: 'CLOSED' },
     });
+
+    await this.notificationsService.notifyJobModeration(id, 'REJECTED');
+
+    return updated;
   }
 
   async applyToJob(jobId: string, userId: string, resumeId?: string) {
@@ -229,7 +249,7 @@ export class JobsService {
       throw new BadRequestException('Already applied to this job');
     }
 
-    return this.prisma.application.create({
+    const application = await this.prisma.application.create({
       data: {
         candidateId,
         jobId,
@@ -237,6 +257,10 @@ export class JobsService {
         status: 'PENDING',
       },
     });
+
+    await this.notificationsService.notifyApplicationSubmitted(application.id);
+
+    return application;
   }
 
   async checkApplicationStatus(jobId: string, userId: string) {

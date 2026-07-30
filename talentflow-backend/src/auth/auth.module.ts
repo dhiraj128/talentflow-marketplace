@@ -9,11 +9,13 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { GithubStrategy } from './strategies/github.strategy';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ResendEmailProvider } from './providers/resend-email.provider';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
+    NotificationsModule,
     JwtModule.register({
       secret:
         process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production',

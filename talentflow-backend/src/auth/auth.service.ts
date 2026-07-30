@@ -10,11 +10,14 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { Role } from '@prisma/client';
 
+import { NotificationsService } from '../notifications/notifications.service';
+
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async validateUser(identifier: string, pass: string): Promise<any> {
@@ -393,6 +396,8 @@ export class AuthService {
     await this.prisma.auditLog.create({
       data: { actionBy: user.id, action: 'PASSWORD_RESET_SUCCESS', resource: 'Auth' }
     });
+
+    await this.notificationsService.notifyPasswordReset(user.id);
 
     return { message: 'Password reset successfully' };
   }

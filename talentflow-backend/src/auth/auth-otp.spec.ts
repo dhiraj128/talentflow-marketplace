@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { OtpService } from './otp.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ResendEmailProvider } from './providers/resend-email.provider';
+import { NotificationsService } from '../notifications/notifications.service';
 import { BadRequestException } from '@nestjs/common';
 import { OtpPurpose } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
@@ -39,6 +40,10 @@ describe('Auth & OTP Password Reset Workflow (Unit & Integration Spec)', () => {
     verify: jest.fn().mockReturnValue({ sub: 'user-1' }),
   };
 
+  const mockNotificationsService = {
+    notifyPasswordReset: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -50,6 +55,7 @@ describe('Auth & OTP Password Reset Workflow (Unit & Integration Spec)', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ResendEmailProvider, useValue: mockResendEmailProvider },
         { provide: JwtService, useValue: mockJwtService },
+        { provide: NotificationsService, useClass: jest.fn().mockImplementation(() => mockNotificationsService) },
       ],
     }).compile();
 

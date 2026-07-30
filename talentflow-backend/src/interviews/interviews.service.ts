@@ -107,11 +107,9 @@ export class InterviewsService {
       action: 'INTERVIEW_SCHEDULED',
       resource: interview.id,
     });
-    await this.notificationsService.create({
-      userId: application.candidate.userId,
-      title: 'Interview Scheduled',
-      message: `An interview has been scheduled for your application to ${application.job.title}`,
-    });
+
+    // Integrated Notification & Transactional Email
+    await this.notificationsService.notifyInterviewEvent(interview.id, 'SCHEDULED');
 
     return interview;
   }
@@ -208,11 +206,9 @@ export class InterviewsService {
       action: 'INTERVIEW_RESCHEDULED',
       resource: id,
     });
-    await this.notificationsService.create({
-      userId: interview.candidate.userId,
-      title: 'Interview Rescheduled',
-      message: `Your interview for ${interview.application.job.title} has been rescheduled.`,
-    });
+
+    // Integrated Notification & Transactional Email
+    await this.notificationsService.notifyInterviewEvent(id, 'RESCHEDULED');
 
     return updated;
   }
@@ -230,16 +226,8 @@ export class InterviewsService {
       resource: id,
     });
 
-    const notifyUserId =
-      role === 'EMPLOYER'
-        ? interview.candidate.userId
-        : interview.employer.userId;
-    const notifierRole = role === 'EMPLOYER' ? 'Employer' : 'Candidate';
-    await this.notificationsService.create({
-      userId: notifyUserId,
-      title: 'Interview Cancelled',
-      message: `The ${notifierRole} has cancelled the interview for ${interview.application.job.title}.`,
-    });
+    // Integrated Notification & Transactional Email
+    await this.notificationsService.notifyInterviewEvent(id, 'CANCELLED');
 
     return updated;
   }
@@ -273,7 +261,7 @@ export class InterviewsService {
   }
 
   async remove(id: string, userId: string, role: string) {
-    if (role !== 'ADMIN') await this.findOne(id, userId, role); // Only admin can delete indiscriminately, else must own it. Wait, the controller says EMPLOYER or ADMIN. Let's assume ADMIN can delete anything, Employer must own it.
+    if (role !== 'ADMIN') await this.findOne(id, userId, role);
     return this.prisma.interview.delete({ where: { id } });
   }
 }
