@@ -35,6 +35,10 @@ export const jobService = {
     const response = await api.post(`/jobs/${jobId}/apply`, { resumeId });
     return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
   },
+  getEmployerJobs: async () => {
+    const response = await api.get('/jobs');
+    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
+  },
   checkApplicationStatus: async (jobId: string) => {
     try {
       const response = await api.get(`/jobs/${jobId}/application-status`);
