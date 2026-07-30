@@ -71,3 +71,8 @@ logs/
 
 # OS
 Thumbs.db
+
+# Backups
+backups/
+*.sql
+*.dump
