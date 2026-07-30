@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OtpPurpose } from '@prisma/client';
 import * as crypto from 'crypto';
@@ -7,6 +7,8 @@ import { ResendEmailProvider } from './providers/resend-email.provider';
 
 @Injectable()
 export class OtpService {
+  private readonly logger = new Logger(OtpService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailProvider: ResendEmailProvider,
@@ -44,11 +46,13 @@ export class OtpService {
       },
     });
 
+    this.logger.log(`[OTP] OTP record created for ${purpose} (${type})`);
+
     // 4. Send OTP
     if (type === 'EMAIL') {
       await this.emailProvider.sendOtp(identifier, code);
     } else {
-      console.log(`[MOCK SMS PROVIDER] Sending OTP ${code} to ${identifier} for ${purpose}`);
+      this.logger.log(`[MOCK SMS PROVIDER] Sending OTP to ${identifier} for ${purpose}`);
     }
 
     return { message: 'OTP sent successfully' };

@@ -112,12 +112,12 @@ describe('Auth & OTP Password Reset Workflow (Unit & Integration Spec)', () => {
       expect(mockResendEmailProvider.sendOtp).toHaveBeenCalledTimes(1);
     });
 
-    it('5. invalid user on forgot-password throws BadRequestException without triggering email provider', async () => {
+    it('5. invalid user on forgot-password returns generic success without triggering email provider (account enumeration protection)', async () => {
       mockPrismaService.user.findFirst.mockResolvedValue(null);
 
-      await expect(
-        controller.forgotPassword({ identifier: 'nonexistent@gmail.com' }),
-      ).rejects.toThrow(BadRequestException);
+      const result = await controller.forgotPassword({ identifier: 'nonexistent@gmail.com' });
+
+      expect(result).toEqual({ message: 'OTP sent successfully', type: 'EMAIL' });
       expect(mockResendEmailProvider.sendOtp).not.toHaveBeenCalled();
     });
   });

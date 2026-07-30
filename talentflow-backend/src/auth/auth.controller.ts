@@ -9,6 +9,7 @@ import {
   Res,
   UseFilters,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -91,9 +92,18 @@ export class AuthController {
   @Post('forgot-password')
   @ApiOperation({ summary: 'Initiate Forgot Password' })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
-    const res = await this.authService.forgotPassword(dto.identifier);
-    const type = res.type as 'EMAIL' | 'PHONE';
-    await this.otpService.sendOtp(dto.identifier, OtpPurpose.FORGOT_PASSWORD, type);
+    const type = dto.identifier.includes('@') ? 'EMAIL' : 'PHONE';
+    try {
+      const res = await this.authService.forgotPassword(dto.identifier);
+      await this.otpService.sendOtp(dto.identifier, OtpPurpose.FORGOT_PASSWORD, res.type as 'EMAIL' | 'PHONE');
+    } catch (err: any) {
+      // Prevent account enumeration while suppressing non-existent user errors
+      if (err instanceof BadRequestException && err.message === 'User not found') {
+        // Return success contract without dispatching email for unregistered account
+        return { message: 'OTP sent successfully', type };
+      }
+      throw err;
+    }
     return { message: 'OTP sent successfully', type };
   }
 

@@ -20,6 +20,8 @@ export class AppController {
     return {
       status: 'ok',
       service: 'talentflow-backend',
+      version: '1.0.1',
+      commit: process.env.RENDER_GIT_COMMIT || 'd0adc1c-v3',
     };
   }
 }
