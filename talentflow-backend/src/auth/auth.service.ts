@@ -362,7 +362,7 @@ export class AuthService {
 
     // Wait, the OTP logic is handled by OtpService inside the Controller,
     // so this method just verifies the user exists.
-    return { message: 'User found', type: user.phoneNumber === identifier ? 'PHONE' : 'EMAIL' };
+    return { message: 'OTP sent successfully', type: user.phoneNumber === identifier ? 'PHONE' : 'EMAIL' };
   }
 
   async resetPassword(identifier: string, code: string, newPassword: string) {
