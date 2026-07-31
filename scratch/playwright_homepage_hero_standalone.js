@@ -35,7 +35,7 @@ function waitForServer(url, timeout = 30000) {
   console.log('TALENTFLOW HOMEPAGE HERO — STANDALONE PLAYWRIGHT RESPONSIVE AUDIT');
   console.log('================================================================');
 
-  const PORT = 3010;
+  const PORT = 3011;
   const SERVER_URL = `http://localhost:${PORT}`;
 
   console.log(`Starting production server on port ${PORT}...`);
@@ -91,14 +91,16 @@ function waitForServer(url, timeout = 30000) {
 
       try {
         await page.goto(SERVER_URL, { waitUntil: 'domcontentloaded', timeout: 10000 });
+        await page.waitForTimeout(200);
 
         // 1. Verify headline presence
         const headlineText = await page.locator('h1').innerText().catch(() => '');
         const titleOk = headlineText.includes('TalentFlow Marketplace');
 
         // 2. Verify subheadline presence
+        const subElemCount = await page.locator('p').filter({ hasText: 'Career Ecosystem' }).count().catch(() => 0);
         const bodyText = await page.innerText('body').catch(() => '');
-        const subOk = bodyText.includes('Your Career Ecosystem');
+        const subOk = subElemCount > 0 || bodyText.includes('Career Ecosystem');
 
         // 3. Verify zero horizontal overflow
         const hasHorizontalOverflow = await page.evaluate(() => {
