@@ -63,21 +63,6 @@ export default function LandingPage() {
             Your Career Ecosystem — All in One Place
           </p>
           
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            <Link href="/find-jobs">
-              <Button size="lg" className="rounded-full px-8 h-12">Find Jobs</Button>
-            </Link>
-            <Link href="/find-talent">
-              <Button size="lg" variant="secondary" className="rounded-full px-8 h-12">Hire Talent</Button>
-            </Link>
-            <Link href="/find-freelancers">
-              <Button size="lg" variant="outline" className="rounded-full px-8 h-12">Explore Freelancers</Button>
-            </Link>
-            <Link href="/find-courses">
-              <Button size="lg" variant="ghost" className="rounded-full px-8 h-12 bg-muted hover:bg-muted/80">Browse Courses</Button>
-            </Link>
-          </div>
-          
           {/* SEARCH SECTION */}
           <HeroSearchBox />
         </div>
