@@ -1,9 +1,11 @@
 import { JobsService } from './jobs.service';
+import { MatchingService } from '../matching/matching.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 export declare class JobsController {
     private readonly jobsService;
-    constructor(jobsService: JobsService);
+    private readonly matchingService;
+    constructor(jobsService: JobsService, matchingService: MatchingService);
     create(createJobDto: CreateJobDto, user: any): Promise<{
         id: string;
         employerId: string;
@@ -20,18 +22,9 @@ export declare class JobsController {
     findAll(q?: string, location?: string, type?: string, employerId?: string, page?: string, limit?: string): Promise<{
         data: ({
             employer: {
-                id: string;
-                userId: string;
-                companyName: string;
-                industry: string | null;
-                logoUrl: string | null;
-                subscription: import(".prisma/client").$Enums.SubscriptionTier;
-                createdAt: Date;
-                updatedAt: Date;
-                bio: string | null;
                 location: string | null;
-                phone: string | null;
-                websiteUrl: string | null;
+                companyName: string;
+                logoUrl: string | null;
             };
             requiredSkills: ({
                 skill: {
@@ -169,6 +162,20 @@ export declare class JobsController {
             updatedAt: Date;
             deletedAt: Date | null;
         })[];
+        total: number;
+    }>;
+    getRecommendedCandidates(id: string, user: any): Promise<{
+        data: {
+            id: string;
+            userId: string;
+            fullName: string;
+            title: string | null;
+            location: string | null;
+            avatarUrl: string | null;
+            skills: any[];
+            matchScore: number;
+            matchReasons: string[];
+        }[];
         total: number;
     }>;
     findOne(id: string): import(".prisma/client").Prisma.Prisma__JobClient<({

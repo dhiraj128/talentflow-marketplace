@@ -12,6 +12,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
+import { MatchingService } from '../matching/matching.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
@@ -24,7 +25,10 @@ import { RolesGuard } from '../common/guards/roles.guard';
 @ApiTags('jobs')
 @Controller('jobs')
 export class JobsController {
-  constructor(private readonly jobsService: JobsService) {}
+  constructor(
+    private readonly jobsService: JobsService,
+    private readonly matchingService: MatchingService,
+  ) {}
 
   @ApiBearerAuth()
   @Post()
@@ -84,6 +88,17 @@ export class JobsController {
   @Roles(Role.EMPLOYER, Role.ADMIN)
   getEmployerJobs(@CurrentUser() user: any) {
     return this.jobsService.findEmployerJobs(user.sub || user.userId);
+  }
+
+  @ApiBearerAuth()
+  @Get(':id/recommended-candidates')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.EMPLOYER, Role.ADMIN)
+  getRecommendedCandidates(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.matchingService.getRecommendedCandidatesForJob(id, user.sub || user.userId);
   }
 
   // DYNAMIC PARAMETER ROUTES AFTER ALL STATIC ROUTES

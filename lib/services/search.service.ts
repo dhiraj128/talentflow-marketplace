@@ -1,90 +1,43 @@
 import api from '../api';
 
-export type SearchType = 'talent' | 'jobs' | 'freelancers' | 'courses';
+export const searchService = {
+  saveSearch: async (data: { name: string; searchType?: string; queryJson: any }) => {
+    const response = await api.post('/saved-searches', data);
+    return response.data;
+  },
 
-export interface SearchSuggestion {
-  id: string;
-  title: string;
-  subtitle?: string;
-  icon?: any;
-  matchScore?: number;
-}
+  getSavedSearches: async () => {
+    const response = await api.get('/saved-searches');
+    return response.data;
+  },
 
-export interface SearchSuggestionsResponse {
-  suggestions?: SearchSuggestion[];
-}
+  deleteSavedSearch: async (id: string) => {
+    const response = await api.delete(`/saved-searches/${id}`);
+    return response.data;
+  },
 
-class SearchService {
-  async getSuggestions(query: string, type: SearchType, signal?: AbortSignal): Promise<SearchSuggestionsResponse> {
-    const config = signal ? { signal } : {};
-    try {
-      const response = await api.get(`/search/suggestions?q=${encodeURIComponent(query)}&type=${type}`, config);
-      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
-    } catch (error: any) {
-      if (error.name === 'CanceledError' || error.name === 'AbortError') throw error;
-      return { suggestions: [] };
-    }
-  }
+  createJobAlert: async (data: { name: string; queryJson: any; frequency?: string; savedSearchId?: string }) => {
+    const response = await api.post('/job-alerts', data);
+    return response.data;
+  },
 
-  async getJobSuggestions(query: string, signal?: AbortSignal): Promise<{ suggestions: { text: string; type: string }[] }> {
-    const config = signal ? { signal } : {};
-    try {
-      const response = await api.get(`/search/suggestions?q=${encodeURIComponent(query)}`, config);
-      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
-    } catch (error: any) {
-      if (error.name === 'CanceledError' || error.name === 'AbortError') throw error;
-      return { suggestions: [] };
-    }
-  }
+  getJobAlerts: async () => {
+    const response = await api.get('/job-alerts');
+    return response.data;
+  },
 
-  async getLocationSuggestions(query: string, signal?: AbortSignal): Promise<{ locations: string[] }> {
-    const config = signal ? { signal } : {};
-    try {
-      const response = await api.get(`/search/locations?q=${encodeURIComponent(query)}`, config);
-      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
-    } catch (error: any) {
-      if (error.name === 'CanceledError' || error.name === 'AbortError') throw error;
-      return { locations: [] };
-    }
-  }
+  deleteJobAlert: async (id: string) => {
+    const response = await api.delete(`/job-alerts/${id}`);
+    return response.data;
+  },
 
-  async getPopularSearches(type: SearchType): Promise<string[]> {
-    try {
-      const response = await api.get(`/search/popular?type=${type}`);
-      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
-    } catch {
-      return [];
-    }
-  }
+  getRecommendedCandidatesForJob: async (jobId: string) => {
+    const response = await api.get(`/jobs/${jobId}/recommended-candidates`);
+    return response.data?.data || response.data;
+  },
 
-  async getTrendingSkills(): Promise<string[]> {
-    try {
-      const response = await api.get(`/search/trending-skills`);
-      return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
-    } catch {
-      return [];
-    }
-  }
-
-  async searchTalent(query: string, location: string): Promise<any[]> {
-    const response = await api.get(`/users?role=CANDIDATE&q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
-  }
-
-  async searchJobs(query: string, location: string): Promise<any[]> {
-    const response = await api.get(`/jobs?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
-  }
-
-  async searchFreelancers(query: string, location: string): Promise<any[]> {
-    const response = await api.get(`/users?role=FREELANCER&q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
-  }
-
-  async searchCourses(query: string, location: string): Promise<any[]> {
-    const response = await api.get(`/courses?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-    return response.data?.data && response.data?.totalPages !== undefined ? response.data.data : response.data;
-  }
-}
-
-export const searchService = new SearchService();
+  getSearchAnalyticsOverview: async () => {
+    const response = await api.get('/search-analytics/admin/overview');
+    return response.data;
+  },
+};

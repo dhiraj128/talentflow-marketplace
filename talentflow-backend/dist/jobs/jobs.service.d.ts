@@ -2,10 +2,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MatchingService } from '../matching/matching.service';
 export declare class JobsService {
     private prisma;
     private notificationsService;
-    constructor(prisma: PrismaService, notificationsService: NotificationsService);
+    private matchingService;
+    constructor(prisma: PrismaService, notificationsService: NotificationsService, matchingService: MatchingService);
     create(createJobDto: CreateJobDto, userId: string): Promise<{
         id: string;
         employerId: string;
@@ -61,18 +63,9 @@ export declare class JobsService {
     findAll(filters: any): Promise<{
         data: ({
             employer: {
-                id: string;
-                userId: string;
-                companyName: string;
-                industry: string | null;
-                logoUrl: string | null;
-                subscription: import(".prisma/client").$Enums.SubscriptionTier;
-                createdAt: Date;
-                updatedAt: Date;
-                bio: string | null;
                 location: string | null;
-                phone: string | null;
-                websiteUrl: string | null;
+                companyName: string;
+                logoUrl: string | null;
             };
             requiredSkills: ({
                 skill: {

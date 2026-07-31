@@ -37,6 +37,8 @@ model User {
   trainerProfile    TrainerProfile?
   statusHistory     ApplicationStatusHistory[]
   interviewFeedback InterviewFeedback[] @relation("EmployerUserFeedback")
+  savedSearches     SavedSearch[]
+  searchHistories   SearchHistory[]
 }
 
 model EmployerProfile {
@@ -98,6 +100,7 @@ model CandidateProfile {
   savedJobs           SavedJob[]
   candidateTagAssignments CandidateTagAssignment[]
   offers              JobOffer[]
+  jobAlerts           JobAlert[]
 }
 
 model TrainerProfile {
@@ -156,6 +159,7 @@ model Job {
   invitations    CandidateInvitation[]
   savedByCandidates SavedJob[]
   offers         JobOffer[]
+  alertDeliveries JobAlertDelivery[]
 }
 
 model Application {
@@ -943,6 +947,89 @@ model SavedJob {
 
   @@unique([candidateId, jobId])
   @@index([candidateId])
+}
+
+enum SearchType {
+  JOB
+  TALENT
+  FREELANCER
+  COURSE
+}
+
+enum AlertFrequency {
+  DAILY
+  WEEKLY
+}
+
+model SavedSearch {
+  id         String     @id @default(uuid())
+  userId     String
+  name       String
+  searchType SearchType @default(JOB)
+  queryJson  Json
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobAlerts  JobAlert[]
+
+  @@index([userId, searchType])
+}
+
+model JobAlert {
+  id            String             @id @default(uuid())
+  candidateId   String
+  savedSearchId String?
+  name          String
+  queryJson     Json
+  frequency     AlertFrequency     @default(DAILY)
+  isActive      Boolean            @default(true)
+  lastRunAt     DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  candidate     CandidateProfile   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  savedSearch   SavedSearch?       @relation(fields: [savedSearchId], references: [id], onDelete: SetNull)
+  deliveries    JobAlertDelivery[]
+
+  @@index([candidateId, isActive])
+}
+
+model JobAlertDelivery {
+  id          String   @id @default(uuid())
+  jobAlertId  String
+  jobId       String
+  deliveredAt DateTime @default(now())
+
+  jobAlert    JobAlert @relation(fields: [jobAlertId], references: [id], onDelete: Cascade)
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobAlertId, jobId])
+  @@index([jobAlertId])
+}
+
+model SearchHistory {
+  id         String     @id @default(uuid())
+  userId     String
+  searchType SearchType @default(JOB)
+  queryJson  Json
+  createdAt  DateTime   @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model SearchEvent {
+  id              String     @id @default(uuid())
+  userId          String?
+  searchType      SearchType @default(JOB)
+  normalizedQuery String
+  resultCount     Int
+  createdAt       DateTime   @default(now())
+
+  @@index([searchType, createdAt])
+  @@index([normalizedQuery])
 }
 
 

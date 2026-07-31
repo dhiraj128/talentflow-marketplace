@@ -43,6 +43,9 @@ import { HealthModule } from './health/health.module';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 
 import { TalentCrmModule } from './talent-crm/talent-crm.module';
+import { SavedSearchesModule } from './saved-searches/saved-searches.module';
+import { JobAlertsModule } from './job-alerts/job-alerts.module';
+import { SearchAnalyticsModule } from './search-analytics/search-analytics.module';
 
 @Module({
   imports: [
@@ -89,6 +92,9 @@ import { TalentCrmModule } from './talent-crm/talent-crm.module';
     SubscriptionsModule,
     TrainersModule,
     StorageModule,
+    SavedSearchesModule,
+    JobAlertsModule,
+    SearchAnalyticsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JobsService } from './jobs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MatchingService } from '../matching/matching.service';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 describe('V1.2.1 Real Data JobsService & Recommendation Specs', () => {
@@ -26,12 +27,19 @@ describe('V1.2.1 Real Data JobsService & Recommendation Specs', () => {
     notifyApplicationSubmitted: jest.fn().mockResolvedValue(undefined),
   };
 
+  const realMatchingService = new MatchingService(null as any);
+  const mockMatchingService = {
+    calculateJobCandidateMatch: (job: any, candidate: any) => realMatchingService.calculateJobCandidateMatch(job, candidate),
+    getRecommendedCandidatesForJob: jest.fn().mockResolvedValue({ data: [], total: 0 }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobsService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: NotificationsService, useValue: mockNotificationsService },
+        { provide: MatchingService, useValue: mockMatchingService },
       ],
     }).compile();
 

@@ -8,12 +8,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MatchingService } from '../matching/matching.service';
 
 @Injectable()
 export class JobsService {
   constructor(
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
+    private matchingService: MatchingService,
   ) {}
 
   async create(createJobDto: CreateJobDto, userId: string) {
@@ -59,31 +61,77 @@ export class JobsService {
       deletedAt: null,
       status: { in: ['PUBLISHED', 'ACTIVE', 'OPEN'] },
     };
+
     if (filters.employerId) {
       where.employerId = filters.employerId;
     }
+
     if (filters.q) {
-      where.title = { contains: filters.q, mode: 'insensitive' };
+      where.OR = [
+        { title: { contains: filters.q, mode: 'insensitive' } },
+        { description: { contains: filters.q, mode: 'insensitive' } },
+        { employer: { companyName: { contains: filters.q, mode: 'insensitive' } } },
+      ];
     }
+
     if (filters.location) {
       where.location = { contains: filters.location, mode: 'insensitive' };
     }
-    if (filters.type) {
-      where.type = { contains: filters.type, mode: 'insensitive' };
+
+    if (filters.remote === 'true' || filters.remote === true) {
+      where.location = { contains: 'remote', mode: 'insensitive' };
     }
 
-    const page = Number(filters.page) || 1;
-    const limit = Number(filters.limit) || 20;
+    if (filters.type || filters.jobType) {
+      const typeVal = filters.type || filters.jobType;
+      where.type = { contains: typeVal, mode: 'insensitive' };
+    }
+
+    if (filters.skills) {
+      const skillList = Array.isArray(filters.skills)
+        ? filters.skills
+        : String(filters.skills).split(',').map((s) => s.trim()).filter(Boolean);
+
+      if (skillList.length > 0) {
+        where.requiredSkills = {
+          some: {
+            skill: {
+              name: { in: skillList, mode: 'insensitive' },
+            },
+          },
+        };
+      }
+    }
+
+    if (filters.postedWithin) {
+      const days = parseInt(filters.postedWithin, 10);
+      if (!isNaN(days) && days > 0) {
+        const sinceDate = new Date();
+        sinceDate.setDate(sinceDate.getDate() - days);
+        where.createdAt = { gte: sinceDate };
+      }
+    }
+
+    // Safe sorting mapping
+    let orderBy: any = { createdAt: 'desc' };
+    if (filters.sort === 'newest') {
+      orderBy = { createdAt: 'desc' };
+    } else if (filters.sort === 'oldest') {
+      orderBy = { createdAt: 'asc' };
+    }
+
+    const page = Math.max(1, Number(filters.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(filters.limit) || 20));
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
       this.prisma.job.findMany({
         where,
         include: {
-          employer: true,
+          employer: { select: { companyName: true, logoUrl: true, location: true } },
           requiredSkills: { include: { skill: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take: limit,
       }),
@@ -354,14 +402,8 @@ export class JobsService {
       throw new ForbiddenException('Candidate profile required');
     }
 
-    const candidateSkillNames = new Set(
-      (candidate.skills || [])
-        .map((s: any) => s.skill?.name?.toLowerCase())
-        .filter(Boolean),
-    );
-
     const jobs: any[] = await this.prisma.job.findMany({
-      where: { deletedAt: null, status: { in: ['PUBLISHED' as any] } },
+      where: { deletedAt: null, status: { in: ['PUBLISHED', 'ACTIVE', 'OPEN'] as any } },
       include: {
         employer: { select: { companyName: true, logoUrl: true } },
         requiredSkills: { include: { skill: true } },
@@ -371,37 +413,7 @@ export class JobsService {
     });
 
     const recommended = jobs.map((job: any) => {
-      let score = 50; // Base score for active open job
-      const matchingReasons: string[] = [];
-
-      const jobSkillNames = (job.requiredSkills || [])
-        .map((rs: any) => rs.skill?.name?.toLowerCase())
-        .filter(Boolean);
-
-      let matchedSkills = 0;
-      jobSkillNames.forEach((sk: string) => {
-        if (candidateSkillNames.has(sk)) matchedSkills++;
-      });
-
-      if (matchedSkills > 0) {
-        const skillScore = Math.min(40, matchedSkills * 15);
-        score += skillScore;
-        matchingReasons.push(`${matchedSkills} matching skill${matchedSkills > 1 ? 's' : ''}`);
-      }
-
-      if (
-        job.location &&
-        candidate.location &&
-        job.location.toLowerCase().includes(candidate.location.toLowerCase())
-      ) {
-        score += 10;
-        matchingReasons.push('Location match');
-      } else if (job.location && job.location.toLowerCase().includes('remote')) {
-        score += 5;
-        matchingReasons.push('Remote flexibility');
-      }
-
-      const matchScore = Math.min(99, Math.max(50, score));
+      const match = this.matchingService.calculateJobCandidateMatch(job, candidate);
 
       return {
         id: job.id,
@@ -410,8 +422,8 @@ export class JobsService {
         location: job.location || 'Remote',
         salary: job.salaryRange || 'Competitive',
         type: job.type || 'Full-time',
-        matchScore,
-        matchingReasons: matchingReasons.length > 0 ? matchingReasons : ['Active Marketplace Role'],
+        matchScore: match.matchScore,
+        matchingReasons: match.matchReasons,
       };
     });
 
