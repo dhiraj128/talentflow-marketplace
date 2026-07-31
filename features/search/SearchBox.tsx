@@ -48,9 +48,13 @@ export const SearchBox = React.memo(function SearchBox({ type, onSearch, onToggl
     enabled: debouncedQuery.length >= 2,
   });
 
-  const placeholders = {
-    talent: "Search by skills, job title, company...",
+  const placeholders: Record<string, string> = {
+    JOB: "Search jobs, companies or skills...",
+    TALENT: "Search by skills, job title, company...",
+    FREELANCER: "Search by skills, services...",
+    COURSE: "Search courses, technologies...",
     jobs: "Search jobs, companies or skills...",
+    talent: "Search by skills, job title, company...",
     freelancers: "Search by skills, services...",
     courses: "Search courses, technologies...",
   };
