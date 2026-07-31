@@ -22,7 +22,7 @@ export const PopularSearches = React.memo(function PopularSearches({ type, onSel
   return (
     <div className="flex flex-wrap items-center gap-2 mt-4 text-sm text-muted-foreground">
       <span className="font-medium mr-2">Popular Searches:</span>
-      {popularSearches.map((term) => (
+      {(popularSearches as string[]).map((term: string) => (
         <Badge
           key={term}
           variant="secondary"
