@@ -31,19 +31,23 @@ export const SearchSuggestions = React.memo(function SearchSuggestions({ suggest
     <Command shouldFilter={false}>
       <CommandList>
         <CommandGroup heading="Suggestions">
-          {suggestions.suggestions?.map((item, index) => (
-            <CommandItem
-              key={item.id}
-              value={item.title}
-              onSelect={(currentValue) => onSelect(currentValue)}
-              className={`flex items-center cursor-pointer py-3 ${activeIndex === index ? 'bg-accent text-accent-foreground' : ''}`}
-            >
-              <div className="mr-3 flex h-4 w-4 items-center justify-center text-muted-foreground">
-                <Search className="h-4 w-4" />
-              </div>
-              <span className="font-medium text-foreground">{item.title}</span>
-            </CommandItem>
-          ))}
+          {suggestions.suggestions?.map((item: any, index: number) => {
+            const key = typeof item === 'string' ? item : item.id || `sugg-${index}`;
+            const title = typeof item === 'string' ? item : item.title || item.name || '';
+            return (
+              <CommandItem
+                key={key}
+                value={title}
+                onSelect={() => onSelect(title)}
+                className={`flex items-center cursor-pointer py-3 ${activeIndex === index ? 'bg-accent text-accent-foreground' : ''}`}
+              >
+                <div className="mr-3 flex h-4 w-4 items-center justify-center text-muted-foreground">
+                  <Search className="h-4 w-4" />
+                </div>
+                <span className="font-medium text-foreground">{title}</span>
+              </CommandItem>
+            );
+          })}
         </CommandGroup>
       </CommandList>
     </Command>
