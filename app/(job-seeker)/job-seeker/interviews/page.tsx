@@ -141,7 +141,7 @@ export default function CandidateInterviewsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 max-w-full overflow-x-hidden">
       <PageHeader
         title="My Interviews"
         description="View your scheduled interview sessions and join link details"

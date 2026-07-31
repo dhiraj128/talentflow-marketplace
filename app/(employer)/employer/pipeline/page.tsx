@@ -197,7 +197,7 @@ export default function EmployerPipelinePage() {
   const counts = pipelineData.counts || {};
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6 max-w-full overflow-x-hidden">
       <PageHeader
         title="Hiring Pipeline V1.1"
         description="Kanban application management, stage transitions, private notes, and candidate tracking."

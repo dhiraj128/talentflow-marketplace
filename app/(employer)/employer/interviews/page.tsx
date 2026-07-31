@@ -198,7 +198,7 @@ export default function EmployerInterviewsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 max-w-full overflow-x-hidden">
       <PageHeader
         title="Interviews Center"
         description="Schedule, manage, and record private evaluations for candidate interviews"
