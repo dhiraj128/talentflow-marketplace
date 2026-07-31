@@ -27,6 +27,13 @@ export const searchService = {
     return response.data?.data || response.data || [];
   },
 
+  getSuggestions: async (query: string, type?: SearchType, signal?: AbortSignal) => {
+    if (!query || query.trim().length === 0) return [];
+    const params = new URLSearchParams({ q: query, type: type || 'JOB' });
+    const response = await api.get(`/search-analytics/popular?${params.toString()}`, { signal }).catch(() => ({ data: [] }));
+    return response.data?.data || response.data || [];
+  },
+
   saveSearch: async (data: { name: string; searchType?: SearchType; queryJson: any }) => {
     const response = await api.post('/saved-searches', data);
     return response.data;
