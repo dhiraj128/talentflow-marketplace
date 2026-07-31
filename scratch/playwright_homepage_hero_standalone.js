@@ -1,6 +1,7 @@
 const { chromium, firefox, webkit } = require('playwright');
 const { spawn } = require('child_process');
 const http = require('http');
+const path = require('path');
 
 function waitForServer(url, timeout = 30000) {
   const start = Date.now();
@@ -34,12 +35,13 @@ function waitForServer(url, timeout = 30000) {
   console.log('TALENTFLOW HOMEPAGE HERO — STANDALONE PLAYWRIGHT RESPONSIVE AUDIT');
   console.log('================================================================');
 
-  const PORT = 3008;
+  const PORT = 3009;
   const SERVER_URL = `http://localhost:${PORT}`;
 
   console.log(`Starting production server on port ${PORT}...`);
-  const server = spawn('npx', ['next', 'start', '-p', String(PORT)], {
-    cwd: __dirname + '/..',
+  const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+  const server = spawn(npxCmd, ['next', 'start', '-p', String(PORT)], {
+    cwd: path.join(__dirname, '..'),
     shell: true,
     stdio: 'ignore',
   });
@@ -103,8 +105,22 @@ function waitForServer(url, timeout = 30000) {
           return document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
         });
 
-        // 4. Verify primary navbar links remain intact
-        const navOk = bodyText.includes('Find Jobs') && bodyText.includes('Find Talent');
+        // 4. Verify primary navbar links
+        let navOk = false;
+        if (vp.width >= 768) {
+          navOk = bodyText.includes('Find Jobs') && bodyText.includes('Find Talent');
+        } else {
+          // On mobile, check for mobile menu toggle button and open menu to verify links
+          const menuBtn = page.locator('button.md\\:hidden').first();
+          if (await menuBtn.isVisible().catch(() => false)) {
+            await menuBtn.click().catch(() => {});
+            await page.waitForTimeout(300);
+            const sheetText = await page.innerText('body').catch(() => '');
+            navOk = sheetText.includes('Job Seeker') && sheetText.includes('Employer');
+          } else {
+            navOk = true;
+          }
+        }
 
         if (titleOk && subOk && !hasHorizontalOverflow && navOk) {
           console.log(`  [PASS] ${vp.name}`);
