@@ -40,6 +40,15 @@ export class SearchAnalyticsService {
     }
   }
 
+  async getPopularSearches(type?: any) {
+    const events = await this.prisma.searchEvent.findMany({
+      where: { searchType: type || 'JOB' },
+      take: 10,
+      orderBy: { createdAt: 'desc' },
+    });
+    return events.map((e) => e.normalizedQuery);
+  }
+
   /**
    * Fetch authenticated user search history
    */

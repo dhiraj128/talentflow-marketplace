@@ -22,6 +22,11 @@ export const searchService = {
     return response.data?.data || response.data;
   },
 
+  getPopularSearches: async (type?: SearchType) => {
+    const response = await api.get(`/search-analytics/popular?type=${type || 'JOB'}`).catch(() => ({ data: [] }));
+    return response.data?.data || response.data || [];
+  },
+
   saveSearch: async (data: { name: string; searchType?: SearchType; queryJson: any }) => {
     const response = await api.post('/saved-searches', data);
     return response.data;

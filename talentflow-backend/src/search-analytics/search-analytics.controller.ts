@@ -4,6 +4,7 @@ import {
   Post,
   Delete,
   Body,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { SearchAnalyticsService } from './search-analytics.service';
@@ -24,6 +25,11 @@ export class SearchAnalyticsController {
     @Body() body: { userId?: string; searchType?: any; query: string; resultCount: number },
   ) {
     return this.searchAnalyticsService.recordSearchEvent(body);
+  }
+
+  @Get('popular')
+  getPopular(@Query('type') type?: string) {
+    return this.searchAnalyticsService.getPopularSearches(type);
   }
 
   @ApiBearerAuth()
