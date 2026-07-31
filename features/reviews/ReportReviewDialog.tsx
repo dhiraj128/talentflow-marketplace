@@ -76,7 +76,7 @@ export function ReportReviewDialog({ reviewId, trigger }: ReportReviewDialogProp
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="space-y-2">
             <label className="text-sm font-medium">Reason for reporting</label>
-            <Select value={reason} onValueChange={setReason}>
+            <Select value={reason} onValueChange={(val: string | null) => setReason(val || REPORT_REASONS[0])}>
               <SelectTrigger>
                 <SelectValue placeholder="Select reason" />
               </SelectTrigger>
