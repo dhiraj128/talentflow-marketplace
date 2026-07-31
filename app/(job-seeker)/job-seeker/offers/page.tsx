@@ -188,11 +188,11 @@ export default function CandidateOffersPage() {
       />
 
       <Tabs defaultValue="active" className="w-full space-y-6">
-        <TabsList className="grid w-full grid-cols-4 max-w-lg">
-          <TabsTrigger value="active">Active ({activeOffers.length})</TabsTrigger>
-          <TabsTrigger value="accepted">Accepted ({acceptedOffers.length})</TabsTrigger>
-          <TabsTrigger value="declined">Declined ({declinedOffers.length})</TabsTrigger>
-          <TabsTrigger value="expired">Expired ({expiredOffers.length})</TabsTrigger>
+        <TabsList className="flex overflow-x-auto w-full max-w-lg justify-start sm:justify-center">
+          <TabsTrigger value="active" className="text-xs sm:text-sm">Active ({activeOffers.length})</TabsTrigger>
+          <TabsTrigger value="accepted" className="text-xs sm:text-sm">Accepted ({acceptedOffers.length})</TabsTrigger>
+          <TabsTrigger value="declined" className="text-xs sm:text-sm">Declined ({declinedOffers.length})</TabsTrigger>
+          <TabsTrigger value="expired" className="text-xs sm:text-sm">Expired ({expiredOffers.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="active">

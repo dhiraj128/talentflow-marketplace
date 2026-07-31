@@ -231,10 +231,10 @@ export default function EmployerInterviewsPage() {
       </div>
 
       <Tabs defaultValue="upcoming" className="w-full space-y-6">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="upcoming">Upcoming ({upcomingInterviews.length})</TabsTrigger>
-          <TabsTrigger value="completed">Completed ({completedInterviews.length})</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled ({cancelledInterviews.length})</TabsTrigger>
+        <TabsList className="flex overflow-x-auto w-full max-w-md justify-start sm:justify-center">
+          <TabsTrigger value="upcoming" className="text-xs sm:text-sm">Upcoming ({upcomingInterviews.length})</TabsTrigger>
+          <TabsTrigger value="completed" className="text-xs sm:text-sm">Completed ({completedInterviews.length})</TabsTrigger>
+          <TabsTrigger value="cancelled" className="text-xs sm:text-sm">Cancelled ({cancelledInterviews.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upcoming">
