@@ -2,6 +2,12 @@ import api from '../api';
 
 export type SearchType = 'JOB' | 'TALENT' | 'FREELANCER' | 'COURSE';
 
+export interface SearchSuggestionsResponse {
+  query: string;
+  suggestions: string[];
+  categories?: string[];
+}
+
 export const searchService = {
   searchJobs: async (query?: string, filters?: any) => {
     const params = new URLSearchParams();
