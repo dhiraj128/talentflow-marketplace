@@ -50,16 +50,16 @@ const { chromium, firefox, webkit } = require('playwright');
         try {
           await page.goto(`http://localhost:3000${route}`, { waitUntil: 'domcontentloaded', timeout: 5000 }).catch(() => {});
           
-          // Check horizontal overflow
-          const overflow = await page.evaluate(() => {
-            return document.documentElement.scrollWidth > window.innerWidth;
+          // Check true horizontal overflow (scrollWidth > clientWidth)
+          const hasHorizontalOverflow = await page.evaluate(() => {
+            return document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
           });
 
-          if (!overflow) {
+          if (!hasHorizontalOverflow) {
             totalPassed++;
           } else {
-            console.warn(`   - Overflow warning on ${route} @ ${vp.name}`);
-            totalPassed++;
+            console.warn(`   - Overflow on ${route} @ ${vp.name}`);
+            totalFailed++;
           }
         } catch (err) {
           totalFailed++;
