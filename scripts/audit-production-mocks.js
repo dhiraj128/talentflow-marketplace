@@ -18,6 +18,14 @@ const PROHIBITED_BUSINESS_STRINGS = [
   "TF-421-FIGMA",
   "RECOMMENDED_JOBS",
   "SAVED_JOBS",
+  "mockCandidate",
+  "mockEmployer",
+  "fakeCompany",
+  "demoAccount",
+  "dummyData",
+  "fakeOffer",
+  "fakeInterview",
+  "sampleResume",
 ];
 
 const TARGET_DIRECTORIES = [

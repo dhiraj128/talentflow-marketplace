@@ -76,6 +76,7 @@ let InterviewsService = class InterviewsService {
             },
         });
         if (['PENDING', 'REVIEWING', 'SHORTLISTED'].includes(application.status)) {
+            const prevStatus = application.status;
             await this.prisma.application.update({
                 where: { id: application.id },
                 data: { status: 'INTERVIEWING' },
@@ -83,9 +84,11 @@ let InterviewsService = class InterviewsService {
             await this.prisma.applicationStatusHistory.create({
                 data: {
                     applicationId: application.id,
-                    status: 'INTERVIEWING',
+                    fromStatus: prevStatus,
+                    toStatus: 'INTERVIEWING',
                     changedByUserId: userId,
-                    note: 'Interview scheduled',
+                    changedByRole: 'EMPLOYER',
+                    reason: 'Interview scheduled',
                 },
             });
         }
