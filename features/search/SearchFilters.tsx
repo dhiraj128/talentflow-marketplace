@@ -24,7 +24,7 @@ export function SearchFilters({ type, isOpen, onClose }: SearchFiltersProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {type === 'talent' && (
+        {(type === 'TALENT' || (type as any) === 'talent') && (
           <>
             <div className="space-y-2">
               <Label>Experience Level</Label>
@@ -71,7 +71,7 @@ export function SearchFilters({ type, isOpen, onClose }: SearchFiltersProps) {
           </>
         )}
 
-        {type === 'jobs' && (
+        {(type === 'JOB' || (type as any) === 'jobs') && (
           <>
             <div className="space-y-2">
               <Label>Job Type</Label>
@@ -118,7 +118,7 @@ export function SearchFilters({ type, isOpen, onClose }: SearchFiltersProps) {
           </>
         )}
 
-        {type === 'courses' && (
+        {(type === 'COURSE' || (type as any) === 'courses') && (
           <>
             <div className="space-y-2">
               <Label>Category</Label>
