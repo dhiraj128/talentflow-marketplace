@@ -286,7 +286,8 @@ export default function EmployerPipelinePage() {
 
       {/* KANBAN BOARD VIEW */}
       {activeTab === "KANBAN" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto pb-4">
+        <div className="w-full overflow-x-auto max-w-full pb-4">
+          <div className="flex lg:grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 min-w-full">
           {stages.map((stage) => {
             const list = [
               ...(stage.key === "APPLIED" ? pipeline.PENDING || [] : []),
@@ -409,6 +410,7 @@ export default function EmployerPipelinePage() {
               </div>
             );
           })}
+        </div>
         </div>
       )}
 

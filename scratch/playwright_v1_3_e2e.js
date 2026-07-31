@@ -50,7 +50,6 @@ const { chromium, firefox, webkit } = require('playwright');
         try {
           await page.goto(`http://localhost:3000${route}`, { waitUntil: 'domcontentloaded', timeout: 5000 }).catch(() => {});
           
-          // Check true horizontal overflow (scrollWidth > clientWidth)
           const hasHorizontalOverflow = await page.evaluate(() => {
             return document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
           });
