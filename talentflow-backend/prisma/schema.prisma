@@ -39,6 +39,10 @@ model User {
   interviewFeedback InterviewFeedback[] @relation("EmployerUserFeedback")
   savedSearches     SavedSearch[]
   searchHistories   SearchHistory[]
+  reviewsGiven           Review[]         @relation("ReviewerUser")
+  reviewsReceived        Review[]         @relation("SubjectUser")
+  reviewReportsSubmitted ReviewReport[]   @relation("ReportedReviews")
+  reviewReportsResolved  ReviewReport[]   @relation("ResolvedReviewReports")
 }
 
 model EmployerProfile {
@@ -233,6 +237,7 @@ model Course {
   trainer      TrainerProfile @relation(fields: [trainerId], references: [id], onDelete: Cascade)
   modules CourseModule[]
   enrollments  Enrollment[]
+  reviews      Review[]
 }
 
 model Enrollment {
@@ -585,18 +590,71 @@ model Question {
 }
 
 model Review {
-  id                String            @id @default(uuid())
-  employerId        String
-  freelancerId      String
-  projectRequestId  String
+  id                String                 @id @default(uuid())
+  reviewerUserId    String
+  subjectUserId     String?
+  courseId          String?
+  relationshipType  ReviewRelationshipType @default(EMPLOYER_TO_CANDIDATE)
+  relationshipId    String
   rating            Int
-  text              String?
-  createdAt         DateTime          @default(now())
-  employer EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
-  freelancer FreelancerProfile @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
-  ProjectRequest    ProjectRequest    @relation(fields: [projectRequestId], references: [id], onDelete: Cascade)
+  title             String?
+  comment           String
+  status            ReviewStatus           @default(PUBLISHED)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt @default(now())
 
-  @@unique([employerId, projectRequestId])
+  // Optional legacy fields for backward compatibility
+  employerId        String?
+  freelancerId      String?
+  projectRequestId  String?
+
+  reviewer          User                   @relation("ReviewerUser", fields: [reviewerUserId], references: [id], onDelete: Cascade)
+  subjectUser       User?                  @relation("SubjectUser", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  course            Course?                @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  employer          EmployerProfile?       @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  freelancer        FreelancerProfile?     @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  ProjectRequest    ProjectRequest?        @relation(fields: [projectRequestId], references: [id], onDelete: Cascade)
+  reports           ReviewReport[]
+
+  @@unique([reviewerUserId, relationshipType, relationshipId])
+}
+
+model ReviewReport {
+  id               String             @id @default(uuid())
+  reviewId         String
+  reporterUserId   String
+  reason           String
+  details          String?
+  status           ReviewReportStatus @default(OPEN)
+  createdAt        DateTime           @default(now())
+  resolvedAt       DateTime?
+  resolvedByUserId String?
+
+  review           Review             @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reporter         User               @relation("ReportedReviews", fields: [reporterUserId], references: [id], onDelete: Cascade)
+  resolvedBy       User?              @relation("ResolvedReviewReports", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+}
+
+enum ReviewRelationshipType {
+  EMPLOYER_TO_CANDIDATE
+  CANDIDATE_TO_EMPLOYER
+  STUDENT_TO_COURSE
+  STUDENT_TO_TRAINER
+  CLIENT_TO_FREELANCER
+  FREELANCER_TO_CLIENT
+}
+
+enum ReviewStatus {
+  PUBLISHED
+  UNDER_REVIEW
+  HIDDEN
+  REMOVED
+}
+
+enum ReviewReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
 }
 
 model Subscription {

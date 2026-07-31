@@ -46,6 +46,7 @@ import { TalentCrmModule } from './talent-crm/talent-crm.module';
 import { SavedSearchesModule } from './saved-searches/saved-searches.module';
 import { JobAlertsModule } from './job-alerts/job-alerts.module';
 import { SearchAnalyticsModule } from './search-analytics/search-analytics.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -95,6 +96,7 @@ import { SearchAnalyticsModule } from './search-analytics/search-analytics.modul
     SavedSearchesModule,
     JobAlertsModule,
     SearchAnalyticsModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [

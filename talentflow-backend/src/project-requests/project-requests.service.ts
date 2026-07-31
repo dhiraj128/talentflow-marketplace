@@ -176,12 +176,11 @@ export class ProjectRequestsService {
     }
 
     // Check if review already exists
-    const existing = await this.prisma.review.findUnique({
+    const existing = await this.prisma.review.findFirst({
       where: {
-        employerId_projectRequestId: {
-          employerId: employer.id,
-          projectRequestId: request.id,
-        },
+        reviewerUserId: employer.userId,
+        relationshipType: 'CLIENT_TO_FREELANCER',
+        relationshipId: request.id,
       },
     });
 
@@ -189,14 +188,23 @@ export class ProjectRequestsService {
       throw new ConflictException('You have already reviewed this project');
     }
 
+    // Get freelancer user id
+    const freelancerProfile = await this.prisma.freelancerProfile.findUnique({
+      where: { id: request.freelancerId },
+    });
+
     // Create review
     const review = await this.prisma.review.create({
       data: {
+        reviewerUserId: employer.userId,
+        subjectUserId: freelancerProfile?.userId || null,
         employerId: employer.id,
         freelancerId: request.freelancerId,
         projectRequestId: request.id,
+        relationshipType: 'CLIENT_TO_FREELANCER',
+        relationshipId: request.id,
         rating: reviewData.rating,
-        text: reviewData.text,
+        comment: reviewData.text || '',
       },
     });
 

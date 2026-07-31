@@ -53,6 +53,7 @@ const talent_crm_module_1 = require("./talent-crm/talent-crm.module");
 const saved_searches_module_1 = require("./saved-searches/saved-searches.module");
 const job_alerts_module_1 = require("./job-alerts/job-alerts.module");
 const search_analytics_module_1 = require("./search-analytics/search-analytics.module");
+const reviews_module_1 = require("./reviews/reviews.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(request_logger_middleware_1.RequestLoggerMiddleware).forRoutes('*');
@@ -108,6 +109,7 @@ exports.AppModule = AppModule = __decorate([
             saved_searches_module_1.SavedSearchesModule,
             job_alerts_module_1.JobAlertsModule,
             search_analytics_module_1.SearchAnalyticsModule,
+            reviews_module_1.ReviewsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

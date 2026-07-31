@@ -360,12 +360,20 @@ export declare class AnalyticsController {
         })[];
         reviews: {
             id: string;
-            employerId: string;
-            freelancerId: string;
-            projectRequestId: string;
+            reviewerUserId: string;
+            subjectUserId: string | null;
+            courseId: string | null;
+            relationshipType: import(".prisma/client").$Enums.ReviewRelationshipType;
+            relationshipId: string;
             rating: number;
-            text: string | null;
+            title: string | null;
+            comment: string;
+            status: import(".prisma/client").$Enums.ReviewStatus;
             createdAt: Date;
+            updatedAt: Date;
+            employerId: string | null;
+            freelancerId: string | null;
+            projectRequestId: string | null;
         }[];
         recentActivity: never[];
     }>;

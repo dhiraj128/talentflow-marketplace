@@ -93,7 +93,7 @@ export default function CourseDetailPage() {
             <CourseOverview description={course.description} />
             {curriculum.length > 0 && <CurriculumAccordion curriculum={curriculum} />}
             <InstructorProfile instructor={instructorData} />
-            {reviewsData.length > 0 && <ReviewsSection reviews={reviewsData} />}
+            <ReviewsSection courseId={course.id} />
           </div>
 
           {/* Sidebar */}

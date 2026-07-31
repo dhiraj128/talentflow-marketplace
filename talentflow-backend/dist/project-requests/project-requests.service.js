@@ -140,24 +140,30 @@ let ProjectRequestsService = class ProjectRequestsService {
         if (reviewData.rating < 1 || reviewData.rating > 5) {
             throw new common_1.ConflictException('Rating must be between 1 and 5');
         }
-        const existing = await this.prisma.review.findUnique({
+        const existing = await this.prisma.review.findFirst({
             where: {
-                employerId_projectRequestId: {
-                    employerId: employer.id,
-                    projectRequestId: request.id,
-                },
+                reviewerUserId: employer.userId,
+                relationshipType: 'CLIENT_TO_FREELANCER',
+                relationshipId: request.id,
             },
         });
         if (existing) {
             throw new common_1.ConflictException('You have already reviewed this project');
         }
+        const freelancerProfile = await this.prisma.freelancerProfile.findUnique({
+            where: { id: request.freelancerId },
+        });
         const review = await this.prisma.review.create({
             data: {
+                reviewerUserId: employer.userId,
+                subjectUserId: freelancerProfile?.userId || null,
                 employerId: employer.id,
                 freelancerId: request.freelancerId,
                 projectRequestId: request.id,
+                relationshipType: 'CLIENT_TO_FREELANCER',
+                relationshipId: request.id,
                 rating: reviewData.rating,
-                text: reviewData.text,
+                comment: reviewData.text || '',
             },
         });
         const allReviews = await this.prisma.review.findMany({
