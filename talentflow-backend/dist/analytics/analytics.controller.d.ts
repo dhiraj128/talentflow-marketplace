@@ -410,8 +410,10 @@ export declare class AnalyticsController {
             activeFreelancers: number;
             activeTrainers: number;
             jobsPosted: number;
+            activeJobs: number;
             pendingJobs: number;
             publishedJobs: number;
+            closedJobs: number;
             courses: number;
             pendingCourses: number;
             totalApplications: number;

@@ -93,6 +93,10 @@ export default function FindFreelancersPage() {
       });
     }
 
+    if (filters.rating > 0) {
+      result = result.filter((f: any) => f.rating >= filters.rating);
+    }
+
     // Sort
     if (sortValue === "rating") result.sort((a: any, b: any) => b.rating - a.rating);
     if (sortValue === "price_asc") result.sort((a: any, b: any) => a.hourlyRate - b.hourlyRate);

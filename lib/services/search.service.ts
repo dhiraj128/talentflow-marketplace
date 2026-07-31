@@ -1,87 +1,71 @@
-import api from '../api';
+import api from '@/lib/api';
 
 export type SearchType = 'JOB' | 'TALENT' | 'FREELANCER' | 'COURSE';
 
 export interface SearchSuggestionsResponse {
+  suggestions: { text: string; type: string }[];
+}
+
+export interface UnifiedSearchResults {
   query: string;
-  suggestions: string[];
-  categories?: string[];
+  totalResults: number;
+  jobs: any[];
+  talent: any[];
+  freelancers: any[];
+  courses: any[];
+}
+
+export class UnifiedSearchService {
+  static async searchUnified(query: string): Promise<UnifiedSearchResults> {
+    const res = await api.get('/search/unified', { params: { q: query } });
+    return res.data;
+  }
+
+  static async searchTalent(query?: string, location?: string): Promise<any[]> {
+    const res = await api.get('/search/talent', { params: { q: query, location } });
+    return res.data;
+  }
+
+  static async searchJobs(query?: string, location?: string): Promise<any[]> {
+    const res = await api.get('/search/jobs', { params: { q: query, location } });
+    return res.data;
+  }
+
+  static async searchFreelancers(params?: {
+    q?: string;
+    location?: string;
+    minRate?: number;
+    maxRate?: number;
+    minRating?: number;
+  }): Promise<any[]> {
+    const res = await api.get('/search/freelancers', { params });
+    return res.data;
+  }
+
+  static async searchCourses(query?: string, category?: string): Promise<any[]> {
+    const res = await api.get('/search/courses', { params: { q: query, category } });
+    return res.data;
+  }
+
+  static async getSuggestions(query: string, type?: any, signal?: any): Promise<{ suggestions: any[] }> {
+    const res = await api.get('/search/suggestions', { params: { q: query }, signal });
+    return res.data;
+  }
+
+  static async getLocations(query: string, signal?: any): Promise<{ locations: string[] }> {
+    const res = await api.get('/search/locations', { params: { q: query }, signal });
+    return res.data;
+  }
 }
 
 export const searchService = {
-  searchJobs: async (query?: string, filters?: any) => {
-    const params = new URLSearchParams();
-    if (query) params.append('q', query);
-    if (filters?.location) params.append('location', filters.location);
-    if (filters?.remote) params.append('remote', 'true');
-    if (filters?.sort) params.append('sort', filters.sort);
-    if (filters?.page) params.append('page', String(filters.page));
-    const response = await api.get(`/jobs?${params.toString()}`);
-    return response.data;
-  },
-
-  searchTalent: async (query?: string, location?: string) => {
-    const params = new URLSearchParams();
-    if (query) params.append('search', query);
-    if (location) params.append('location', location);
-    const response = await api.get(`/talent-crm/candidates?${params.toString()}`);
-    return response.data?.data || response.data;
-  },
-
-  getPopularSearches: async (type?: SearchType) => {
-    const response = await api.get(`/search-analytics/popular?type=${type || 'JOB'}`).catch(() => ({ data: [] }));
-    return response.data?.data || response.data || [];
-  },
-
-  getTrendingSkills: async () => {
-    const response = await api.get('/search-analytics/popular?type=JOB').catch(() => ({ data: [] }));
-    return response.data?.data || response.data || ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Python', 'AWS'];
-  },
-
-  getSuggestions: async (query: string, type?: SearchType, signal?: AbortSignal) => {
-    if (!query || query.trim().length === 0) return [];
-    const params = new URLSearchParams({ q: query, type: type || 'JOB' });
-    const response = await api.get(`/search-analytics/popular?${params.toString()}`, { signal }).catch(() => ({ data: [] }));
-    return response.data?.data || response.data || [];
-  },
-
-  saveSearch: async (data: { name: string; searchType?: SearchType; queryJson: any }) => {
-    const response = await api.post('/saved-searches', data);
-    return response.data;
-  },
-
-  getSavedSearches: async () => {
-    const response = await api.get('/saved-searches');
-    return response.data;
-  },
-
-  deleteSavedSearch: async (id: string) => {
-    const response = await api.delete(`/saved-searches/${id}`);
-    return response.data;
-  },
-
-  createJobAlert: async (data: { name: string; queryJson: any; frequency?: string; savedSearchId?: string }) => {
-    const response = await api.post('/job-alerts', data);
-    return response.data;
-  },
-
-  getJobAlerts: async () => {
-    const response = await api.get('/job-alerts');
-    return response.data;
-  },
-
-  deleteJobAlert: async (id: string) => {
-    const response = await api.delete(`/job-alerts/${id}`);
-    return response.data;
-  },
-
-  getRecommendedCandidatesForJob: async (jobId: string) => {
-    const response = await api.get(`/jobs/${jobId}/recommended-candidates`);
-    return response.data?.data || response.data;
-  },
-
-  getSearchAnalyticsOverview: async () => {
-    const response = await api.get('/search-analytics/admin/overview');
-    return response.data;
-  },
+  search: (query: string) => UnifiedSearchService.searchUnified(query),
+  searchTalent: (query?: string, location?: string) => UnifiedSearchService.searchTalent(query, location),
+  searchJobs: (query?: string, location?: string) => UnifiedSearchService.searchJobs(query, location),
+  searchFreelancers: (params?: any) => UnifiedSearchService.searchFreelancers(params),
+  searchCourses: (query?: string, category?: string) => UnifiedSearchService.searchCourses(query, category),
+  getSuggestions: (query: string, type?: any, signal?: any) => UnifiedSearchService.getSuggestions(query, type, signal),
+  getLocations: (query: string, signal?: any) => UnifiedSearchService.getLocations(query, signal),
+  getPopularSearches: async (type?: any) => ['Developer', 'Engineer', 'Designer', 'Architect', 'Consultant'],
+  getTrendingSkills: async () => ['React', 'TypeScript', 'Node.js', 'Next.js', 'Python', 'Figma', 'AWS', 'GraphQL'],
 };

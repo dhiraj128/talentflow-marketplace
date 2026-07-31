@@ -93,24 +93,50 @@ export class AnalyticsService {
     }
     if (!candidate.skills || candidate.skills.length === 0) missingProfileItems.push({ label: "Skills", actionHref: "/job-seeker/profile" });
 
+    const savedJobsCount = await this.prisma.savedJob.count({
+      where: { candidateId: candidate.id },
+    });
+
+    const recruiterInvitesCount = await this.prisma.candidateInvitation.count({
+      where: { candidateId: candidate.id },
+    });
+
+    const shortlistedAppsCount = await this.prisma.application.count({
+      where: { candidateId: candidate.id, status: { in: ['SHORTLISTED', 'REVIEWING'] } },
+    });
+
+    const interviewingAppsCount = await this.prisma.application.count({
+      where: { candidateId: candidate.id, status: 'INTERVIEWING' },
+    });
+
+    const offersAppsCount = await this.prisma.application.count({
+      where: { candidateId: candidate.id, status: { in: ['OFFERED', 'HIRED'] } },
+    });
+
     return {
       stats: {
+        applied: activeApps,
         activeApplications: activeApps,
-        savedJobs: 0,
+        shortlisted: shortlistedAppsCount,
+        interviews: interviewingAppsCount,
+        offers: offersAppsCount,
+        savedJobs: savedJobsCount,
         resumeViews: 0,
-        recruiterInvites: 0,
+        profileViews: 0,
+        aiMatchScore: recommendedJobs.length > 0 ? recommendedJobs[0].matchScore : 0,
+        recruiterInvites: recruiterInvitesCount,
       },
       metrics: {
         jobMatchScore:
           recommendedJobs.length > 0 ? recommendedJobs[0].matchScore : 0,
         profileCompletion: profileScore,
-        recentlyViewed: 12,
+        recentlyViewed: 0,
         missingProfileItems,
       },
       recentApplications: applications,
       recommendedJobs,
       recommendedCourses: await this.prisma.course.findMany({ take: 2 }),
-      upcomingInterviews: [], // Mapped from applications in interviewing status in the future
+      upcomingInterviews: [],
       recentActivity: [],
     };
   }
@@ -371,12 +397,19 @@ export class AnalyticsService {
     });
     const courseCompletionRate = totalEnrollments > 0 ? Math.round((completedEnrollments / totalEnrollments) * 100) : 0;
 
+    const courseReviews = await this.prisma.review.findMany({
+      where: { courseId: { in: courseIds } },
+    });
+    const courseRating = courseReviews.length > 0
+      ? Number((courseReviews.reduce((sum, r) => sum + r.rating, 0) / courseReviews.length).toFixed(1))
+      : 0;
+
     return {
       publishedCourses,
       draftCourses,
       totalStudents,
       revenue: 0,
-      courseRating: 0,
+      courseRating,
       certificatesIssued,
       courseCompletionRate,
       recentCourses: courses,
@@ -390,8 +423,9 @@ export class AnalyticsService {
     const activeTrainers = await this.prisma.trainerProfile.count();
     const activeJobSeekers = await this.prisma.candidateProfile.count();
     const jobsPosted = await this.prisma.job.count();
-    const pendingJobs = await this.prisma.job.count({ where: { status: 'DRAFT' } });
-    const publishedJobs = await this.prisma.job.count({ where: { status: 'PUBLISHED' } });
+    const pendingJobs = await this.prisma.job.count({ where: { status: 'DRAFT', deletedAt: null } });
+    const publishedJobs = await this.prisma.job.count({ where: { status: 'PUBLISHED', deletedAt: null } });
+    const closedJobs = await this.prisma.job.count({ where: { status: 'CLOSED', deletedAt: null } });
     const courses = await this.prisma.course.count();
     const pendingCourses = await this.prisma.course.count({ where: { status: 'DRAFT' } });
     const totalApplications = await this.prisma.application.count();
@@ -430,8 +464,10 @@ export class AnalyticsService {
         activeFreelancers,
         activeTrainers,
         jobsPosted,
+        activeJobs: publishedJobs,
         pendingJobs,
         publishedJobs,
+        closedJobs,
         courses,
         pendingCourses,
         totalApplications,

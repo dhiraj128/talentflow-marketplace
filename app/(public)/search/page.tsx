@@ -1,193 +1,277 @@
 "use client";
 
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { UniversalSearch } from "@/features/search";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { CandidateCard } from "@/components/cards/CandidateCard";
-import { JobCard } from "@/components/cards/JobCard";
-import { FreelancerCard } from "@/components/cards/FreelancerCard";
-import { CourseCard } from "@/components/cards/CourseCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { PageContainer } from "@/components/shared/PageContainer";
-import { EmptySearchState } from "@/components/shared/EmptySearchState";
-import { searchService } from "@/lib/services/search.service";
-import { jobService } from "@/lib/services/job.service";
-import { freelancerService } from "@/lib/services/freelancer.service";
-import { courseService } from "@/lib/services/course.service";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Briefcase, Users, Zap, GraduationCap, ArrowRight, Star, MapPin, RefreshCw, Loader2 } from "lucide-react";
+import { UnifiedSearchService, UnifiedSearchResults } from "@/lib/services/search.service";
+import { StarRating } from "@/features/reviews/StarRating";
+import Link from "next/link";
 
-function SearchResultsContent() {
+function UnifiedSearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
 
-  const type = (searchParams.get("type") || "jobs") as "talent" | "jobs" | "freelancers" | "courses";
-  const query = searchParams.get("query") || searchParams.get("q") || "";
-  const location = searchParams.get("location") || "";
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  const query = searchParams.get("q") || searchParams.get("query") || "";
+  const initialTab = searchParams.get("tab") || "all";
 
-  const { data: searchResponse, isLoading } = useQuery({
-    queryKey: ['search-results', type, query, location, page],
-    queryFn: async () => {
-      if (type === 'jobs') {
-        const res = await jobService.getJobs({ q: query, location, page, limit: 9 });
-        return {
-          items: (res?.data || []).map((j: any) => ({
-            id: j.id,
-            title: j.title,
-            company: j.employer?.companyName || "Company",
-            location: j.location || "Remote",
-            type: j.type || "Full-time",
-            salary: j.salaryRange || "Competitive",
-            skills: (j.requiredSkills || []).map((s: any) => s.skill?.name || s)
-          })),
-          total: res?.total || 0,
-          totalPages: res?.totalPages || 1
-        };
-      }
-      if (type === 'freelancers' || type === 'talent') {
-        const res = await freelancerService.getMarketplace({ location });
-        const list = Array.isArray(res) ? res : res?.data || [];
-        const filtered = list.filter((f: any) => {
-          if (!query) return true;
-          const q = query.toLowerCase();
-          return (f.fullName || "").toLowerCase().includes(q) || (f.title || "").toLowerCase().includes(q);
-        });
-        return {
-          items: filtered.map((f: any) => ({
-            id: f.id,
-            name: f.fullName || f.title || "Freelancer",
-            title: f.title || "Specialist",
-            hourlyRate: `$${f.hourlyRate || 0}`,
-            rating: f.rating || 5.0,
-            reviews: f.reviews?.length || 0,
-            skills: (f.skills || []).map((s: any) => s.skill?.name || s)
-          })),
-          total: filtered.length,
-          totalPages: Math.ceil(filtered.length / 9) || 1
-        };
-      }
-      if (type === 'courses') {
-        const res = await courseService.getCourses({ q: query });
-        const list = Array.isArray(res) ? res : res?.data || [];
-        return {
-          items: list.map((c: any) => ({
-            id: c.id,
-            title: c.title,
-            instructor: c.trainer?.user?.fullName || "Platform Trainer",
-            level: c.level || "All Levels",
-            rating: c.rating || 5.0,
-            students: c.enrollments?.length || 0,
-            duration: c.duration || "Self-paced",
-            tags: [c.category || "General"]
-          })),
-          total: list.length,
-          totalPages: Math.ceil(list.length / 9) || 1
-        };
-      }
-      return { items: [], total: 0, totalPages: 1 };
+  const [inputQuery, setInputQuery] = useState(query);
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [data, setData] = useState<UnifiedSearchResults | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchResults = async (q: string) => {
+    if (!q.trim()) {
+      setData(null);
+      return;
     }
-  });
+    setLoading(true);
+    setError(null);
 
-  const items = searchResponse?.items || [];
-  const total = searchResponse?.total || 0;
-  const totalPages = searchResponse?.totalPages || 1;
+    try {
+      const res = await UnifiedSearchService.searchUnified(q.trim());
+      setData(res);
+    } catch (err: any) {
+      setError(err.message || "Failed to perform search.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages) return;
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
-    current.set("page", newPage.toString());
-    const search = current.toString();
-    router.push(`${pathname}${search ? `?${search}` : ""}`, { scroll: false });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  useEffect(() => {
+    setInputQuery(query);
+    fetchResults(query);
+  }, [query]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(inputQuery.trim())}`);
+    }
   };
 
   return (
-    <>
-      <div className="bg-background border-b shadow-sm p-6 rounded-2xl">
-        <UniversalSearch />
+    <PageContainer className="py-8 space-y-8">
+      {/* Header Search Input */}
+      <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-4">
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+          Unified Marketplace Search
+        </h1>
+        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-3.5 h-5 w-5 text-muted-foreground" />
+            <Input
+              value={inputQuery}
+              onChange={(e) => setInputQuery(e.target.value)}
+              placeholder="Search across Jobs, Talent, Freelancers, and Courses..."
+              className="pl-11 h-12 text-base rounded-xl"
+            />
+          </div>
+          <Button type="submit" size="lg" className="h-12 px-6 rounded-xl font-semibold gap-2">
+            <Search className="h-4 w-4" /> Search Marketplace
+          </Button>
+        </form>
       </div>
 
-      <div className="mt-8">
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground capitalize">{type} Results</h2>
-            <p className="text-muted-foreground mt-1">
-              Showing {isLoading ? "..." : total} results {query ? `for "${query}"` : ''}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-16 space-y-3">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">Searching marketplace across all domains...</p>
+        </div>
+      ) : error ? (
+        <div className="p-12 text-center border rounded-2xl bg-card space-y-4">
+          <p className="text-destructive font-semibold">{error}</p>
+          <Button variant="outline" onClick={() => fetchResults(query)}>
+            <RefreshCw className="h-4 w-4 mr-2" /> Retry Search
+          </Button>
+        </div>
+      ) : !data || data.totalResults === 0 ? (
+        <div className="p-12 text-center border rounded-2xl bg-card space-y-3">
+          <Search className="h-12 w-12 text-muted-foreground mx-auto" />
+          <h3 className="text-xl font-bold">No results found</h3>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto">
+            {query ? `No marketplace items matched "${query}". Try searching for another keyword or skill.` : "Type a keyword above to search the entire TalentFlow ecosystem."}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-muted-foreground">
+              Found <strong className="text-foreground">{data.totalResults}</strong> result{data.totalResults > 1 ? "s" : ""} for "{data.query}"
             </p>
           </div>
-        </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array(6).fill(0).map((_, i) => (
-              <Skeleton key={i} className="h-64 w-full rounded-xl" />
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <EmptySearchState />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item: any) => (
-              <div key={item.id}>
-                {type === 'talent' && <CandidateCard {...item} />}
-                {type === 'jobs' && <JobCard {...item} />}
-                {type === 'freelancers' && <FreelancerCard {...item} />}
-                {type === 'courses' && <CourseCard {...item} />}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+              <TabsTrigger value="all">All ({data.totalResults})</TabsTrigger>
+              <TabsTrigger value="jobs">Jobs ({data.jobs.length})</TabsTrigger>
+              <TabsTrigger value="talent">Talent ({data.talent.length})</TabsTrigger>
+              <TabsTrigger value="freelancers">Freelancers ({data.freelancers.length})</TabsTrigger>
+              <TabsTrigger value="courses">Courses ({data.courses.length})</TabsTrigger>
+            </TabsList>
+
+            {/* TAB: ALL RESULTS */}
+            <TabsContent value="all" className="mt-6 space-y-10">
+              {/* Jobs Preview */}
+              {data.jobs.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Briefcase className="h-5 w-5 text-blue-600" /> Jobs ({data.jobs.length})
+                    </h3>
+                    <Button variant="ghost" size="sm" onClick={() => setActiveTab("jobs")} className="text-xs">
+                      View all jobs <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                    </Button>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {data.jobs.slice(0, 4).map((j) => (
+                      <Link key={j.id} href={`/jobs/${j.id}`}>
+                        <div className="bg-card border rounded-xl p-4 hover:border-primary transition-all shadow-sm space-y-2">
+                          <h4 className="font-bold text-base text-foreground">{j.title}</h4>
+                          <p className="text-xs text-muted-foreground">{j.company} • {j.location}</p>
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {j.skills.map((s: string) => (
+                              <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Freelancers Preview */}
+              {data.freelancers.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-amber-500" /> Freelancers ({data.freelancers.length})
+                    </h3>
+                    <Button variant="ghost" size="sm" onClick={() => setActiveTab("freelancers")} className="text-xs">
+                      View all freelancers <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                    </Button>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {data.freelancers.slice(0, 4).map((f) => (
+                      <Link key={f.id} href={`/freelancers/${f.id}`}>
+                        <div className="bg-card border rounded-xl p-4 hover:border-primary transition-all shadow-sm space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-base text-foreground">{f.name}</h4>
+                            <span className="font-bold text-xs text-emerald-600">${f.hourlyRate}/hr</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{f.title}</p>
+                          <StarRating rating={f.rating} size="sm" showText />
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Courses Preview */}
+              {data.courses.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <GraduationCap className="h-5 w-5 text-emerald-600" /> Courses ({data.courses.length})
+                    </h3>
+                    <Button variant="ghost" size="sm" onClick={() => setActiveTab("courses")} className="text-xs">
+                      View all courses <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                    </Button>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {data.courses.slice(0, 4).map((c) => (
+                      <Link key={c.id} href={`/find-courses/${c.id}`}>
+                        <div className="bg-card border rounded-xl p-4 hover:border-primary transition-all shadow-sm space-y-2">
+                          <h4 className="font-bold text-base text-foreground">{c.title}</h4>
+                          <p className="text-xs text-muted-foreground">Instructor: {c.instructor}</p>
+                          <StarRating rating={c.rating} size="sm" showText />
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* TAB: JOBS */}
+            <TabsContent value="jobs" className="mt-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                {data.jobs.map((j) => (
+                  <Link key={j.id} href={`/jobs/${j.id}`}>
+                    <div className="bg-card border rounded-xl p-5 hover:border-primary transition-all shadow-sm space-y-2">
+                      <h4 className="font-bold text-base">{j.title}</h4>
+                      <p className="text-xs text-muted-foreground">{j.company} • {j.location}</p>
+                      <Badge variant="outline" className="text-xs">{j.salary}</Badge>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            </TabsContent>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-12 pb-4">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="w-10 h-10" 
-              onClick={() => handlePageChange(page - 1)} 
-              disabled={page === 1 || isLoading}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <Button 
-                key={p} 
-                variant={page === p ? "default" : "outline"} 
-                className="w-10 h-10"
-                onClick={() => handlePageChange(p)}
-                disabled={isLoading}
-              >
-                {p}
-              </Button>
-            ))}
+            {/* TAB: TALENT */}
+            <TabsContent value="talent" className="mt-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                {data.talent.map((t) => (
+                  <div key={t.id} className="bg-card border rounded-xl p-5 shadow-sm space-y-2">
+                    <h4 className="font-bold text-base">{t.name}</h4>
+                    <p className="text-xs text-muted-foreground">{t.role} • {t.location}</p>
+                    <StarRating rating={t.rating} size="sm" showText />
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
 
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="w-10 h-10" 
-              onClick={() => handlePageChange(page + 1)} 
-              disabled={page === totalPages || isLoading}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
-    </>
+            {/* TAB: FREELANCERS */}
+            <TabsContent value="freelancers" className="mt-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                {data.freelancers.map((f) => (
+                  <Link key={f.id} href={`/freelancers/${f.id}`}>
+                    <div className="bg-card border rounded-xl p-5 hover:border-primary transition-all shadow-sm space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-base">{f.name}</h4>
+                        <span className="font-bold text-xs text-emerald-600">${f.hourlyRate}/hr</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{f.title}</p>
+                      <StarRating rating={f.rating} size="sm" showText />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </TabsContent>
+
+            {/* TAB: COURSES */}
+            <TabsContent value="courses" className="mt-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                {data.courses.map((c) => (
+                  <Link key={c.id} href={`/find-courses/${c.id}`}>
+                    <div className="bg-card border rounded-xl p-5 hover:border-primary transition-all shadow-sm space-y-2">
+                      <h4 className="font-bold text-base">{c.title}</h4>
+                      <p className="text-xs text-muted-foreground">Instructor: {c.instructor}</p>
+                      <StarRating rating={c.rating} size="sm" showText />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </TabsContent>
+
+          </Tabs>
+        </div>
+      )}
+    </PageContainer>
   );
 }
 
-export default function SearchResultsPage() {
+export default function UnifiedSearchPage() {
   return (
-    <PageContainer>
-      <Suspense fallback={<div>Loading search...</div>}>
-        <SearchResultsContent />
-      </Suspense>
-    </PageContainer>
+    <Suspense fallback={<div className="py-20 text-center">Loading search page...</div>}>
+      <UnifiedSearchContent />
+    </Suspense>
   );
 }

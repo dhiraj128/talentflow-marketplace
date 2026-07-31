@@ -16,6 +16,7 @@ import { AdvancedSearchBox } from "@/features/search/AdvancedSearchBox";
 import { DesktopFilterSidebar, FilterGroup } from "@/features/search/DesktopFilterSidebar";
 import { MobileFilterDrawer } from "@/features/search/MobileFilterDrawer";
 import { ActiveFilterChips } from "@/features/search/ActiveFilterChips";
+import { SaveSearchModal } from "@/features/search/SaveSearchModal";
 import { EmptySearchState } from "@/components/shared/EmptySearchState";
 
 import { jobService } from "@/lib/services/job.service";
@@ -215,6 +216,7 @@ function FindJobsContent() {
                 </p>
               </div>
               <div className="flex items-center gap-3 w-full sm:w-auto self-end sm:self-auto">
+                <SaveSearchModal queryFilters={{ q: query, location, ...selectedFilters }} />
                 <span className="text-sm text-muted-foreground hidden sm:block">Sort by:</span>
                 <Select defaultValue="relevant">
                   <SelectTrigger className="w-full sm:w-[160px] h-10 rounded-xl bg-card">

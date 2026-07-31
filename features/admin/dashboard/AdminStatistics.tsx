@@ -8,6 +8,8 @@ export interface AdminStats {
   activeFreelancers: number;
   activeTrainers: number;
   jobsPosted: number;
+  activeJobs?: number;
+  publishedJobs?: number;
   courses: number;
   premiumMembers: number;
   monthlyRevenue: number;
@@ -20,6 +22,8 @@ interface AdminStatisticsProps {
 }
 
 export function AdminStatistics({ stats }: AdminStatisticsProps) {
+  const activeJobsCount = stats.activeJobs ?? stats.publishedJobs ?? 0;
+
   const statItems = [
     { label: "Total Users", value: stats.totalUsers.toLocaleString(), icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
     { label: "Employers", value: stats.activeEmployers.toLocaleString(), icon: Building2, color: "text-indigo-500", bg: "bg-indigo-500/10" },
@@ -27,7 +31,7 @@ export function AdminStatistics({ stats }: AdminStatisticsProps) {
     { label: "Trainers", value: stats.activeTrainers.toLocaleString(), icon: GraduationCap, color: "text-pink-500", bg: "bg-pink-500/10" },
     { label: "Job Seekers", value: stats.activeJobSeekers.toLocaleString(), icon: UserCheck, color: "text-sky-500", bg: "bg-sky-500/10" },
     { label: "Revenue", value: `$${(stats.monthlyRevenue / 1000).toFixed(1)}k`, icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-    { label: "Active Jobs", value: stats.jobsPosted.toLocaleString(), icon: Briefcase, color: "text-amber-500", bg: "bg-amber-500/10" },
+    { label: "Active Jobs", value: activeJobsCount.toLocaleString(), icon: Briefcase, color: "text-amber-500", bg: "bg-amber-500/10" },
     { label: "Courses", value: stats.courses.toLocaleString(), icon: BookOpen, color: "text-orange-500", bg: "bg-orange-500/10" },
     { label: "Coupons", value: stats.activeCoupons.toLocaleString(), icon: Tag, color: "text-rose-500", bg: "bg-rose-500/10" },
     { label: "Expiring Subs", value: stats.expiringSubscriptions.toLocaleString(), icon: Clock, color: "text-red-500", bg: "bg-red-500/10" },

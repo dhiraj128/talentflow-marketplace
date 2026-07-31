@@ -379,8 +379,9 @@ let AnalyticsService = class AnalyticsService {
         const activeTrainers = await this.prisma.trainerProfile.count();
         const activeJobSeekers = await this.prisma.candidateProfile.count();
         const jobsPosted = await this.prisma.job.count();
-        const pendingJobs = await this.prisma.job.count({ where: { status: 'DRAFT' } });
-        const publishedJobs = await this.prisma.job.count({ where: { status: 'PUBLISHED' } });
+        const pendingJobs = await this.prisma.job.count({ where: { status: 'DRAFT', deletedAt: null } });
+        const publishedJobs = await this.prisma.job.count({ where: { status: 'PUBLISHED', deletedAt: null } });
+        const closedJobs = await this.prisma.job.count({ where: { status: 'CLOSED', deletedAt: null } });
         const courses = await this.prisma.course.count();
         const pendingCourses = await this.prisma.course.count({ where: { status: 'DRAFT' } });
         const totalApplications = await this.prisma.application.count();
@@ -416,8 +417,10 @@ let AnalyticsService = class AnalyticsService {
                 activeFreelancers,
                 activeTrainers,
                 jobsPosted,
+                activeJobs: publishedJobs,
                 pendingJobs,
                 publishedJobs,
+                closedJobs,
                 courses,
                 pendingCourses,
                 totalApplications,
