@@ -1,5 +1,7 @@
 import api from '../api';
 
+export type SearchType = 'JOB' | 'TALENT' | 'FREELANCER' | 'COURSE';
+
 export const searchService = {
   searchJobs: async (query?: string, filters?: any) => {
     const params = new URLSearchParams();
@@ -20,7 +22,7 @@ export const searchService = {
     return response.data?.data || response.data;
   },
 
-  saveSearch: async (data: { name: string; searchType?: string; queryJson: any }) => {
+  saveSearch: async (data: { name: string; searchType?: SearchType; queryJson: any }) => {
     const response = await api.post('/saved-searches', data);
     return response.data;
   },
