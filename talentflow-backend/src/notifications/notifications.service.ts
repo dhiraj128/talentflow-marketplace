@@ -526,4 +526,150 @@ export class NotificationsService {
       this.logger.error(`[NOTIFY] Error handling notifyPasswordReset: ${error.message}`);
     }
   }
+
+  /**
+   * 8. Offer Events (SENT, ACCEPTED, DECLINED, WITHDRAWN)
+   */
+  async notifyOfferEvent(offerId: string, eventType: 'SENT' | 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN') {
+    try {
+      const offer = await this.prisma.jobOffer.findUnique({
+        where: { id: offerId },
+        include: {
+          candidate: { include: { user: true } },
+          employer: { include: { user: true } },
+          job: true,
+        },
+      });
+
+      if (!offer) return;
+
+      const jobTitle = offer.job.title;
+      const companyName = offer.employer.companyName || 'The Employer';
+
+      if (eventType === 'SENT' && offer.candidate?.user) {
+        const candidateUser = offer.candidate.user;
+        const candidateName = offer.candidate.fullName || this.getDisplayName(candidateUser);
+        await this.create({
+          userId: candidateUser.id,
+          title: 'Job Offer Received!',
+          message: `Congratulations! ${companyName} has extended a formal job offer for "${jobTitle}".`,
+        });
+
+        if (candidateUser.email) {
+          await this.emailProvider.sendTransactionalEmail({
+            to: candidateUser.email,
+            recipientName: candidateName,
+            subject: `Job Offer Extended for ${jobTitle} — ${companyName}`,
+            title: 'Job Offer Received!',
+            bodyParagraphs: [
+              `Congratulations! ${companyName} has extended a formal job offer for position "${jobTitle}".`,
+              `Log in to TalentFlow Marketplace to review the offer terms and accept or decline.`,
+            ],
+            details: [
+              { label: 'Job Title', value: jobTitle },
+              { label: 'Company', value: companyName },
+              { label: 'Salary', value: `${offer.salaryCurrency} ${offer.salaryAmount.toLocaleString()} / ${offer.salaryPeriod}` },
+              { label: 'Joining Date', value: new Date(offer.joiningDate).toLocaleDateString('en-US', { dateStyle: 'medium' }) },
+            ],
+            ctaText: 'View Offer Details',
+            ctaUrl: 'https://sispl.shop/job-seeker/offers',
+          });
+        }
+      }
+
+      if (eventType === 'ACCEPTED' && offer.employer?.user) {
+        const employerUser = offer.employer.user;
+        const employerName = companyName;
+        const candidateName = offer.candidate.fullName || this.getDisplayName(offer.candidate.user);
+
+        await this.create({
+          userId: employerUser.id,
+          title: 'Job Offer Accepted!',
+          message: `${candidateName} has accepted your job offer for "${jobTitle}".`,
+        });
+
+        if (employerUser.email) {
+          await this.emailProvider.sendTransactionalEmail({
+            to: employerUser.email,
+            recipientName: employerName,
+            subject: `Offer Accepted: ${candidateName} — ${jobTitle}`,
+            title: 'Job Offer Accepted!',
+            bodyParagraphs: [
+              `Great news! ${candidateName} has accepted your offer for position "${jobTitle}".`,
+              `The application status has been updated to HIRED.`,
+            ],
+            details: [
+              { label: 'Candidate', value: candidateName },
+              { label: 'Position', value: jobTitle },
+              { label: 'Joining Date', value: new Date(offer.joiningDate).toLocaleDateString('en-US', { dateStyle: 'medium' }) },
+            ],
+            ctaText: 'View Hiring Pipeline',
+            ctaUrl: 'https://sispl.shop/employer/pipeline',
+          });
+        }
+      }
+
+      if (eventType === 'DECLINED' && offer.employer?.user) {
+        const employerUser = offer.employer.user;
+        const employerName = companyName;
+        const candidateName = offer.candidate.fullName || this.getDisplayName(offer.candidate.user);
+
+        await this.create({
+          userId: employerUser.id,
+          title: 'Job Offer Declined',
+          message: `${candidateName} has declined the job offer for "${jobTitle}".`,
+        });
+
+        if (employerUser.email) {
+          await this.emailProvider.sendTransactionalEmail({
+            to: employerUser.email,
+            recipientName: employerName,
+            subject: `Offer Declined: ${candidateName} — ${jobTitle}`,
+            title: 'Job Offer Declined',
+            bodyParagraphs: [
+              `${candidateName} has declined the job offer for "${jobTitle}".`,
+              offer.declineReason ? `Reason provided: "${offer.declineReason}"` : 'No decline reason was provided.',
+            ],
+            details: [
+              { label: 'Candidate', value: candidateName },
+              { label: 'Position', value: jobTitle },
+            ],
+            ctaText: 'View Hiring Pipeline',
+            ctaUrl: 'https://sispl.shop/employer/pipeline',
+          });
+        }
+      }
+
+      if (eventType === 'WITHDRAWN' && offer.candidate?.user) {
+        const candidateUser = offer.candidate.user;
+        const candidateName = offer.candidate.fullName || this.getDisplayName(candidateUser);
+
+        await this.create({
+          userId: candidateUser.id,
+          title: 'Job Offer Withdrawn',
+          message: `The job offer for "${jobTitle}" at ${companyName} has been withdrawn.`,
+        });
+
+        if (candidateUser.email) {
+          await this.emailProvider.sendTransactionalEmail({
+            to: candidateUser.email,
+            recipientName: candidateName,
+            subject: `Job Offer Update: ${jobTitle}`,
+            title: 'Job Offer Withdrawn',
+            bodyParagraphs: [
+              `The job offer previously extended for "${jobTitle}" at ${companyName} has been withdrawn by the employer.`,
+            ],
+            details: [
+              { label: 'Position', value: jobTitle },
+              { label: 'Company', value: companyName },
+            ],
+            ctaText: 'Browse Other Jobs',
+            ctaUrl: 'https://sispl.shop/find-jobs',
+          });
+        }
+      }
+    } catch (error: any) {
+      this.logger.error(`[NOTIFY] Error handling notifyOfferEvent: ${error.message}`);
+    }
+  }
 }

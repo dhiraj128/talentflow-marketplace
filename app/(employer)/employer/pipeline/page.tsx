@@ -24,6 +24,8 @@ import {
 import { applicationService } from "@/lib/services/application.service";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { CreateOfferDialog } from "@/components/employer/offers/CreateOfferDialog";
+import { ScheduleInterviewDialog } from "@/components/employer/interviews/ScheduleInterviewDialog";
 
 export default function EmployerPipelinePage() {
   const { user } = useAuth();
@@ -372,24 +374,31 @@ export default function EmployerPipelinePage() {
                               </Button>
                             )}
                             {stage.key === "INTERVIEWING" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-[11px] bg-indigo-50 text-indigo-700 ml-auto"
-                                onClick={() => handleStatusChange(app.id, "OFFERED")}
-                              >
-                                Offer
-                              </Button>
+                              <div className="flex items-center gap-1 ml-auto">
+                                <ScheduleInterviewDialog defaultApplicationId={app.id}>
+                                  <Button size="sm" variant="outline" className="h-7 text-[11px] bg-amber-50 text-amber-700">
+                                    Interview
+                                  </Button>
+                                </ScheduleInterviewDialog>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-[11px] bg-indigo-50 text-indigo-700"
+                                  onClick={() => handleStatusChange(app.id, "OFFERED")}
+                                >
+                                  Move Offer
+                                </Button>
+                              </div>
                             )}
                             {stage.key === "OFFERED" && (
-                              <Button
-                                size="sm"
-                                variant="default"
-                                className="h-7 text-[11px] bg-green-600 hover:bg-green-700 ml-auto text-white"
-                                onClick={() => handleStatusChange(app.id, "HIRED")}
-                              >
-                                Hire
-                              </Button>
+                              <div className="flex items-center gap-1 ml-auto">
+                                <CreateOfferDialog
+                                  applicationId={app.id}
+                                  candidateName={app.candidate?.fullName}
+                                  jobTitle={app.job?.title}
+                                  onSuccess={fetchPipeline}
+                                />
+                              </div>
                             )}
                           </div>
                         </div>

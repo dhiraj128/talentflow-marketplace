@@ -72,12 +72,21 @@ let InterviewsService = class InterviewsService {
                 ...createInterviewDto,
                 employerId: employerProfile.id,
                 candidateId: application.candidateId,
+                createdByUserId: userId,
             },
         });
         if (['PENDING', 'REVIEWING', 'SHORTLISTED'].includes(application.status)) {
             await this.prisma.application.update({
                 where: { id: application.id },
                 data: { status: 'INTERVIEWING' },
+            });
+            await this.prisma.applicationStatusHistory.create({
+                data: {
+                    applicationId: application.id,
+                    status: 'INTERVIEWING',
+                    changedByUserId: userId,
+                    note: 'Interview scheduled',
+                },
             });
         }
         await this.auditLogsService.create({
@@ -101,6 +110,7 @@ let InterviewsService = class InterviewsService {
                     include: { user: { select: { email: true, avatarUrl: true } } },
                 },
                 application: { include: { job: { select: { title: true } } } },
+                feedbackList: true,
             },
             orderBy: { scheduledAt: 'asc' },
         });
@@ -111,7 +121,7 @@ let InterviewsService = class InterviewsService {
         });
         if (!candidateProfile)
             return [];
-        return this.prisma.interview.findMany({
+        const interviews = await this.prisma.interview.findMany({
             where: { candidateId: candidateProfile.id },
             include: {
                 employer: {
@@ -121,6 +131,11 @@ let InterviewsService = class InterviewsService {
             },
             orderBy: { scheduledAt: 'asc' },
         });
+        return interviews.map((iv) => ({
+            ...iv,
+            notes: null,
+            feedback: null,
+        }));
     }
     async findOne(id, userId, role) {
         const interview = await this.prisma.interview.findUnique({
@@ -129,6 +144,7 @@ let InterviewsService = class InterviewsService {
                 candidate: { include: { user: true } },
                 employer: { include: { user: true } },
                 application: { include: { job: true } },
+                feedbackList: role === 'EMPLOYER' || role === 'ADMIN',
             },
         });
         if (!interview)
@@ -137,6 +153,13 @@ let InterviewsService = class InterviewsService {
             throw new common_1.ForbiddenException('You do not own this interview');
         if (role === 'CANDIDATE' && interview.candidate.userId !== userId)
             throw new common_1.ForbiddenException('You do not own this interview');
+        if (role === 'CANDIDATE') {
+            return {
+                ...interview,
+                notes: null,
+                feedback: null,
+            };
+        }
         return interview;
     }
     async reschedule(id, updateInterviewDto, userId) {
@@ -151,11 +174,14 @@ let InterviewsService = class InterviewsService {
             where: { id },
             data: {
                 scheduledAt: updateInterviewDto.scheduledAt,
-                duration: updateInterviewDto.duration,
-                meetingUrl: updateInterviewDto.meetingUrl,
-                meetingProvider: updateInterviewDto.meetingProvider,
-                notes: updateInterviewDto.notes,
-                status: 'SCHEDULED',
+                type: updateInterviewDto.type || interview.type,
+                duration: updateInterviewDto.duration || interview.duration,
+                meetingUrl: updateInterviewDto.meetingUrl || interview.meetingUrl,
+                meetingProvider: updateInterviewDto.meetingProvider || interview.meetingProvider,
+                location: updateInterviewDto.location || interview.location,
+                instructions: updateInterviewDto.instructions || interview.instructions,
+                notes: updateInterviewDto.notes || interview.notes,
+                status: 'RESCHEDULED',
             },
         });
         await this.auditLogsService.create({
@@ -180,11 +206,11 @@ let InterviewsService = class InterviewsService {
         await this.notificationsService.notifyInterviewEvent(id, 'CANCELLED');
         return updated;
     }
-    async complete(id, feedback, userId) {
+    async complete(id, feedbackNotes, userId) {
         const interview = await this.findOne(id, userId, 'EMPLOYER');
         const updated = await this.prisma.interview.update({
             where: { id },
-            data: { status: 'COMPLETED', feedback },
+            data: { status: 'COMPLETED', feedback: feedbackNotes },
         });
         await this.auditLogsService.create({
             actionBy: userId,
@@ -192,6 +218,30 @@ let InterviewsService = class InterviewsService {
             resource: id,
         });
         return updated;
+    }
+    async submitFeedback(id, dto, userId) {
+        const interview = await this.findOne(id, userId, 'EMPLOYER');
+        const feedback = await this.prisma.interviewFeedback.create({
+            data: {
+                interviewId: id,
+                employerUserId: userId,
+                rating: dto.rating,
+                recommendation: dto.recommendation,
+                strengths: dto.strengths,
+                concerns: dto.concerns,
+                notes: dto.notes,
+            },
+        });
+        await this.prisma.interview.update({
+            where: { id },
+            data: { status: 'COMPLETED' },
+        });
+        await this.auditLogsService.create({
+            actionBy: userId,
+            action: 'INTERVIEW_FEEDBACK_SUBMITTED',
+            resource: id,
+        });
+        return feedback;
     }
     async markNoShow(id, userId) {
         const interview = await this.findOne(id, userId, 'EMPLOYER');

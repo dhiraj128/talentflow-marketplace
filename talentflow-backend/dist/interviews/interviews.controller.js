@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const interviews_service_1 = require("./interviews.service");
 const create_interview_dto_1 = require("./dto/create-interview.dto");
 const update_interview_dto_1 = require("./dto/update-interview.dto");
+const create_feedback_dto_1 = require("./dto/create-feedback.dto");
 const jwt_auth_guard_1 = require("../common/guards/jwt-auth.guard");
 const roles_guard_1 = require("../common/guards/roles.guard");
 const roles_decorator_1 = require("../common/decorators/roles.decorator");
@@ -48,6 +49,9 @@ let InterviewsController = class InterviewsController {
     complete(id, body, req) {
         return this.interviewsService.complete(id, body.feedback, req.user.id);
     }
+    submitFeedback(id, dto, req) {
+        return this.interviewsService.submitFeedback(id, dto, req.user.id);
+    }
     markNoShow(id, req) {
         return this.interviewsService.markNoShow(id, req.user.id);
     }
@@ -59,7 +63,7 @@ exports.InterviewsController = InterviewsController;
 __decorate([
     (0, common_1.Post)('schedule'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -69,7 +73,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('employer'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -78,7 +82,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('candidate'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -98,7 +102,7 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':id/reschedule'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Req)()),
@@ -119,7 +123,7 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':id/complete'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Req)()),
@@ -128,9 +132,20 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], InterviewsController.prototype, "complete", null);
 __decorate([
+    (0, common_1.Post)(':id/feedback'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, create_feedback_dto_1.CreateInterviewFeedbackDto, Object]),
+    __metadata("design:returntype", void 0)
+], InterviewsController.prototype, "submitFeedback", null);
+__decorate([
     (0, common_1.Patch)(':id/no-show'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -140,7 +155,7 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
     __param(2, (0, current_user_decorator_1.CurrentUser)()),

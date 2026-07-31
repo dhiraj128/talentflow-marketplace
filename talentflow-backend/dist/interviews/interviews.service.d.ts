@@ -1,6 +1,7 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
+import { CreateInterviewFeedbackDto } from './dto/create-feedback.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
 export declare class InterviewsService {
@@ -14,13 +15,17 @@ export declare class InterviewsService {
         applicationId: string;
         employerId: string;
         candidateId: string;
+        type: import(".prisma/client").$Enums.InterviewType;
         scheduledAt: Date;
         duration: number;
         timezone: string;
         meetingProvider: string | null;
         meetingUrl: string | null;
+        location: string | null;
+        instructions: string | null;
         notes: string | null;
         feedback: string | null;
+        createdByUserId: string | null;
         status: import(".prisma/client").$Enums.InterviewStatus;
         createdAt: Date;
         updatedAt: Date;
@@ -64,23 +69,41 @@ export declare class InterviewsService {
             phone: string | null;
             portfolioUrl: string | null;
         };
+        feedbackList: {
+            id: string;
+            interviewId: string;
+            employerUserId: string;
+            rating: number;
+            recommendation: import(".prisma/client").$Enums.InterviewRecommendation;
+            strengths: string | null;
+            concerns: string | null;
+            notes: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+        }[];
     } & {
         id: string;
         applicationId: string;
         employerId: string;
         candidateId: string;
+        type: import(".prisma/client").$Enums.InterviewType;
         scheduledAt: Date;
         duration: number;
         timezone: string;
         meetingProvider: string | null;
         meetingUrl: string | null;
+        location: string | null;
+        instructions: string | null;
         notes: string | null;
         feedback: string | null;
+        createdByUserId: string | null;
         status: import(".prisma/client").$Enums.InterviewStatus;
         createdAt: Date;
         updatedAt: Date;
     })[]>;
-    findAllByCandidate(userId: string): Promise<({
+    findAllByCandidate(userId: string): Promise<{
+        notes: null;
+        feedback: null;
         application: {
             job: {
                 title: string;
@@ -114,22 +137,23 @@ export declare class InterviewsService {
             phone: string | null;
             websiteUrl: string | null;
         };
-    } & {
         id: string;
         applicationId: string;
         employerId: string;
         candidateId: string;
+        type: import(".prisma/client").$Enums.InterviewType;
         scheduledAt: Date;
         duration: number;
         timezone: string;
         meetingProvider: string | null;
         meetingUrl: string | null;
-        notes: string | null;
-        feedback: string | null;
+        location: string | null;
+        instructions: string | null;
+        createdByUserId: string | null;
         status: import(".prisma/client").$Enums.InterviewStatus;
         createdAt: Date;
         updatedAt: Date;
-    })[]>;
+    }[]>;
     findOne(id: string, userId: string, role: string): Promise<{
         application: {
             job: {
@@ -230,18 +254,34 @@ export declare class InterviewsService {
             phone: string | null;
             websiteUrl: string | null;
         };
+        feedbackList: {
+            id: string;
+            interviewId: string;
+            employerUserId: string;
+            rating: number;
+            recommendation: import(".prisma/client").$Enums.InterviewRecommendation;
+            strengths: string | null;
+            concerns: string | null;
+            notes: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+        }[];
     } & {
         id: string;
         applicationId: string;
         employerId: string;
         candidateId: string;
+        type: import(".prisma/client").$Enums.InterviewType;
         scheduledAt: Date;
         duration: number;
         timezone: string;
         meetingProvider: string | null;
         meetingUrl: string | null;
+        location: string | null;
+        instructions: string | null;
         notes: string | null;
         feedback: string | null;
+        createdByUserId: string | null;
         status: import(".prisma/client").$Enums.InterviewStatus;
         createdAt: Date;
         updatedAt: Date;
@@ -251,13 +291,17 @@ export declare class InterviewsService {
         applicationId: string;
         employerId: string;
         candidateId: string;
+        type: import(".prisma/client").$Enums.InterviewType;
         scheduledAt: Date;
         duration: number;
         timezone: string;
         meetingProvider: string | null;
         meetingUrl: string | null;
+        location: string | null;
+        instructions: string | null;
         notes: string | null;
         feedback: string | null;
+        createdByUserId: string | null;
         status: import(".prisma/client").$Enums.InterviewStatus;
         createdAt: Date;
         updatedAt: Date;
@@ -267,30 +311,50 @@ export declare class InterviewsService {
         applicationId: string;
         employerId: string;
         candidateId: string;
+        type: import(".prisma/client").$Enums.InterviewType;
         scheduledAt: Date;
         duration: number;
         timezone: string;
         meetingProvider: string | null;
         meetingUrl: string | null;
+        location: string | null;
+        instructions: string | null;
         notes: string | null;
         feedback: string | null;
+        createdByUserId: string | null;
         status: import(".prisma/client").$Enums.InterviewStatus;
         createdAt: Date;
         updatedAt: Date;
     }>;
-    complete(id: string, feedback: string | undefined, userId: string): Promise<{
+    complete(id: string, feedbackNotes: string | undefined, userId: string): Promise<{
         id: string;
         applicationId: string;
         employerId: string;
         candidateId: string;
+        type: import(".prisma/client").$Enums.InterviewType;
         scheduledAt: Date;
         duration: number;
         timezone: string;
         meetingProvider: string | null;
         meetingUrl: string | null;
+        location: string | null;
+        instructions: string | null;
         notes: string | null;
         feedback: string | null;
+        createdByUserId: string | null;
         status: import(".prisma/client").$Enums.InterviewStatus;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    submitFeedback(id: string, dto: CreateInterviewFeedbackDto, userId: string): Promise<{
+        id: string;
+        interviewId: string;
+        employerUserId: string;
+        rating: number;
+        recommendation: import(".prisma/client").$Enums.InterviewRecommendation;
+        strengths: string | null;
+        concerns: string | null;
+        notes: string | null;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -299,13 +363,17 @@ export declare class InterviewsService {
         applicationId: string;
         employerId: string;
         candidateId: string;
+        type: import(".prisma/client").$Enums.InterviewType;
         scheduledAt: Date;
         duration: number;
         timezone: string;
         meetingProvider: string | null;
         meetingUrl: string | null;
+        location: string | null;
+        instructions: string | null;
         notes: string | null;
         feedback: string | null;
+        createdByUserId: string | null;
         status: import(".prisma/client").$Enums.InterviewStatus;
         createdAt: Date;
         updatedAt: Date;
@@ -315,13 +383,17 @@ export declare class InterviewsService {
         applicationId: string;
         employerId: string;
         candidateId: string;
+        type: import(".prisma/client").$Enums.InterviewType;
         scheduledAt: Date;
         duration: number;
         timezone: string;
         meetingProvider: string | null;
         meetingUrl: string | null;
+        location: string | null;
+        instructions: string | null;
         notes: string | null;
         feedback: string | null;
+        createdByUserId: string | null;
         status: import(".prisma/client").$Enums.InterviewStatus;
         createdAt: Date;
         updatedAt: Date;

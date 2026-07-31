@@ -8,7 +8,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 import { UpdateInterviewDto } from './dto/update-interview.dto';
-import { InterviewStatus } from '@prisma/client';
+import { CreateInterviewFeedbackDto } from './dto/create-feedback.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -92,13 +92,25 @@ export class InterviewsService {
         ...createInterviewDto,
         employerId: employerProfile.id,
         candidateId: application.candidateId,
+        createdByUserId: userId,
       },
     });
 
     if (['PENDING', 'REVIEWING', 'SHORTLISTED'].includes(application.status)) {
+      const prevStatus = application.status;
       await this.prisma.application.update({
         where: { id: application.id },
         data: { status: 'INTERVIEWING' },
+      });
+      await this.prisma.applicationStatusHistory.create({
+        data: {
+          applicationId: application.id,
+          fromStatus: prevStatus,
+          toStatus: 'INTERVIEWING',
+          changedByUserId: userId,
+          changedByRole: 'EMPLOYER',
+          reason: 'Interview scheduled',
+        },
       });
     }
 
@@ -108,7 +120,6 @@ export class InterviewsService {
       resource: interview.id,
     });
 
-    // Integrated Notification & Transactional Email
     await this.notificationsService.notifyInterviewEvent(interview.id, 'SCHEDULED');
 
     return interview;
@@ -126,6 +137,7 @@ export class InterviewsService {
           include: { user: { select: { email: true, avatarUrl: true } } },
         },
         application: { include: { job: { select: { title: true } } } },
+        feedbackList: true,
       },
       orderBy: { scheduledAt: 'asc' },
     });
@@ -136,7 +148,8 @@ export class InterviewsService {
       where: { userId },
     });
     if (!candidateProfile) return [];
-    return this.prisma.interview.findMany({
+
+    const interviews = await this.prisma.interview.findMany({
       where: { candidateId: candidateProfile.id },
       include: {
         employer: {
@@ -146,6 +159,13 @@ export class InterviewsService {
       },
       orderBy: { scheduledAt: 'asc' },
     });
+
+    // PRIVACY ENFORCEMENT: Remove employer private notes and feedback for Candidate
+    return interviews.map((iv) => ({
+      ...iv,
+      notes: null,
+      feedback: null,
+    }));
   }
 
   async findOne(id: string, userId: string, role: string) {
@@ -155,6 +175,7 @@ export class InterviewsService {
         candidate: { include: { user: true } },
         employer: { include: { user: true } },
         application: { include: { job: true } },
+        feedbackList: role === 'EMPLOYER' || role === 'ADMIN',
       },
     });
     if (!interview) throw new NotFoundException('Interview not found');
@@ -163,6 +184,14 @@ export class InterviewsService {
       throw new ForbiddenException('You do not own this interview');
     if (role === 'CANDIDATE' && interview.candidate.userId !== userId)
       throw new ForbiddenException('You do not own this interview');
+
+    if (role === 'CANDIDATE') {
+      return {
+        ...interview,
+        notes: null,
+        feedback: null,
+      };
+    }
 
     return interview;
   }
@@ -193,11 +222,14 @@ export class InterviewsService {
       where: { id },
       data: {
         scheduledAt: updateInterviewDto.scheduledAt,
-        duration: updateInterviewDto.duration,
-        meetingUrl: updateInterviewDto.meetingUrl,
-        meetingProvider: updateInterviewDto.meetingProvider,
-        notes: updateInterviewDto.notes,
-        status: 'SCHEDULED',
+        type: updateInterviewDto.type || interview.type,
+        duration: updateInterviewDto.duration || interview.duration,
+        meetingUrl: updateInterviewDto.meetingUrl || interview.meetingUrl,
+        meetingProvider: updateInterviewDto.meetingProvider || interview.meetingProvider,
+        location: updateInterviewDto.location || interview.location,
+        instructions: updateInterviewDto.instructions || interview.instructions,
+        notes: updateInterviewDto.notes || interview.notes,
+        status: 'RESCHEDULED',
       },
     });
 
@@ -207,7 +239,6 @@ export class InterviewsService {
       resource: id,
     });
 
-    // Integrated Notification & Transactional Email
     await this.notificationsService.notifyInterviewEvent(id, 'RESCHEDULED');
 
     return updated;
@@ -226,17 +257,16 @@ export class InterviewsService {
       resource: id,
     });
 
-    // Integrated Notification & Transactional Email
     await this.notificationsService.notifyInterviewEvent(id, 'CANCELLED');
 
     return updated;
   }
 
-  async complete(id: string, feedback: string | undefined, userId: string) {
+  async complete(id: string, feedbackNotes: string | undefined, userId: string) {
     const interview = await this.findOne(id, userId, 'EMPLOYER');
     const updated = await this.prisma.interview.update({
       where: { id },
-      data: { status: 'COMPLETED', feedback },
+      data: { status: 'COMPLETED', feedback: feedbackNotes },
     });
     await this.auditLogsService.create({
       actionBy: userId,
@@ -244,6 +274,38 @@ export class InterviewsService {
       resource: id,
     });
     return updated;
+  }
+
+  async submitFeedback(
+    id: string,
+    dto: CreateInterviewFeedbackDto,
+    userId: string,
+  ) {
+    const interview = await this.findOne(id, userId, 'EMPLOYER');
+    const feedback = await this.prisma.interviewFeedback.create({
+      data: {
+        interviewId: id,
+        employerUserId: userId,
+        rating: dto.rating,
+        recommendation: dto.recommendation,
+        strengths: dto.strengths,
+        concerns: dto.concerns,
+        notes: dto.notes,
+      },
+    });
+
+    await this.prisma.interview.update({
+      where: { id },
+      data: { status: 'COMPLETED' },
+    });
+
+    await this.auditLogsService.create({
+      actionBy: userId,
+      action: 'INTERVIEW_FEEDBACK_SUBMITTED',
+      resource: id,
+    });
+
+    return feedback;
   }
 
   async markNoShow(id: string, userId: string) {

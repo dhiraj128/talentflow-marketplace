@@ -5,14 +5,17 @@ export interface Interview {
   applicationId: string;
   employerId: string;
   candidateId: string;
+  type?: 'PHONE' | 'VIDEO' | 'IN_PERSON' | 'TECHNICAL' | 'HR' | 'FINAL';
   scheduledAt: string;
   duration: number;
   timezone: string;
   meetingProvider?: string;
   meetingUrl?: string;
+  location?: string;
+  instructions?: string;
   notes?: string;
   feedback?: string;
-  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' | 'RESCHEDULED';
   candidate?: {
     fullName: string;
     avatarUrl?: string;
@@ -26,16 +29,20 @@ export interface Interview {
   application?: {
     job: { title: string };
   };
+  feedbackList?: any[];
 }
 
 export const interviewsService = {
   schedule: async (data: {
     applicationId: string;
     scheduledAt: string;
+    type?: string;
     duration?: number;
     timezone?: string;
     meetingProvider?: string;
     meetingUrl?: string;
+    location?: string;
+    instructions?: string;
     notes?: string;
   }) => {
     const res = await api.post('/interviews/schedule', data);
@@ -52,7 +59,7 @@ export const interviewsService = {
     return res.data;
   },
 
-  reschedule: async (id: string, data: { scheduledAt: string; duration?: number; meetingUrl?: string; notes?: string }) => {
+  reschedule: async (id: string, data: { scheduledAt: string; type?: string; duration?: number; meetingUrl?: string; location?: string; instructions?: string; notes?: string }) => {
     const res = await api.patch(`/interviews/${id}/reschedule`, data);
     return res.data;
   },
@@ -64,6 +71,11 @@ export const interviewsService = {
 
   complete: async (id: string, data: { feedback?: string }) => {
     const res = await api.patch(`/interviews/${id}/complete`, data);
+    return res.data;
+  },
+
+  submitFeedback: async (id: string, data: { rating: number; recommendation: string; strengths?: string; concerns?: string; notes?: string }) => {
+    const res = await api.post(`/interviews/${id}/feedback`, data);
     return res.data;
   },
 

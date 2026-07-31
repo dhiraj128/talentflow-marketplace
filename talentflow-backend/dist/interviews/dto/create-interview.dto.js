@@ -11,13 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateInterviewDto = void 0;
 const class_validator_1 = require("class-validator");
+const client_1 = require("@prisma/client");
 class CreateInterviewDto {
     applicationId;
     scheduledAt;
+    type;
     duration;
     timezone;
     meetingProvider;
     meetingUrl;
+    location;
+    instructions;
     notes;
 }
 exports.CreateInterviewDto = CreateInterviewDto;
@@ -31,6 +35,11 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateInterviewDto.prototype, "scheduledAt", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(client_1.InterviewType),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateInterviewDto.prototype, "type", void 0);
 __decorate([
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(15),
@@ -52,6 +61,16 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateInterviewDto.prototype, "meetingUrl", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateInterviewDto.prototype, "location", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateInterviewDto.prototype, "instructions", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),

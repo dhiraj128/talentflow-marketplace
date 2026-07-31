@@ -7,7 +7,9 @@ import {
   IsUrl,
   IsUUID,
   Min,
+  IsEnum,
 } from 'class-validator';
+import { InterviewType } from '@prisma/client';
 
 export class CreateInterviewDto {
   @IsUUID()
@@ -17,6 +19,10 @@ export class CreateInterviewDto {
   @IsDateString()
   @IsNotEmpty()
   scheduledAt: string;
+
+  @IsEnum(InterviewType)
+  @IsOptional()
+  type?: InterviewType;
 
   @IsInt()
   @Min(15)
@@ -34,6 +40,14 @@ export class CreateInterviewDto {
   @IsUrl()
   @IsOptional()
   meetingUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  location?: string;
+
+  @IsString()
+  @IsOptional()
+  instructions?: string;
 
   @IsString()
   @IsOptional()

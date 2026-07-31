@@ -104,4 +104,5 @@ export declare class NotificationsService {
     notifyJobModeration(jobId: string, status: 'PUBLISHED' | 'REJECTED' | 'APPROVED' | 'CLOSED'): Promise<void>;
     notifyCourseModeration(courseId: string, status: 'PUBLISHED' | 'REJECTED' | 'APPROVED'): Promise<void>;
     notifyPasswordReset(userId: string): Promise<void>;
+    notifyOfferEvent(offerId: string, eventType: 'SENT' | 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN'): Promise<void>;
 }

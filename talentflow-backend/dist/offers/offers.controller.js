@@ -13,10 +13,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OffersController = void 0;
-const create_dto_1 = require("./dto/create.dto");
-const update_dto_1 = require("./dto/update.dto");
 const common_1 = require("@nestjs/common");
 const offers_service_1 = require("./offers.service");
+const create_offer_dto_1 = require("./dto/create-offer.dto");
+const update_offer_dto_1 = require("./dto/update-offer.dto");
 const jwt_auth_guard_1 = require("../common/guards/jwt-auth.guard");
 const roles_guard_1 = require("../common/guards/roles.guard");
 const roles_decorator_1 = require("../common/decorators/roles.decorator");
@@ -26,68 +26,125 @@ let OffersController = class OffersController {
     constructor(offersService) {
         this.offersService = offersService;
     }
-    create(createDto) {
-        return this.offersService.create(createDto);
+    create(dto, req) {
+        return this.offersService.create(dto, req.user.id);
     }
-    findAll() {
-        return this.offersService.findAll();
+    findAllByEmployer(req) {
+        return this.offersService.findAllByEmployer(req.user.id);
     }
-    findOne(id) {
-        return this.offersService.findOne(id);
+    findAllByCandidate(req) {
+        return this.offersService.findAllByCandidate(req.user.id);
     }
-    update(id, updateDto) {
-        return this.offersService.update(id, updateDto);
+    findOne(id, req) {
+        return this.offersService.findOne(id, req.user.id, req.user.role);
     }
-    remove(id) {
-        return this.offersService.remove(id);
+    update(id, dto, req) {
+        return this.offersService.update(id, dto, req.user.id);
+    }
+    sendOffer(id, req) {
+        return this.offersService.sendOffer(id, req.user.id);
+    }
+    acceptOffer(id, req) {
+        return this.offersService.acceptOffer(id, req.user.id);
+    }
+    declineOffer(id, body, req) {
+        return this.offersService.declineOffer(id, body?.reason, req.user.id);
+    }
+    withdrawOffer(id, req) {
+        return this.offersService.withdrawOffer(id, req.user.id);
     }
 };
 exports.OffersController = OffersController;
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_dto_1.CreateOffersDto]),
+    __metadata("design:paramtypes", [create_offer_dto_1.CreateOfferDto, Object]),
     __metadata("design:returntype", void 0)
 ], OffersController.prototype, "create", null);
 __decorate([
-    (0, common_1.Get)(),
+    (0, common_1.Get)('employer'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
-], OffersController.prototype, "findAll", null);
+], OffersController.prototype, "findAllByEmployer", null);
+__decorate([
+    (0, common_1.Get)('candidate'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], OffersController.prototype, "findAllByCandidate", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.CANDIDATE, client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], OffersController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_dto_1.UpdateOffersDto]),
+    __metadata("design:paramtypes", [String, update_offer_dto_1.UpdateOfferDto, Object]),
     __metadata("design:returntype", void 0)
 ], OffersController.prototype, "update", null);
 __decorate([
-    (0, common_1.Delete)(':id'),
+    (0, common_1.Post)(':id/send'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
-], OffersController.prototype, "remove", null);
+], OffersController.prototype, "sendOffer", null);
+__decorate([
+    (0, common_1.Post)(':id/accept'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], OffersController.prototype, "acceptOffer", null);
+__decorate([
+    (0, common_1.Post)(':id/decline'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.CANDIDATE, client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], OffersController.prototype, "declineOffer", null);
+__decorate([
+    (0, common_1.Post)(':id/withdraw'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.EMPLOYER, client_1.Role.ADMIN),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], OffersController.prototype, "withdrawOffer", null);
 exports.OffersController = OffersController = __decorate([
     (0, common_1.Controller)('offers'),
     __metadata("design:paramtypes", [offers_service_1.OffersService])
