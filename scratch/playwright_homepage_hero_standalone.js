@@ -32,10 +32,10 @@ function waitForServer(url, timeout = 30000) {
 
 (async () => {
   console.log('================================================================');
-  console.log('TALENTFLOW HOMEPAGE HERO — STANDALONE PLAYWRIGHT RESPONSIVE AUDIT');
+  console.log('TALENTFLOW NAVBAR & HERO — RESPONSIVE MATRIX & OVERFLOW AUDIT');
   console.log('================================================================');
 
-  const PORT = 3011;
+  const PORT = 3012;
   const SERVER_URL = `http://localhost:${PORT}`;
 
   console.log(`Starting production server on port ${PORT}...`);
@@ -60,7 +60,7 @@ function waitForServer(url, timeout = 30000) {
     { width: 390, height: 844, name: '390x844 (Mobile Medium)' },
     { width: 412, height: 915, name: '412x915 (Mobile Large)' },
     { width: 768, height: 1024, name: '768x1024 (Tablet Small)' },
-    { width: 1024, height: 768, name: '1024x768 (Tablet Landscape)' },
+    { width: 820, height: 1180, name: '820x1180 (Tablet Large)' },
     { width: 1280, height: 720, name: '1280x720 (Desktop HD)' },
     { width: 1440, height: 900, name: '1440x900 (Desktop WXGA)' },
     { width: 1920, height: 1080, name: '1920x1080 (Desktop FHD)' },
@@ -107,12 +107,12 @@ function waitForServer(url, timeout = 30000) {
           return document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
         });
 
-        // 4. Verify primary navbar links
+        // 4. Verify primary navbar links & center alignment
         let navOk = false;
         if (vp.width >= 768) {
           navOk = bodyText.includes('Find Jobs') && bodyText.includes('Find Talent');
         } else {
-          // On mobile, check for mobile menu toggle button and open menu to verify links
+          // On mobile, check mobile drawer trigger button
           const menuBtn = page.locator('button.md\\:hidden').first();
           if (await menuBtn.isVisible().catch(() => false)) {
             await menuBtn.click().catch(() => {});
@@ -146,7 +146,7 @@ function waitForServer(url, timeout = 30000) {
   if (server) server.kill();
 
   console.log('================================================================');
-  console.log(`HOMEPAGE HERO AUDIT SUMMARY: ${passCount} PASS, ${failCount} FAIL`);
+  console.log(`NAVBAR & HERO AUDIT SUMMARY: ${passCount} PASS, ${failCount} FAIL`);
   console.log('================================================================');
 
   if (failCount > 0) {

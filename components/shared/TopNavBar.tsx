@@ -155,8 +155,8 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="w-full min-w-0 px-4 flex h-16 items-center justify-between">
-        <div className="flex items-center gap-4 flex-shrink-0">
+      <div className="w-full min-w-0 px-4 flex h-16 items-center justify-between relative">
+        <div className="flex items-center gap-4 flex-shrink-0 z-10">
           {showSidebarToggle && (
             <Button variant="ghost" size="icon" onClick={onMenuClick} className="md:hidden">
               <Menu className="h-5 w-5" />
@@ -169,16 +169,16 @@ export function TopNavBar({ onMenuClick, showSidebarToggle = false }: TopNavBarP
             </div>
             <span className="font-bold text-lg hidden sm:inline-block">TalentFlow</span>
           </Link>
-          
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground ml-6">
-            <Link href="/find-jobs" className="hover:text-foreground transition-colors">Find Jobs</Link>
-            <Link href="/find-freelancers" className="hover:text-foreground transition-colors">Freelancers</Link>
-            <Link href="/find-courses" className="hover:text-foreground transition-colors">Courses</Link>
-            <Link href="/find-talent" className="hover:text-foreground transition-colors">Find Talent</Link>
-          </nav>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground absolute left-1/2 -translate-x-1/2 pointer-events-auto">
+          <Link href="/find-jobs" className="hover:text-foreground transition-colors">Find Jobs</Link>
+          <Link href="/find-freelancers" className="hover:text-foreground transition-colors">Freelancers</Link>
+          <Link href="/find-courses" className="hover:text-foreground transition-colors">Courses</Link>
+          <Link href="/find-talent" className="hover:text-foreground transition-colors">Find Talent</Link>
+        </nav>
+
+        <div className="flex items-center gap-2 flex-shrink-0 z-10">
           {!mounted ? (
             <div className="h-8 w-24 bg-muted/30 rounded-md animate-pulse" />
           ) : !user ? (
