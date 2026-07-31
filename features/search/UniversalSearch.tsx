@@ -12,7 +12,7 @@ import { TrendingSkills } from "./TrendingSkills";
 import React, { useState, useCallback } from "react";
 export const UniversalSearch = React.memo(function UniversalSearch() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<SearchType>('talent');
+  const [activeTab, setActiveTab] = useState<SearchType>('TALENT');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const handleSearch = useCallback((query: string, location?: string) => {
@@ -21,7 +21,8 @@ export const UniversalSearch = React.memo(function UniversalSearch() {
       ...(location && { location }),
     });
     
-    const route = `/find-${activeTab}`;
+    const tabStr = String(activeTab).toLowerCase();
+    const route = tabStr === 'job' || tabStr === 'jobs' ? '/find-jobs' : `/find-${tabStr}`;
     router.push(`${route}?${params.toString()}`);
   }, [activeTab, router]);
 

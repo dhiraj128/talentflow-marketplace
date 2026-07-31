@@ -14,10 +14,10 @@ export const SearchTabs = React.memo(function SearchTabs({ activeTab, onTabChang
     <div className="flex justify-center mb-6">
       <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as SearchType)} className="w-full max-w-[500px]">
         <TabsList className="grid w-full grid-cols-4 bg-secondary/50">
-          <TabsTrigger value="talent">Find Talent</TabsTrigger>
-          <TabsTrigger value="jobs">Find Jobs</TabsTrigger>
-          <TabsTrigger value="freelancers">Find Freelancers</TabsTrigger>
-          <TabsTrigger value="courses">Find Courses</TabsTrigger>
+          <TabsTrigger value="TALENT">Find Talent</TabsTrigger>
+          <TabsTrigger value="JOB">Find Jobs</TabsTrigger>
+          <TabsTrigger value="FREELANCER">Find Freelancers</TabsTrigger>
+          <TabsTrigger value="COURSE">Find Courses</TabsTrigger>
         </TabsList>
       </Tabs>
     </div>
