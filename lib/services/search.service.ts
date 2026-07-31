@@ -33,6 +33,11 @@ export const searchService = {
     return response.data?.data || response.data || [];
   },
 
+  getTrendingSkills: async () => {
+    const response = await api.get('/search-analytics/popular?type=JOB').catch(() => ({ data: [] }));
+    return response.data?.data || response.data || ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'Python', 'AWS'];
+  },
+
   getSuggestions: async (query: string, type?: SearchType, signal?: AbortSignal) => {
     if (!query || query.trim().length === 0) return [];
     const params = new URLSearchParams({ q: query, type: type || 'JOB' });

@@ -13,7 +13,7 @@ interface TrendingSkillsProps {
 
 export const TrendingSkills = React.memo(function TrendingSkills({ type, onSelect }: TrendingSkillsProps) {
   // Only show trending skills for Talent and Jobs
-  const shouldShow = type === 'talent' || type === 'jobs';
+  const shouldShow = type === 'TALENT' || type === 'JOB' || (type as any) === 'talent' || (type as any) === 'jobs';
 
   const { data: trendingSkills, isLoading } = useQuery({
     queryKey: ['search', 'trending'],
@@ -21,12 +21,12 @@ export const TrendingSkills = React.memo(function TrendingSkills({ type, onSelec
     enabled: shouldShow,
   });
 
-  if (!shouldShow || isLoading || !trendingSkills || trendingSkills.length === 0) return null;
+  if (!shouldShow || isLoading || !trendingSkills || (trendingSkills as string[]).length === 0) return null;
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 mt-8 text-sm text-muted-foreground opacity-80">
       <span className="font-medium flex items-center gap-1"><TrendingUp className="h-4 w-4" /> Trending Skills:</span>
-      {trendingSkills.map((term) => (
+      {(trendingSkills as string[]).map((term: string) => (
         <span
           key={term}
           className="cursor-pointer hover:text-primary transition-colors hover:underline underline-offset-4"
