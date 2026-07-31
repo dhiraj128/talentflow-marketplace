@@ -25,17 +25,24 @@ let MessagesController = class MessagesController {
     constructor(messagesService) {
         this.messagesService = messagesService;
     }
-    getConversations(userId, user) {
-        return this.messagesService.getConversations(userId, user);
+    getConversations(queryUserId, user) {
+        const targetUserId = queryUserId || user.sub || user.userId;
+        return this.messagesService.getConversations(targetUserId, user);
     }
     createConversation(data, user) {
-        return this.messagesService.createConversation(data.participant1Id, data.participant2Id, user);
+        return this.messagesService.createConversation(data, user);
+    }
+    getUnreadCount(user) {
+        return this.messagesService.getUnreadCount(user);
     }
     getMessages(conversationId, user) {
         return this.messagesService.getMessages(conversationId, user);
     }
+    archiveConversation(conversationId, user) {
+        return this.messagesService.archiveConversation(conversationId, user);
+    }
     sendMessage(data, user) {
-        return this.messagesService.sendMessage(data.conversationId, data.senderId, data.content, user);
+        return this.messagesService.sendMessage(data, user);
     }
     markAsRead(id, user) {
         return this.messagesService.markAsRead(id, user);
@@ -61,6 +68,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MessagesController.prototype, "createConversation", null);
 __decorate([
+    (0, common_1.Get)('unread-count'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], MessagesController.prototype, "getUnreadCount", null);
+__decorate([
     (0, common_1.Get)('conversations/:id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id')),
@@ -69,6 +84,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], MessagesController.prototype, "getMessages", null);
+__decorate([
+    (0, common_1.Patch)('conversations/:id/archive'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], MessagesController.prototype, "archiveConversation", null);
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
@@ -88,7 +112,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MessagesController.prototype, "markAsRead", null);
 exports.MessagesController = MessagesController = __decorate([
-    (0, swagger_1.ApiTags)('messages'),
     (0, swagger_1.ApiTags)('messages'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.Controller)('messages'),

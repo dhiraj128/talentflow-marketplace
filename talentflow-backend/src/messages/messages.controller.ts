@@ -13,12 +13,8 @@ import {
 import { MessagesService } from './messages.service';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { Role } from "@prisma/client";
-import { Roles } from "../common/decorators/roles.decorator";
-import { RolesGuard } from "../common/guards/roles.guard";
-import { CurrentUser } from "../common/decorators/current-user.decorator";
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
-@ApiTags('messages')
 @ApiTags('messages')
 @ApiBearerAuth()
 @Controller('messages')
@@ -26,40 +22,44 @@ export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
   @Get('conversations')
-    @UseGuards(JwtAuthGuard)
-  getConversations(@Query('userId') userId: string, @CurrentUser() user: any) {
-    return this.messagesService.getConversations(userId, user);
+  @UseGuards(JwtAuthGuard)
+  getConversations(@Query('userId') queryUserId: string, @CurrentUser() user: any) {
+    const targetUserId = queryUserId || user.sub || user.userId;
+    return this.messagesService.getConversations(targetUserId, user);
   }
 
   @Post('conversations')
-    @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   createConversation(@Body() data: CreateConversationDto, @CurrentUser() user: any) {
-    return this.messagesService.createConversation(
-      data.participant1Id,
-      data.participant2Id,
-      user
-    );
+    return this.messagesService.createConversation(data, user);
+  }
+
+  @Get('unread-count')
+  @UseGuards(JwtAuthGuard)
+  getUnreadCount(@CurrentUser() user: any) {
+    return this.messagesService.getUnreadCount(user);
   }
 
   @Get('conversations/:id')
-    @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   getMessages(@Param('id') conversationId: string, @CurrentUser() user: any) {
     return this.messagesService.getMessages(conversationId, user);
   }
 
+  @Patch('conversations/:id/archive')
+  @UseGuards(JwtAuthGuard)
+  archiveConversation(@Param('id') conversationId: string, @CurrentUser() user: any) {
+    return this.messagesService.archiveConversation(conversationId, user);
+  }
+
   @Post()
-    @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   sendMessage(@Body() data: SendMessageDto, @CurrentUser() user: any) {
-    return this.messagesService.sendMessage(
-      data.conversationId,
-      data.senderId,
-      data.content,
-      user
-    );
+    return this.messagesService.sendMessage(data, user);
   }
 
   @Patch(':id/read')
-    @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   markAsRead(@Param('id') id: string, @CurrentUser() user: any) {
     return this.messagesService.markAsRead(id, user);
   }

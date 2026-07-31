@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { redactSensitiveData } from '../utils/redact.util';
 
 export interface RequestWithCorrelation extends Request {
@@ -20,7 +20,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     const requestId =
       incomingRequestId && incomingRequestId.trim().length > 0
         ? incomingRequestId.trim()
-        : `req-${uuidv4()}`;
+        : `req-${randomUUID()}`;
 
     req.id = requestId;
     req.headers['x-request-id'] = requestId;

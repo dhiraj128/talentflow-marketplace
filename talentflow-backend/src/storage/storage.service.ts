@@ -4,7 +4,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import * as path from 'path';
 
 export interface UploadedFile {
@@ -86,7 +86,7 @@ export class S3StorageService extends AbstractStorageService {
   ): Promise<StorageResult> {
     try {
       const extension = path.extname(file.originalname || file.filename);
-      const uniqueName = `${uuidv4()}${extension}`;
+      const uniqueName = `${randomUUID()}${extension}`;
 
       let key = `${folder}/${uniqueName}`;
       if (candidateId) {
@@ -167,7 +167,7 @@ export class LocalStorageService extends AbstractStorageService {
     try {
       const fs = await import('fs/promises');
       const extension = path.extname(file.originalname || file.filename);
-      const uniqueName = `${uuidv4()}${extension}`;
+      const uniqueName = `${randomUUID()}${extension}`;
 
       let key = `${folder}/${uniqueName}`;
       if (candidateId) {

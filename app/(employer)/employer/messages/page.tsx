@@ -31,8 +31,8 @@ export default function MessagesPage() {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !activeConversation || !user) return;
     try {
-      const msg = await messageService.sendMessage(activeConversation.id, user.id, newMessage);
-      setMessages([...messages, msg]);
+      const msg = await messageService.sendMessage({ conversationId: activeConversation.id, content: newMessage });
+      setMessages((prev) => [...prev, msg]);
       setNewMessage("");
     } catch (e) {
       console.error(e);

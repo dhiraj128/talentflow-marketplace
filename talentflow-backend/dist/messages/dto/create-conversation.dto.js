@@ -14,6 +14,11 @@ const class_validator_1 = require("class-validator");
 class CreateConversationDto {
     participant1Id;
     participant2Id;
+    applicationId;
+    jobId;
+    candidateInvitationId;
+    interviewId;
+    offerId;
 }
 exports.CreateConversationDto = CreateConversationDto;
 __decorate([
@@ -26,4 +31,29 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateConversationDto.prototype, "participant2Id", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateConversationDto.prototype, "applicationId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateConversationDto.prototype, "jobId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateConversationDto.prototype, "candidateInvitationId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateConversationDto.prototype, "interviewId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateConversationDto.prototype, "offerId", void 0);
 //# sourceMappingURL=create-conversation.dto.js.map

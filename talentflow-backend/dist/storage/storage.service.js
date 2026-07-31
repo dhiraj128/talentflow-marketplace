@@ -45,7 +45,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LocalStorageService = exports.S3StorageService = exports.AbstractStorageService = void 0;
 const common_1 = require("@nestjs/common");
 const client_s3_1 = require("@aws-sdk/client-s3");
-const uuid_1 = require("uuid");
+const crypto_1 = require("crypto");
 const path = __importStar(require("path"));
 class AbstractStorageService {
 }
@@ -84,7 +84,7 @@ let S3StorageService = class S3StorageService extends AbstractStorageService {
     async uploadFile(file, folder = 'resumes', candidateId) {
         try {
             const extension = path.extname(file.originalname || file.filename);
-            const uniqueName = `${(0, uuid_1.v4)()}${extension}`;
+            const uniqueName = `${(0, crypto_1.randomUUID)()}${extension}`;
             let key = `${folder}/${uniqueName}`;
             if (candidateId) {
                 key = `${folder}/${candidateId}/${uniqueName}`;
@@ -153,7 +153,7 @@ let LocalStorageService = class LocalStorageService extends AbstractStorageServi
         try {
             const fs = await import('fs/promises');
             const extension = path.extname(file.originalname || file.filename);
-            const uniqueName = `${(0, uuid_1.v4)()}${extension}`;
+            const uniqueName = `${(0, crypto_1.randomUUID)()}${extension}`;
             let key = `${folder}/${uniqueName}`;
             if (candidateId) {
                 key = `${folder}/${candidateId}/${uniqueName}`;

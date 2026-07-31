@@ -13,8 +13,10 @@ exports.SendMessageDto = void 0;
 const class_validator_1 = require("class-validator");
 class SendMessageDto {
     conversationId;
-    senderId;
     content;
+    storageKey;
+    fileName;
+    mimeType;
 }
 exports.SendMessageDto = SendMessageDto;
 __decorate([
@@ -23,13 +25,24 @@ __decorate([
     __metadata("design:type", String)
 ], SendMessageDto.prototype, "conversationId", void 0);
 __decorate([
-    (0, class_validator_1.IsUUID)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], SendMessageDto.prototype, "senderId", void 0);
-__decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.MaxLength)(5000, { message: 'Message content cannot exceed 5000 characters' }),
     __metadata("design:type", String)
 ], SendMessageDto.prototype, "content", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SendMessageDto.prototype, "storageKey", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SendMessageDto.prototype, "fileName", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SendMessageDto.prototype, "mimeType", void 0);
 //# sourceMappingURL=send-message.dto.js.map

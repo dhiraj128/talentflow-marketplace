@@ -11,14 +11,17 @@ const common_1 = require("@nestjs/common");
 const messages_service_1 = require("./messages.service");
 const messages_controller_1 = require("./messages.controller");
 const prisma_module_1 = require("../prisma/prisma.module");
+const notifications_module_1 = require("../notifications/notifications.module");
+const storage_module_1 = require("../storage/storage.module");
 let MessagesModule = class MessagesModule {
 };
 exports.MessagesModule = MessagesModule;
 exports.MessagesModule = MessagesModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule],
+        imports: [prisma_module_1.PrismaModule, notifications_module_1.NotificationsModule, storage_module_1.StorageModule],
         controllers: [messages_controller_1.MessagesController],
         providers: [messages_service_1.MessagesService],
+        exports: [messages_service_1.MessagesService],
     })
 ], MessagesModule);
 //# sourceMappingURL=messages.module.js.map
